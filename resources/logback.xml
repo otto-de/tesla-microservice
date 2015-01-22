@@ -1,0 +1,37 @@
+<configuration>
+    <contextName>tesla</contextName>
+
+    <conversionRule conversionWord="mescaped"
+                    converterClass="de.otto.tesla.util.escapingmessageconverter" />
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <append>true</append>
+        <encoder>
+            <pattern>%d{ISO8601} %-5p logger=%c thread=%t msg="%mescaped"%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="fileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_location}/de.otto.tesla.log</file>
+        <append>true</append>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log_location}/de.otto.tesla.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
+
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+
+        <encoder>
+            <pattern>%d{ISO8601} %-5p logger=%c thread=%t  msg="%mescaped"%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${log_level:-info}">
+        <appender-ref ref="${log_appender:-consoleAppender}"/>
+    </root>
+
+</configuration>
