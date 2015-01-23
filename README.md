@@ -44,7 +44,7 @@ So you will notice, that after the uppercasing of 10 Strings, the status of the 
 
 ## Initial Contributors
 
-Christian Stamm, Felix Bechstein, Ralf Siegmund, Kai Brandes, Florian Weyand
+Christian Stamm, Felix Bechstein, Ralf Sigmund, Kai Brandes, Florian Weyandt
 
 ## License
 Apache License
