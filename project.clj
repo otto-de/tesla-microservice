@@ -1,6 +1,6 @@
-(defproject de.otto.tesla/tesla-microservice "0.1"
+(defproject de.otto/tesla-microservice "0.1"
             :description "basic microservice."
-            :url "http://dev.otto.de"
+            :url "https://github.com/otto-de/tesla-microservice"
 
             :dependencies [[org.clojure/clojure "1.6.0"]
                            [com.stuartsierra/component "0.2.2"]
