@@ -13,7 +13,8 @@
       (assoc :calculator
              (c/using (calculating/new-calculator example-calculation-function) [:metering :app-status]))
       (assoc :example-page
-             (c/using (example-page/new-example-page) [:routes :calculator :app-status]))))
+             (c/using (example-page/new-example-page) [:routes :calculator :app-status]))
+      (c/system-using {:server [:example-page]})))
 
 (defn -main
   "starts up the production system."
