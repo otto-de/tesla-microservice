@@ -15,6 +15,16 @@ This is the common basis for some of otto.de's microservices. It is written in c
 
 The basis included is stripped to the very minimum. More features like access to mongodb, redis, zookeeper, etc. will be released at a later time as separate addons.
 
+
+
+## Usage
+
+Add this tpo your project dependencies:
+
+`[de.otto/tesla-microservice "0.1"]`
+
+See the included example on how to use it.
+
 ## Example
 
 Clone the repo. Start the example microservice with
@@ -38,7 +48,6 @@ So you will notice, that after the uppercasing of 10 Strings, the status of the 
 
 ## TODO
 
-* release to clojars
 * extend documentation
 * add one or the other test
 
