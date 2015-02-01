@@ -27,7 +27,7 @@
 (defn prefix [config]
   (str (:graphite-prefix config) "." (hostname)))
 
-(defn start-graphite! [registry config]
+(defn- start-graphite! [registry config]
   (let [reporter (graphite/reporter registry
                                     {:host          (:graphite-host config)
                                      :port          (Integer. (:graphite-port config))
@@ -39,21 +39,23 @@
     (graphite/start reporter (Integer/parseInt (:graphite-interval-seconds config)))
     reporter))
 
-(defn start-console! [registry config]
+(defn- start-console! [registry config]
   (let [reporter (console/reporter registry {})]
     (log/info "-> starting console reporter.")
     (console/start reporter (Integer/parseInt (:console-interval-seconds config)))
     reporter))
 
-;; Configures a graphite reporter as configured.
-(defn start-reporter! [registry config]
-  (let [reporter-type (:metering-reporter config)]
-    (case reporter-type
-      "graphite" (start-graphite! registry config)
-      "console" (start-console! registry config))))
+(defn- start-reporter! [registry config]
+  (case (:metering-reporter config)
+    "graphite" (start-graphite! registry config)
+    "console" (start-console! registry config)))
+
+(defprotocol PubMetering
+  (timer! [self name])
+  (counter! [self name]))
 
 ;; Initialises a metrics-registry and a graphite reporter.
-(defrecord Metering [config]
+(defrecord Metering [config] PubMetering
   component/Lifecycle
   (start [self]
     (log/info "-> starting metering.")
@@ -66,15 +68,12 @@
   (stop [self]
     (log/info "<- stopping metering")
     (.stop (:reporter self))
-    self))
-
-;; creates a timer. That can be kept and used later.
-(defn timer! [self name]
-  (timers/timer (:registry self) name))
-
-;; dito
-(defn counter! [self name]
-  (counters/counter (:registry self) name))
+    self)
+  PubMetering
+  (timer! [self name]
+    (timers/timer (:registry self) name))
+  (counter! [self name]
+    (counters/counter (:registry self) name)))
 
 ;; dito
 (defn gauge! [self gauge-callback-fn name]
