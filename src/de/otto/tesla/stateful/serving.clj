@@ -11,7 +11,7 @@
   component/Lifecycle
   (start [self]
     (log/info "-> starting server")
-    (let [port (Integer. (:server-port (:config (:config self))))
+    (let [port (Integer. (get-in self [:config :config :server-port]))
           all-routes (rts/routes (:routes self))
           server (jetty/run-jetty all-routes {:port port :join? false})]
       (.setGracefulShutdown server 100)

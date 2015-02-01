@@ -7,15 +7,14 @@
             [metrics.timers :as timers]))
 
 ;; read out the number of calculations so far.
-(defn calculations [self] (deref (:calculations self)))
+(defn calculations [self] @(:calculations self))
 
 ;; status turns warning after 10 calculations. Because license expired.
 (defn status-fun
   [self]
-  (let [calcs (calculations self)]
-    (if (< calcs 10)
-      (s/status-detail :calculator :ok "less than 10 calculations performed")
-      (s/status-detail :calculator :warning "more than 10 calculations perormed. Renew license."))))
+  (if (> 10 (calculations self))
+    (s/status-detail :calculator :ok "less than 10 calculations performed")
+    (s/status-detail :calculator :warning "more than 10 calculations perormed. Renew license.")))
 
 ;; The Calculator-Component is a example implementation for demonstration purposes
 ;; right now. It is intended to perform expensive Calculations and can be used
@@ -33,8 +32,7 @@
             :fun fun)]
       (app-status/register-status-fun (:app-status new-self)
                                       (partial status-fun new-self))
-      new-self
-      ))
+      new-self))
 
   (stop [self]
     (log/info "<- stopping example calculator.")

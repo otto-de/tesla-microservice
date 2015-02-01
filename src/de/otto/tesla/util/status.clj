@@ -1,40 +1,19 @@
 (ns de.otto.tesla.util.status)
 
-(defonce score {:ok      0
+(defonce scores {:ok      0
                 :warning 1
                 :error   2})
 
-(defn better-of-two [s1 s2]
-  (if (> (s1 score) (s2 score))
-    s2
-    s1))
+(defn aggregate-forgiving [msgs a-map]
+  (let [best (apply min-key scores (map :status (vals a-map)))
+        score (if (= :ok best) :ok :error)]
+    (assoc {:status score :message (score msgs)}
+           :statusDetails a-map)))
 
-(defn best-status [list]
-  (reduce better-of-two list))
-
-(defn worse-of-two [s1 s2]
-  (if (< (s1 score) (s2 score))
-    s2
-    s1))
-
-(defn worst-status [list]
-  (reduce worse-of-two list))
-
-(defn aggregate-forgiving [ok-msg err-msg a-map]
-  (let [best (best-status (map :status (vals a-map)))
-        result (if (= best :ok)
-                 {:status :ok :message ok-msg}
-                 {:status :error :message err-msg})]
-    (assoc result :statusDetails a-map)))
-
-(defn aggregate-strictly [ok-msg warn-msg err-msg a-map]
-  (let [worst (worst-status (map :status (vals a-map)))
-        result (if (= worst :ok)
-                 {:status :ok :message ok-msg}
-                 (if (= worst :warning)
-                   {:status :warning :message warn-msg}
-                   {:status :error :message err-msg}))]
-    (assoc result :statusDetails a-map)))
+(defn aggregate-strictly [msgs a-map]
+  (let [worst (apply max-key scores (map :status (vals a-map)))]
+    (assoc {:status worst :message (worst msgs)}
+           :statusDetails a-map)))
 
 (defn status-detail
   ([id status message]
@@ -43,10 +22,10 @@
     {id (assoc extras :status status :message message)}))
 
 (defn forgiving-strategy [list]
-  (aggregate-forgiving "at least one ok" "none ok" list))
+  (aggregate-forgiving {:ok "at least one ok" :error "none ok"} list))
 
 (defn strict-strategy [list]
-  (aggregate-strictly "all ok" "some warnings" "none ok" list))
+  (aggregate-strictly {:ok "all ok" :warnings "some warnings" :error "none ok"} list))
 
 (defn aggregate-status
   ([id strategy funs] (aggregate-status id strategy funs {}))
