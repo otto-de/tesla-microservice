@@ -11,7 +11,6 @@
             [de.otto.tesla.stateful.routes :as routes]
             [clojure.data.json :as json :only [write-str]]))
 
-
 (defn stop [system]
   (log/info "<- stopping system")
   (beckon/reinit-all!)
@@ -20,8 +19,8 @@
 
 (defn start-system [system]
   (let [system (c/start system)] 
-      (doseq [sig ["INT" "TERM"]]
-        (reset! (beckon/signal-atom sig) #{(partial stop system)}))))
+    (doseq [sig ["INT" "TERM"]]
+      (reset! (beckon/signal-atom sig) #{(partial stop system)}))))
 
 (defn empty-system [runtime-config]
   (c/system-map
