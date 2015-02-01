@@ -11,7 +11,6 @@
             [de.otto.tesla.stateful.routes :as routes]
             [clojure.data.json :as json :only [write-str]]))
 
-
 (defn stop [system]
   (log/info "<- stopping system")
   (beckon/reinit-all!)
