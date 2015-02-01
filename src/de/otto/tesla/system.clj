@@ -11,7 +11,6 @@
             [de.otto.tesla.stateful.routes :as routes]
             [clojure.data.json :as json :only [write-str]]))
 
-
 (defn stop [system]
   (log/info "<- stopping system")
   (beckon/reinit-all!)
@@ -19,16 +18,16 @@
   (log/info "<- system stopped"))
 
 (defn start-system [system]
-  (let [system (c/start system)]
-    (reset! (beckon/signal-atom "INT") #{(partial stop system)})
-    (reset! (beckon/signal-atom "TERM") #{(partial stop system)})))
+  (let [system (c/start system)] 
+    (doseq [sig ["INT" "TERM"]]
+      (reset! (beckon/signal-atom sig) #{(partial stop system)}))))
 
 (defn empty-system [runtime-config]
-  (-> (c/system-map
-        :keep-alive (keep-alive/new-keep-alive)
-        :routes (routes/new-routes)
-        :config (c/using (configuring/new-config runtime-config) [:keep-alive])
-          :metering (c/using (metering/new-metering) [:config])
-        :app-status (c/using (app-status/new-app-status) [:config :routes])
-        :server (c/using (serving/new-server) [:config :routes]))))
+  (c/system-map
+   :keep-alive (keep-alive/new-keep-alive)
+   :routes (routes/new-routes)
+   :config (c/using (configuring/new-config runtime-config) [:keep-alive])
+   :metering (c/using (metering/new-metering) [:config])
+   :app-status (c/using (app-status/new-app-status) [:config :routes])
+   :server (c/using (serving/new-server) [:config :routes])))
 

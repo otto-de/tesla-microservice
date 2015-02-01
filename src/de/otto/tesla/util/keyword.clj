@@ -13,7 +13,4 @@
        (map (fn [[k v]] [(keywordize k) v]))
        (into {})))
 
-
-;; Convert a map from string keys to keyword keys.
-(defn keywordize-keys [m]
-  (map (fn [[k v]] [(keyword k) v]) m))
+;; removed keywordize-keys, provided by clojure.walk/keywordize-keys
