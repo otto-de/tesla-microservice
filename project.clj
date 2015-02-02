@@ -16,6 +16,8 @@
                            [environ "1.0.0"]
                            [clj-time "0.8.0"]
 
+                           [de.otto/status "0.1.0"]
+
                            ;; io
                            [ring "1.3.1"]
                            [compojure "1.2.0"]

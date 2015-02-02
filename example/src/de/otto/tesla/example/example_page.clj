@@ -2,7 +2,7 @@
   (:require
     [com.stuartsierra.component :as c]
     [de.otto.tesla.stateful.routes :as routes]
-    [de.otto.tesla.util.status :as status]
+    [de.otto.status :as status]
     [de.otto.tesla.stateful.app-status :as app-status]
     [de.otto.tesla.example.calculating :as calculating]
     [compojure.core :as compojure]

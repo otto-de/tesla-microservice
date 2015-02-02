@@ -3,7 +3,7 @@
             [de.otto.tesla.stateful.metering :as metering]
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.app-status :as app-status]
-            [de.otto.tesla.util.status :as s]
+            [de.otto.status :as s]
             [metrics.timers :as timers]))
 
 ;; read out the number of calculations so far.

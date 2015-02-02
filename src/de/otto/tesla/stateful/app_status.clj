@@ -7,7 +7,7 @@
             [clj-time.local :as local-time]
             [environ.core :as env]
             [de.otto.tesla.stateful.routes :as handlers]
-            [de.otto.tesla.util.status :as s]))
+            [de.otto.status :as s]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
