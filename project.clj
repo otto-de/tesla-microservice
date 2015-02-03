@@ -58,5 +58,6 @@
                                     :import-products   "false"
                                     :server-port       "9991"
                                     :cache-dir         "/tmp"}}
-                       :meta {:env {:app-name :tesla-meta}}}
+                       :meta {:env {:app-name :tesla-meta}}
+                       :uberjar {:aot :all}}
             :test-paths ["test" "test-resources" "example/test"])
