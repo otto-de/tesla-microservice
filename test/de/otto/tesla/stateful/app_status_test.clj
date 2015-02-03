@@ -9,7 +9,9 @@
             [clojure.data.json :as json]
             [clojure.tools.logging :as log]
             [de.otto.tesla.util.test-utils :as u]
-            [de.otto.tesla.system :as system]))
+            [de.otto.tesla.system :as system]
+            [de.otto.tesla.stateful.routes :as rts]
+            [ring.mock.request :as mock]))
 
 (defn- test-system [runtime-config]
   (dissoc
@@ -26,12 +28,12 @@
 
 (deftest ^:unit should-have-system-status-for-env-config
   (with-redefs-fn {#'env/env {:host-name "foo" :host-port "1234"}}
-                  #(u/with-started [system (test-system {})]
-                                   (let [status (:app-status system)
-                                         system-status (:system (app-status/status-response-body status))]
-                                     (is (= (:hostname system-status) "foo"))
-                                     (is (= (:port system-status) "1234"))
-                                     (is (not (nil? (:systemTime system-status))))))))
+    #(u/with-started [system (test-system {})]
+                     (let [status (:app-status system)
+                           system-status (:system (app-status/status-response-body status))]
+                       (is (= (:hostname system-status) "foo"))
+                       (is (= (:port system-status) "1234"))
+                       (is (not (nil? (:systemTime system-status))))))))
 
 (deftest ^:unit should-sanitize-passwords
   (is (= (app-status/sanitize {:somerandomstuff                        "not-so-secret"
@@ -50,14 +52,14 @@
     self))
 
 (defn- mock-status-system [response]
-  (-> (c/system-map
-        :config (configuring/new-config {})
-        :metering (c/using
-                    (metering/new-metering)
-                    [:config])
-        :routes (routes/new-routes)
-        :app-status (c/using (app-status/new-app-status) [:config :routes])
-        :mock-status (c/using (map->MockStatusSource {:response response}) [:app-status]))))
+  (c/system-map
+    :config (configuring/new-config {})
+    :metering (c/using
+                (metering/new-metering)
+                [:config])
+    :routes (routes/new-routes)
+    :app-status (c/using (app-status/new-app-status) [:config :routes])
+    :mock-status (c/using (map->MockStatusSource {:response response}) [:app-status])))
 
 
 (deftest ^:unit should-show-applicationstatus
@@ -82,3 +84,39 @@
                         page (app-status/status-response status)
                         applicationStatus (get (get (json/read-str (:body page)) "application") "status")]
                     (is (= applicationStatus "WARNING")))))
+
+(deftest ^:integration should-serve-health-under-configured-url
+  (testing "use the default url"
+    (u/with-started [started (system/empty-system {})]
+                    (let [handlers (rts/routes (:routes started))]
+                      (is (= (handlers (mock/request :get "/health"))
+                             {:body    "HEALTHY"
+                              :headers {"Content-Type" "text/plain"}
+                              :status  200})))))
+
+  (testing "use the configuration url"
+    (u/with-started [started (system/empty-system {:health-url "/my-health"})]
+                    (let [handlers (rts/routes (:routes started))]
+                      (is (= (handlers (mock/request :get "/my-health"))
+                             {:body    "HEALTHY"
+                              :headers {"Content-Type" "text/plain"}
+                              :status  200}))))))
+
+(deftest ^:integration should-serve-status-under-configured-url
+  (testing "use the default url"
+    (u/with-started [started (system/empty-system {})]
+                    (let [handlers (rts/routes (:routes started))]
+                      (is (= (:status (handlers (mock/request :get "/status")))
+                             200)))))
+
+  (testing "use the configuration url"
+    (u/with-started [started (system/empty-system {:status-url "/my-status"})]
+                    (let [handlers (rts/routes (:routes started))]
+                      (is (= (:status (handlers (mock/request :get "/my-status")))
+                             200)))))
+
+  (testing "default should be overridden"
+    (u/with-started [started (system/empty-system {:status-url "/my-status"})]
+                    (let [handlers (rts/routes (:routes started))]
+                      (is (= (handlers (mock/request :get "/status"))
+                             nil))))))

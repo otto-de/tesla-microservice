@@ -88,9 +88,9 @@
 
 (defn handlers
   [self]
-  [(c/GET "/status" [_]
+  [(c/GET (get-in self [:config :config :status-url] "/status")  [_]
           (status-response self))
-   (c/GET "/health" [_]
+   (c/GET (get-in self [:config :config :health-url] "/health") [_]
           (health-response self))])
 
 

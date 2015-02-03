@@ -24,11 +24,11 @@
     (reset! (beckon/signal-atom "TERM") #{(partial stop system)})))
 
 (defn empty-system [runtime-config]
-  (-> (c/system-map
-        :keep-alive (keep-alive/new-keep-alive)
-        :routes (routes/new-routes)
-        :config (c/using (configuring/new-config runtime-config) [:keep-alive])
-          :metering (c/using (metering/new-metering) [:config])
-        :app-status (c/using (app-status/new-app-status) [:config :routes])
-        :server (c/using (serving/new-server) [:config :routes]))))
+  (c/system-map
+    :keep-alive (keep-alive/new-keep-alive)
+    :routes (routes/new-routes)
+    :config (c/using (configuring/new-config runtime-config) [:keep-alive])
+    :metering (c/using (metering/new-metering) [:config])
+    :app-status (c/using (app-status/new-app-status) [:config :routes])
+    :server (c/using (serving/new-server) [:config :routes])))
 
