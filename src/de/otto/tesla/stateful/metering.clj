@@ -4,6 +4,7 @@
     [metrics.core :as metrics]
     [metrics.timers :as timers]
     [metrics.counters :as counters]
+    [metrics.gauges :as gauges]
     [metrics.reporters.graphite :as graphite]
     [metrics.reporters.console :as console]
     [clojure.tools.logging :as log])
@@ -74,5 +75,10 @@
 ;; dito
 (defn counter! [self name]
   (counters/counter (:registry self) name))
+
+;; dito
+(defn gauge! [self gauge-callback-fn name]
+     (gauges/gauge-fn (:registry self) name gauge-callback-fn))
+
 
 (defn new-metering [] (map->Metering {}))
