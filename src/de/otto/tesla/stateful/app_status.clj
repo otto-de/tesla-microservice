@@ -54,7 +54,8 @@
 (defn create-complete-status [self]
   (let [config (:config (:config self))
         version-info (:version (:config self))
-        extra-info {:version       (:version version-info)
+        extra-info {:name          (:name config)
+                    :version       (:version version-info)
                     :git           (:commit version-info)
                     :configuration (sanitize config ["passwd" "pwd"])}]
     (assoc

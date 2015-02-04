@@ -9,7 +9,7 @@
   (.toUpperCase input))
 
 (defn example-system [runtime-config]
-  (-> (system/empty-system runtime-config)
+  (-> (system/empty-system (merge {:name "example-service"} runtime-config))
       (assoc :calculator
              (c/using (calculating/new-calculator example-calculation-function) [:metering :app-status]))
       (assoc :example-page
