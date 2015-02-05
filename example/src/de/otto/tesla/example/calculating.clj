@@ -6,16 +6,16 @@
             [de.otto.status :as s]
             [metrics.timers :as timers]))
 
-;; read out the number of calculations so far.
-(defn calculations [self] (deref (:calculations self)))
-
 ;; status turns warning after 10 calculations. Because license expired.
-(defn status-fun
-  [self]
-  (let [calcs (calculations self)]
-    (if (< calcs 10)
-      (s/status-detail :calculator :ok "less than 10 calculations performed")
-      (s/status-detail :calculator :warning "more than 10 calculations perormed. Renew license."))))
+(defn- status-fun
+  [calculations]
+  (if (> 10 @calculations)
+    (s/status-detail :calculator :ok "less than 10 calculations performed")
+    (s/status-detail :calculator :warning "more than 10 calculations perormed. Renew license.")))
+
+(defprotocol PubCalculator
+  (calculations [self])
+  (calculate! [self input]))
 
 ;; The Calculator-Component is a example implementation for demonstration purposes
 ;; right now. It is intended to perform expensive Calculations and can be used
@@ -32,22 +32,18 @@
             :calculations (atom 0)
             :fun fun)]
       (app-status/register-status-fun (:app-status new-self)
-                                      (partial status-fun new-self))
-      new-self
-      ))
+                                      (partial status-fun (:calculations new-self)))
+      new-self))
 
   (stop [self]
     (log/info "<- stopping example calculator.")
     (reset! (:calculations self) 0)
-    self))
-
-(defn calculate!
-  "Increase the calculations counter and
-  apply the given calculation function."
-  [self input]
-  (timers/time! (:timer self)
-                (swap! (:calculations self) inc)
-                ((:fun self) input)))
-
+    self)
+  PubCalculator
+  (calculations [self] @(:calculations self))
+  (calculate! [self input]
+    (timers/time! (:timer self)
+                  (swap! (:calculations self) inc)
+                  ((:fun self) input))))
 
 (defn new-calculator [fun] (map->Calculator {:fun fun}))
