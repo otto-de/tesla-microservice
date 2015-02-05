@@ -7,31 +7,21 @@
             [de.otto.tesla.util.keyword :as kwutil]
             [environ.core :as env :only [env]]))
 
-(defn- load-properties-from-resource! [resource]
+(defn- load-properties-from-resource [resource]
   (kwutil/sanitize-keywords
     (p/properties->map
       (p/load-from resource) false)))
 
-;; Loading files from classpath works differently ...
-(defn- load-properties-from-classpath! [filename]
-  (let [resource (io/resource filename)]
-    (if (not (nil? resource))
-      (load-properties-from-resource! resource)
-      {})))
-
-;; ... than loading files from filesystem.
-(defn- load-properties-from-file! [filename]
-  (let [file (io/file filename)]
-    (if (.exists file)
-      (load-properties-from-resource! file)
-      {})))
+(defn- load-properties [name & type]
+  (cond
+    (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))
+    (io/resource name) (load-properties-from-resource (io/resource name))))
 
 (defn load-config []
-  (let [defaults (load-properties-from-classpath! "default.properties")
-        config (load-properties-from-file! "application.properties")
-        local (load-properties-from-classpath! "local.properties")
-        merged (merge defaults config local env/env)]
-    merged))
+  (let [defaults (load-properties "default.properties")
+        config (load-properties "application.properties" :file)
+        local (load-properties "local.properties")]
+    (merge defaults config local env/env)))
 
 ;; Load config on startup.
 (defrecord Configuring [runtime-config]
@@ -40,7 +30,7 @@
     (log/info "-> loading configuration.")
     (log/info runtime-config)
     (assoc self :config (merge (load-config) runtime-config)
-           :version (load-properties-from-classpath! "version.properties")))
+           :version (load-properties "version.properties")))
 
   (stop [self]
     (log/info "<- stopping configuration.")

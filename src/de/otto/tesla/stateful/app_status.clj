@@ -23,37 +23,30 @@
 
 (defn status-details-to-json [details]
   (into {} (map
-             (fn [[k v]] (let [newstatus (keyword-to-status (:status v))]
-                           {k (assoc v :status newstatus)}))
+            (fn [[k v]]
+              {k (update-in v [:status] keyword-to-status)})
              details)))
 
-(defn system-infos [config]
-  (let [host (if-let [host-from-config (:host-name config)]
-               host-from-config
-               "localhost")
-        port (if-let [host-port (:host-port config)]
-               host-port
-               (:server-port config))]
-    {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
-     :hostname   host
-     :port       port}))
+(defn system-infos [{:keys [host-name host-port server-port]} ]
+  {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
+   :hostname   (or host-name "localhost")  
+   :port       (or host-port server-port)})
 
 (defn sanitize-str [s]
-  (apply str (map (fn [_] "*") (vec s))))
+  (apply str (repeat (count s) "*")))
 
 (defn sanitize-mapentry [checklist [k v]]
-  (let [new-val (if (some true? (map #(.contains (name k) %) checklist))
-                  (sanitize-str v)
-                  v)]
-    {k new-val}))
+  {k (if (some true? (map #(.contains (name k) %) checklist))
+       (sanitize-str v)
+       v)})
 
 (defn sanitize [config checklist]
   (into {}
         (map (partial sanitize-mapentry checklist) config)))
 
 (defn create-complete-status [self]
-  (let [config (:config (:config self))
-        version-info (:version (:config self))
+  (let [config (get-in self [:config :config])
+        version-info (get-in self [:version :config])
         extra-info {:name          (:name config)
                     :version       (:version version-info)
                     :git           (:commit version-info)
@@ -66,7 +59,7 @@
       :system (system-infos config))))
 
 (defn health-response [self]
-  (if (= (:status (:application (create-complete-status self))) :error)
+  (if (= (get-in (create-complete-status self) [:application :status]) :error)
     unhealthy-response
     healthy-response))
 
