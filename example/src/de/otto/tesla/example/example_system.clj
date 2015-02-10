@@ -2,7 +2,8 @@
   (:require [de.otto.tesla.system :as system]
             [de.otto.tesla.example.calculating :as calculating]
             [de.otto.tesla.example.example-page :as example-page]
-            [com.stuartsierra.component :as c])
+            [com.stuartsierra.component :as c]
+            [de.otto.tesla.example.remote-services :as remote-services])
   (:gen-class))
 
 (defn example-calculation-function [input]
@@ -14,7 +15,8 @@
              (c/using (calculating/new-calculator example-calculation-function) [:metering :app-status]))
       (assoc :example-page
              (c/using (example-page/new-example-page) [:routes :calculator :app-status]))
-      (c/system-using {:server [:example-page]})))
+      (assoc :remote-calc (remote-services/new-remote-calc [:routes :calculator])) 
+      (c/system-using {:server [:remote-calc :example-page]})))
 
 (defn -main
   "starts up the production system."
