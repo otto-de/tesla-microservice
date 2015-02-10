@@ -46,7 +46,7 @@
 
 (defn create-complete-status [self]
   (let [config (get-in self [:config :config])
-        version-info (get-in self [:version :config])
+        version-info (get-in self [:config :version ])
         extra-info {:name          (:name config)
                     :version       (:version version-info)
                     :git           (:commit version-info)
