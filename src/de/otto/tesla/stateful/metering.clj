@@ -47,22 +47,19 @@
 
 ;; Configures a graphite reporter as configured.
 (defn start-reporter! [registry config]
-  (let [reporter-type (:metering-reporter config)]
-    (case reporter-type
-      "graphite" (start-graphite! registry config)
-      "console" (start-console! registry config))))
+  (case (:metering-reporter config)
+    "graphite" (start-graphite! registry config)
+    "console" (start-console! registry config)))
 
 ;; Initialises a metrics-registry and a graphite reporter.
 (defrecord Metering [config]
   component/Lifecycle
   (start [self]
     (log/info "-> starting metering.")
-    (let [config (:config (:config self))
-          registry (metrics/new-registry)
-          reporter (start-reporter! registry config)]
-      (assoc self
-             :registry registry
-             :reporter reporter)))
+    (let [registry (metrics/new-registry)]
+        (assoc self
+               :registry registry 
+               :reporter (start-reporter! registry (get-in self [:config :config])))))
   (stop [self]
     (log/info "<- stopping metering")
     (.stop (:reporter self))
