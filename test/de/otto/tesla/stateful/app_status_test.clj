@@ -13,13 +13,13 @@
             [de.otto.tesla.stateful.routes :as rts]
             [ring.mock.request :as mock]))
 
-(defn- test-system [runtime-config]
+(defn- serverless-system [runtime-config]
   (dissoc
     (system/empty-system runtime-config)
     :server))
 
 (deftest ^:unit should-have-system-status-for-runtime-config
-  (u/with-started [system (test-system {:host-name "bar" :host-port "0123"})]
+  (u/with-started [system (serverless-system {:host-name "bar" :host-port "0123"})]
                   (let [status (:app-status system)
                         system-status (:system (app-status/status-response-body status))]
                     (is (= (:hostname system-status) "bar"))
@@ -28,7 +28,7 @@
 
 (deftest ^:unit should-have-system-status-for-env-config
   (with-redefs-fn {#'env/env {:host-name "foo" :host-port "1234"}}
-    #(u/with-started [system (test-system {})]
+    #(u/with-started [system (serverless-system {})]
                      (let [status (:app-status system)
                            system-status (:system (app-status/status-response-body status))]
                        (is (= (:hostname system-status) "foo"))
@@ -52,15 +52,9 @@
     self))
 
 (defn- mock-status-system [response]
-  (c/system-map
-    :config (configuring/new-config {})
-    :metering (c/using
-                (metering/new-metering)
-                [:config])
-    :routes (routes/new-routes)
-    :app-status (c/using (app-status/new-app-status) [:config :routes])
-    :mock-status (c/using (map->MockStatusSource {:response response}) [:app-status])))
-
+  (assoc (serverless-system {})
+    :mock-status
+    (c/using (map->MockStatusSource {:response response}) [:app-status])))
 
 (deftest ^:unit should-show-applicationstatus
   (u/with-started [started (mock-status-system {:mock {:status  :ok
@@ -87,7 +81,7 @@
 
 (deftest ^:integration should-serve-health-under-configured-url
   (testing "use the default url"
-    (u/with-started [started (system/empty-system {})]
+    (u/with-started [started (serverless-system {})]
                     (let [handlers (rts/routes (:routes started))]
                       (is (= (handlers (mock/request :get "/health"))
                              {:body    "HEALTHY"
@@ -95,7 +89,7 @@
                               :status  200})))))
 
   (testing "use the configuration url"
-    (u/with-started [started (system/empty-system {:health-url "/my-health"})]
+    (u/with-started [started (serverless-system {:health-url "/my-health"})]
                     (let [handlers (rts/routes (:routes started))]
                       (is (= (handlers (mock/request :get "/my-health"))
                              {:body    "HEALTHY"
@@ -104,26 +98,26 @@
 
 (deftest ^:integration should-serve-status-under-configured-url
   (testing "use the default url"
-    (u/with-started [started (system/empty-system {})]
+    (u/with-started [started (serverless-system {})]
                     (let [handlers (rts/routes (:routes started))]
                       (is (= (:status (handlers (mock/request :get "/status")))
                              200)))))
 
   (testing "use the configuration url"
-    (u/with-started [started (system/empty-system {:status-url "/my-status"})]
+    (u/with-started [started (serverless-system {:status-url "/my-status"})]
                     (let [handlers (rts/routes (:routes started))]
                       (is (= (:status (handlers (mock/request :get "/my-status")))
                              200)))))
 
   (testing "default should be overridden"
-    (u/with-started [started (system/empty-system {:status-url "/my-status"})]
+    (u/with-started [started (serverless-system {:status-url "/my-status"})]
                     (let [handlers (rts/routes (:routes started))]
                       (is (= (handlers (mock/request :get "/status"))
                              nil))))))
 
 (deftest should-add-version-properties-to-status
   (testing "it should add the version properties"
-    (u/with-started [started (system/empty-system {})]
+    (u/with-started [started (serverless-system {})]
                     (let [handlers (rts/routes (:routes started))
                           response (mock/request :get "/status")
                           status-map (json/read-json (:body (handlers response)))]
