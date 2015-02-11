@@ -120,3 +120,12 @@
                     (let [handlers (rts/routes (:routes started))]
                       (is (= (handlers (mock/request :get "/status"))
                              nil))))))
+
+(deftest should-add-version-properties-to-status
+  (testing "it should add the version properties"
+    (u/with-started [started (system/empty-system {})]
+                    (let [handlers (rts/routes (:routes started))
+                          response (mock/request :get "/status")
+                          status-map (json/read-json (:body (handlers response)))]
+                      (is (= (get-in status-map [:application :version]) "test.version"))
+                      (is (= (get-in status-map [:application :git]) "test.githash"))))))
