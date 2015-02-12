@@ -55,7 +55,7 @@
   (counter! [self name]))
 
 ;; Initialises a metrics-registry and a graphite reporter.
-(defrecord Metering [config] PubMetering
+(defrecord Metering [config]
   component/Lifecycle
   (start [self]
     (log/info "-> starting metering.")
