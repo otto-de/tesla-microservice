@@ -13,7 +13,6 @@
     (java.util.concurrent TimeUnit)
     (java.net InetAddress UnknownHostException)))
 
-
 (defn hostname-from-os []
   (.getCanonicalHostName (InetAddress/getLocalHost)))
 
@@ -67,15 +66,14 @@
 
 ;; creates a timer. That can be kept and used later.
 (defn timer! [self name]
-  (timers/timer (:registry self) name))
+  (timers/timer (:registry self) [name]))
 
 ;; dito
 (defn counter! [self name]
-  (counters/counter (:registry self) name))
+  (counters/counter (:registry self) [name]))
 
 ;; dito
 (defn gauge! [self gauge-callback-fn name]
-     (gauges/gauge-fn (:registry self) name gauge-callback-fn))
-
+     (gauges/gauge-fn (:registry self) [name] gauge-callback-fn))
 
 (defn new-metering [] (map->Metering {}))
