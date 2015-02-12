@@ -12,7 +12,7 @@
     (p/properties->map
       (p/load-from resource) false)))
 
-(defn- load-properties [name & type]
+(defn- load-properties [name & [type]]
   (cond
     (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))
     (io/resource name) (load-properties-from-resource (io/resource name))))

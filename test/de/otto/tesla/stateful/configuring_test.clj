@@ -28,7 +28,8 @@
     (let [loaded-properties (configuring/load-config)]
       (is (not (empty? (:metering-reporter loaded-properties)))))))
 
-
-
-
-
+(deftest ^:integration should-read-properties-from-file
+  (spit "application.properties" "foooo=barrrr")
+  (is (= (:foooo (configuring/load-config))
+         "barrrr"))
+  (io/delete-file "application.properties"))
