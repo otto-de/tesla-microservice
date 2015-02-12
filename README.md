@@ -21,7 +21,7 @@ The basis included is stripped to the very minimum. More features like access to
 
 Add this tpo your project dependencies:
 
-`[de.otto/tesla-microservice "0.1.3"]`
+`[de.otto/tesla-microservice "0.1.4"]`
 
 See the included example on how to use it.
 
