@@ -5,7 +5,6 @@
                        :url "http://www.apache.org/license/LICENSE-2.0.html"}
             :scm { :name "git"
  	           :url "https://github.com/otto-de/tesla-microservice"}
-            :signing {:gpg-key "B641136D"}
             :dependencies [[org.clojure/clojure "1.6.0"]
                            [com.stuartsierra/component "0.2.2"]
                            [org.clojure/core.cache "0.6.4"]
