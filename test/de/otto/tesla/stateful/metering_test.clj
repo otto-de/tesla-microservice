@@ -24,7 +24,7 @@
          "some.name.foo.bar")))
 
 (deftest ^:unit metrics-registry-should-contain-correct-names
-  (u/with-started [started (system/empty-system {})]
+  (u/with-started [started (dissoc (system/empty-system {}) :server)]
                   (let [metering (:metering started)]
                     (metering/timer! metering "some.name.timer.bar")
                     (metering/gauge! metering #() "some.name.gauge.bar")
