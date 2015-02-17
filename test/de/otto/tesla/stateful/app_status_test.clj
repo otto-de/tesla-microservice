@@ -1,6 +1,7 @@
 (ns de.otto.tesla.stateful.app-status-test
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.app-status :as app-status]
+            [de.otto.status :as s]
             [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.tesla.stateful.metering :as metering]
@@ -123,3 +124,16 @@
                           status-map (json/read-json (:body (handlers response)))]
                       (is (= (get-in status-map [:application :version]) "test.version"))
                       (is (= (get-in status-map [:application :git]) "test.githash"))))))
+
+(deftest determine-status-strategy
+  (testing "it should use strict stategy if none is configured"
+    (let [config {:complete-status-strategy nil}]
+      (is (= (app-status/determine-status-strategy config) s/strict-strategy))))
+
+  (testing "it should use forgiving stategy if forgiving is configured"
+    (let [config {:complete-status-strategy "forgiving"}]
+      (is (= (app-status/determine-status-strategy config) s/forgiving-strategy))))
+
+  (testing "it should use strict stategy if something else is configured"
+    (let [config {:complete-status-strategy "unknown"}]
+      (is (= (app-status/determine-status-strategy config) s/strict-strategy)))))
