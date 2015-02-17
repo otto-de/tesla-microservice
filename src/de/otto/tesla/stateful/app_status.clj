@@ -29,7 +29,7 @@
 
 (defn system-infos [{:keys [host-name host-port server-port]} ]
   {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
-   :hostname   (or host-name "localhost")  
+   :hostname   (or host-name "localhost")
    :port       (or host-port server-port)})
 
 (defn sanitize-str [s]
@@ -44,6 +44,10 @@
   (into {}
         (map (partial sanitize-mapentry checklist) config)))
 
+(defn determine-status-strategy [config]
+  (if-let [status-strategy (:complete-status-strategy config)]
+    (if (= status-strategy "forgiving") s/forgiving-strategy s/strict-strategy) s/strict-strategy))
+
 (defn create-complete-status [self]
   (let [config (get-in self [:config :config])
         version-info (get-in self [:config :version ])
@@ -53,7 +57,7 @@
                     :configuration (sanitize config ["passwd" "pwd"])}]
     (assoc
       (s/aggregate-status :application
-                          s/strict-strategy
+                          (determine-status-strategy config)
                           @(:status-functions self)
                           extra-info)
       :system (system-infos config))))
