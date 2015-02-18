@@ -19,7 +19,7 @@
 
 (defn load-config []
   (let [defaults (load-properties "default.properties")
-        config (load-properties "application.properties" :file)
+        config (load-properties (or (:config-file env/env) "application.properties") :file)
         local (load-properties "local.properties")]
     (merge defaults config local env/env)))
 

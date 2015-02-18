@@ -3,7 +3,8 @@
             [de.otto.tesla.stateful.configuring :as configuring]
             [com.stuartsierra.component :as component]
             [clojure.java.io :as io]
-            [de.otto.tesla.util.test-utils :as u]))
+            [de.otto.tesla.util.test-utils :as u]
+            [environ.core :as env]))
 
 (defn- test-system [rt-conf]
   (-> (component/system-map
@@ -33,3 +34,13 @@
   (is (= (:foooo (configuring/load-config))
          "barrrr"))
   (io/delete-file "application.properties"))
+
+(deftest ^:integration should-prefer-configured-conf-file
+  (spit "application.properties" "foooo=value")
+  (spit "other.properties" "foooo=other-value")
+  (with-redefs-fn {#'env/env {:config-file "other.properties"}}
+    #(is (= (:foooo (configuring/load-config))
+            "other-value")))
+  (io/delete-file "other.properties")
+  (io/delete-file "application.properties"))
+
