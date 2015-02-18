@@ -11,7 +11,8 @@
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.routes :as rts]
-            [ring.mock.request :as mock]))
+            [ring.mock.request :as mock]
+            [de.otto.status :as s]))
 
 (defn- serverless-system [runtime-config]
   (dissoc
@@ -123,3 +124,16 @@
                           status-map (json/read-json (:body (handlers response)))]
                       (is (= (get-in status-map [:application :version]) "test.version"))
                       (is (= (get-in status-map [:application :git]) "test.githash"))))))
+
+(deftest determine-status-strategy
+  (testing "it should use strict stategy if none is configured"
+    (let [config {:status-aggregation nil}]
+      (is (= (app-status/aggregation-strategy config) s/strict-strategy))))
+
+  (testing "it should use forgiving stategy if forgiving is configured"
+    (let [config {:status-aggregation "forgiving"}]
+      (is (= (app-status/aggregation-strategy config) s/forgiving-strategy))))
+
+  (testing "it should use strict stategy if something else is configured"
+    (let [config {:status-aggregation "unknown"}]
+      (is (= (app-status/aggregation-strategy config) s/strict-strategy)))))

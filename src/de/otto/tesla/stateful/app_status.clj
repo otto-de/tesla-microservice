@@ -23,13 +23,13 @@
 
 (defn status-details-to-json [details]
   (into {} (map
-            (fn [[k v]]
-              {k (update-in v [:status] keyword-to-status)})
+             (fn [[k v]]
+               {k (update-in v [:status] keyword-to-status)})
              details)))
 
-(defn system-infos [{:keys [host-name host-port server-port]} ]
+(defn system-infos [{:keys [host-name host-port server-port]}]
   {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
-   :hostname   (or host-name "localhost")  
+   :hostname   (or host-name "localhost")
    :port       (or host-port server-port)})
 
 (defn sanitize-str [s]
@@ -44,16 +44,22 @@
   (into {}
         (map (partial sanitize-mapentry checklist) config)))
 
+(defn aggregation-strategy [config]
+  (if (= (get-in config [:status-aggregation]) "forgiving")
+    s/forgiving-strategy
+    s/strict-strategy))
+
 (defn create-complete-status [self]
   (let [config (get-in self [:config :config])
-        version-info (get-in self [:config :version ])
+        version-info (get-in self [:config :version])
+        aggregate-strategy (:status-aggregation self)
         extra-info {:name          (:name config)
                     :version       (:version version-info)
                     :git           (:commit version-info)
                     :configuration (sanitize config ["passwd" "pwd"])}]
     (assoc
       (s/aggregate-status :application
-                          s/strict-strategy
+                          aggregate-strategy
                           @(:status-functions self)
                           extra-info)
       :system (system-infos config))))
@@ -82,7 +88,7 @@
 
 (defn handlers
   [self]
-  [(c/GET (get-in self [:config :config :status-url] "/status")  [_]
+  [(c/GET (get-in self [:config :config :status-url] "/status") [_]
           (status-response self))
    (c/GET (get-in self [:config :config :health-url] "/health") [_]
           (health-response self))])
@@ -93,6 +99,7 @@
   (start [self]
     (log/info "-> starting Application Status")
     (let [new-self (assoc self
+                     :status-aggregation (aggregation-strategy (:config (:config self)))
                      :status-functions (atom []))]
       (handlers/register-routes (:routes new-self) (handlers new-self))
       new-self))
