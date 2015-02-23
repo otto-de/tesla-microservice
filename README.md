@@ -11,10 +11,11 @@ This is the common basis for some of otto.de's microservices. It is written in c
 * Manage routes using compojure.
 * Serve content with an embedded jetty.
 
-## Features not included
+## Addons
 
-The basis included is stripped to the very minimum. More features like access to mongodb, redis, zookeeper, etc. will be released at a later time as separate addons.
+The basis included is stripped to the very minimum. As a first addon we published a [zookeeper observer](https://github.com/otto-de/tesla-zookeeper-observer).
 
+More features like access to mongodb, redis, etc. will be released at a later time as separate addons.
 
 
 ## Usage
