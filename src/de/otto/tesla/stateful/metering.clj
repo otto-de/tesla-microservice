@@ -62,7 +62,7 @@
     (let [registry (metrics/new-registry)]
         (assoc self
                :registry registry 
-               :reporter (start-reporter! registry (get-in self [:config :config])))))
+               :reporter (start-reporter! registry (get-in config [:config])))))
   (stop [self]
     (log/info "<- stopping metering")
     (.stop (:reporter self))
