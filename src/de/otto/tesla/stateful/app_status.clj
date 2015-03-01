@@ -94,14 +94,14 @@
           (health-response self))])
 
 
-(defrecord ApplicationStatus []
+(defrecord ApplicationStatus [config routes]
   component/Lifecycle
   (start [self]
     (log/info "-> starting Application Status")
     (let [new-self (assoc self
-                     :status-aggregation (aggregation-strategy (:config (:config self)))
+                     :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (handlers/register-routes (:routes new-self) (handlers new-self))
+      (handlers/register-routes routes (handlers new-self))
       new-self))
 
   (stop [self]
