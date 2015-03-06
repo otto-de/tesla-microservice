@@ -28,6 +28,6 @@
     :routes (routes/new-routes)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :metering (c/using (metering/new-metering) [:config])
-    :app-status (c/using (app-status/new-app-status) [:config :routes])
+    :app-status (c/using (app-status/new-app-status) [:config :routes :metering])
     :server (c/using (serving/new-server) [:config :routes])))
 

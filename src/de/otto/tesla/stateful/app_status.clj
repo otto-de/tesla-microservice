@@ -7,7 +7,9 @@
             [clj-time.local :as local-time]
             [environ.core :as env]
             [de.otto.tesla.stateful.routes :as handlers]
-            [de.otto.status :as s]))
+            [de.otto.tesla.stateful.metering :as metering]
+            [de.otto.status :as s]
+            [metrics.timers :as timers]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -65,9 +67,10 @@
       :system (system-infos config))))
 
 (defn health-response [self]
-  (if (= (get-in (create-complete-status self) [:application :status]) :error)
-    unhealthy-response
-    healthy-response))
+  (timers/time! (:health-timer self)
+                (if (= (get-in (create-complete-status self) [:application :status]) :error)
+                  unhealthy-response
+                  healthy-response)))
 
 (defn status-response-body [self]
   (-> (create-complete-status self)
@@ -79,9 +82,10 @@
 ;; http://spec.otto.de/media_types/application_vnd_otto_monitoring_status_json.html .
 ;; Right now it applies only partially.
 (defn status-response [self]
-  {:status  200
-   :headers {"Content-Type" "application/json"}
-   :body    (json/write-str (status-response-body self))})
+  (timers/time! (:status-timer self)
+                {:status  200
+                 :headers {"Content-Type" "application/json"}
+                 :body    (json/write-str (status-response-body self))}))
 
 (defn register-status-fun [self fun]
   (swap! (:status-functions self) #(conj % fun)))
@@ -94,13 +98,16 @@
           (health-response self))])
 
 
-(defrecord ApplicationStatus [config routes]
+(defrecord ApplicationStatus [config routes metering]
   component/Lifecycle
   (start [self]
     (log/info "-> starting Application Status")
     (let [new-self (assoc self
+                     :status-timer (metering/timer! metering "status")
+                     :health-timer (metering/timer! metering "health")
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
+
       (handlers/register-routes routes (handlers new-self))
       new-self))
 
