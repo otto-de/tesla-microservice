@@ -24,7 +24,7 @@ More features like access to mongodb, redis, etc. will be released at a later ti
 
 Add this tpo your project dependencies:
 
-`[de.otto/tesla-microservice "0.1.7"]`
+`[de.otto/tesla-microservice "0.1.8"]`
 
 See the included example on how to use it.
 

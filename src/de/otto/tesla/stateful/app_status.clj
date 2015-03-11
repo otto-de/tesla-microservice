@@ -29,9 +29,9 @@
                {k (update-in v [:status] keyword-to-status)})
              details)))
 
-(defn system-infos [{:keys [host-name host-port server-port]}]
+(defn system-infos [{:keys [host-name host host-port server-port]}]
   {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
-   :hostname   (or host-name "localhost")
+   :hostname   (or host host-name "localhost")
    :port       (or host-port server-port)})
 
 (defn sanitize-str [s]
