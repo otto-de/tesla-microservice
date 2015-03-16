@@ -23,17 +23,32 @@
         local (load-properties "local.properties")]
     (merge defaults config local env/env)))
 
+(defn load-and-merge [runtime-config]
+  (merge (load-config) runtime-config))
+
 ;; Load config on startup.
 (defrecord Configuring [runtime-config]
   component/Lifecycle
   (start [self]
     (log/info "-> loading configuration.")
     (log/info runtime-config)
-    (assoc self :config (merge (load-config) runtime-config)
-           :version (load-properties "version.properties")))
+    (assoc self :config (load-and-merge runtime-config)
+                :version (load-properties "version.properties")))
 
   (stop [self]
     (log/info "<- stopping configuration.")
     self))
 
 (defn new-config [runtime-config] (map->Configuring {:runtime-config runtime-config}))
+
+;; The hostname and port visble from the outside are different for
+;; different environments.
+;; These methods default to Marathon defaults.
+(defn external-hostname [self]
+  (let [conf (:config self)]
+    (or (:host conf) (:host-name conf) (:hostname conf) "localhost")))
+
+;; see above
+(defn external-port [self]
+  (let [conf (:config self)]
+    (or (:port0 conf) (:host-port conf) (:server-port conf))))

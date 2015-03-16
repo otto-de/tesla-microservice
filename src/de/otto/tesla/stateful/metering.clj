@@ -7,24 +7,14 @@
     [metrics.gauges :as gauges]
     [metrics.reporters.graphite :as graphite]
     [metrics.reporters.console :as console]
-    [clojure.tools.logging :as log])
+    [clojure.tools.logging :as log]
+    [de.otto.tesla.stateful.configuring :as configuring])
   (:import
     (com.codahale.metrics MetricFilter)
-    (java.util.concurrent TimeUnit)
-    (java.net InetAddress UnknownHostException)))
-
-(defn hostname-from-os []
-  (.getCanonicalHostName (InetAddress/getLocalHost)))
-
-(defn hostname []
-  (try
-    (hostname-from-os)
-    (catch UnknownHostException e
-      (log/error e " exception while trying to determine hostname")
-      "default")))
+    (java.util.concurrent TimeUnit)))
 
 (defn prefix [config]
-  (str (:graphite-prefix config) "." (hostname)))
+  (str (:graphite-prefix config) "." (configuring/external-hostname config)))
 
 (defn- start-graphite! [registry config]
   (let [reporter (graphite/reporter registry
@@ -61,7 +51,7 @@
     (log/info "-> starting metering.")
     (let [registry (metrics/new-registry)]
         (assoc self
-               :registry registry 
+               :registry registry
                :reporter (start-reporter! registry (get-in config [:config])))))
   (stop [self]
     (log/info "<- stopping metering")

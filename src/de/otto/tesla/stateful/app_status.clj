@@ -9,7 +9,8 @@
             [de.otto.tesla.stateful.routes :as handlers]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.status :as s]
-            [metrics.timers :as timers]))
+            [metrics.timers :as timers]
+            [de.otto.tesla.stateful.configuring :as configuring]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -29,10 +30,10 @@
                {k (update-in v [:status] keyword-to-status)})
              details)))
 
-(defn system-infos [{:keys [host-name host host-port server-port]}]
+(defn system-infos [config]
   {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
-   :hostname   (or host host-name "localhost")
-   :port       (or host-port server-port)})
+   :hostname   (configuring/external-hostname config)
+   :port       (configuring/external-port config)})
 
 (defn sanitize-str [s]
   (apply str (repeat (count s) "*")))
@@ -64,7 +65,7 @@
                           aggregate-strategy
                           @(:status-functions self)
                           extra-info)
-      :system (system-infos config))))
+      :system (system-infos (:config self)))))
 
 (defn health-response [self]
   (timers/time! (:health-timer self)

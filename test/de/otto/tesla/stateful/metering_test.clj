@@ -3,19 +3,15 @@
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.util.test-utils :as u]
-            [de.otto.tesla.system :as system]))
+            [de.otto.tesla.system :as system]
+            [de.otto.tesla.stateful.configuring :as configuring]))
 (def config
   {:graphite-prefix "a_random_prefix"})
 
 (deftest ^:unit should-return-prefix-for-testhost
-  (with-redefs-fn {#'metering/hostname-from-os (fn [] "testhost")}
+  (with-redefs-fn {#'configuring/external-hostname (fn [_] "testhost")}
     #(is (= (metering/prefix config)
             "a_random_prefix.testhost"))))
-
-(deftest ^:unit should-return-default-prefix-if-hostname-is-not-found
-  (with-redefs-fn {#'metering/hostname-from-os (fn [] (throw (UnknownHostException. "testException")))}
-    #(is (= (metering/prefix config)
-            "a_random_prefix.default"))))
 
 (deftest ^:unit the-metrics-lib-accepts-a-vector-for-building-the-name
   (is (= (metrics.core/metric-name ["some.name.foo.bar"])

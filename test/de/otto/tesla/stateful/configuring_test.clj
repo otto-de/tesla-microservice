@@ -29,6 +29,33 @@
     (let [loaded-properties (configuring/load-config)]
       (is (not (empty? (:metering-reporter loaded-properties)))))))
 
+
+
+(deftest ^:unit should-determine-hostname-from-properties-with-defined-precedence
+  (testing "should prefer $HOST"
+    (u/with-started [started (test-system {:host "host" :host-name "host-name" :hostname "hostname"})]
+                    (is (= "host" (configuring/external-hostname (:conf started))))))
+  (testing "should prefer $HOST_NAME"
+    (u/with-started [started (test-system {:host-name "host-name" :hostname "hostname"})]
+                    (is (= "host-name" (configuring/external-hostname (:conf started))))))
+  (testing "should choose $HOSTNAME"
+    (u/with-started [started (test-system {:hostname "hostname"})]
+                    (is (= "hostname" (configuring/external-hostname (:conf started))))))
+  (testing "should fallback to localhost"
+    (u/with-started [started (test-system {})]
+                    (is (= "localhost" (configuring/external-hostname (:conf started)))))))
+
+(deftest ^:unit should-determine-hostport-from-properties-with-defined-precedence
+  (testing "should prefer $PORT0"
+    (u/with-started [started (test-system {:port0 "0" :host-port "1" :server-port "2"})]
+                    (is (= "0" (configuring/external-port (:conf started))))))
+  (testing "should prefer $HOST_PORT"
+    (u/with-started [started (test-system {:host-port "1" :server-port "2"})]
+                    (is (= "1" (configuring/external-port (:conf started))))))
+  (testing "should fallback to $SERVER_PORT"
+    (u/with-started [started (test-system {:server-port "2"})]
+                    (is (= "2" (configuring/external-port (:conf started)))))))
+
 (deftest ^:integration should-read-properties-from-file
   (spit "application.properties" "foooo=barrrr")
   (is (= (:foooo (configuring/load-config))
