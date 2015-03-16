@@ -5,12 +5,11 @@
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.configuring :as configuring]))
-(def config
-  {:graphite-prefix "a_random_prefix"})
+
 
 (deftest ^:unit should-return-prefix-for-testhost
   (with-redefs-fn {#'configuring/external-hostname (fn [_] "testhost")}
-    #(is (= (metering/prefix config)
+    #(is (= (metering/prefix {:config {:graphite-prefix "a_random_prefix"}})
             "a_random_prefix.testhost"))))
 
 (deftest ^:unit the-metrics-lib-accepts-a-vector-for-building-the-name

@@ -14,28 +14,28 @@
     (java.util.concurrent TimeUnit)))
 
 (defn prefix [config]
-  (str (:graphite-prefix config) "." (configuring/external-hostname config)))
+  (str (:graphite-prefix (:config config)) "." (configuring/external-hostname config)))
 
 (defn- start-graphite! [registry config]
   (let [reporter (graphite/reporter registry
-                                    {:host          (:graphite-host config)
-                                     :port          (Integer. (:graphite-port config))
+                                    {:host          (:graphite-host (:config config))
+                                     :port          (Integer. (:graphite-port (:config config)))
                                      :prefix        (prefix config)
                                      :rate-unit     TimeUnit/SECONDS
                                      :duration-unit TimeUnit/MILLISECONDS
                                      :filter        MetricFilter/ALL})]
     (log/info "-> starting graphite reporter.")
-    (graphite/start reporter (Integer/parseInt (:graphite-interval-seconds config)))
+    (graphite/start reporter (Integer/parseInt (:graphite-interval-seconds (:config config))))
     reporter))
 
 (defn- start-console! [registry config]
   (let [reporter (console/reporter registry {})]
     (log/info "-> starting console reporter.")
-    (console/start reporter (Integer/parseInt (:console-interval-seconds config)))
+    (console/start reporter (Integer/parseInt (:console-interval-seconds (:config config))))
     reporter))
 
 (defn- start-reporter! [registry config]
-  (case (:metering-reporter config)
+  (case (:metering-reporter (:config config))
     "graphite" (start-graphite! registry config)
     "console" (start-console! registry config)))
 
@@ -52,7 +52,7 @@
     (let [registry (metrics/new-registry)]
         (assoc self
                :registry registry
-               :reporter (start-reporter! registry (get-in config [:config])))))
+               :reporter (start-reporter! registry config))))
   (stop [self]
     (log/info "<- stopping metering")
     (.stop (:reporter self))
