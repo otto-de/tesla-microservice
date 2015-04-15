@@ -18,9 +18,10 @@
   (log/info "<- system stopped"))
 
 (defn start-system [system]
-  (let [system (c/start system)] 
+  (let [started (c/start system)]
       (doseq [sig ["INT" "TERM"]]
-        (reset! (beckon/signal-atom sig) #{(partial stop system)}))))
+        (reset! (beckon/signal-atom sig) #{(partial stop started)}))
+      started))
 
 (defn empty-system [runtime-config]
   (c/system-map
