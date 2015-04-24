@@ -1,10 +1,6 @@
 (ns de.otto.tesla.stateful.health-test
   (:require [clojure.test :refer :all]
-            [de.otto.tesla.stateful.app-status :as app-status]
-            [com.stuartsierra.component :as c]
-            [environ.core :as env]
-            [clojure.data.json :as json]
-            [clojure.tools.logging :as log]
+            [de.otto.tesla.stateful.health :as health]
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.routes :as rts]
@@ -15,6 +11,23 @@
   (dissoc
     (system/empty-system runtime-config)
     :server))
+
+(deftest should-turn-unhealthy-when-locked
+  (u/with-started [started (serverless-system {})]
+                  (testing "it is still healthy when not yet locked"
+                    (let [handlers (rts/routes (:routes started))]
+                      (is (= (handlers (mock/request :get "/health"))
+                             {:body    "HEALTHY"
+                              :headers {"Content-Type" "text/plain"}
+                              :status  200}))))
+
+                  (testing "when locked, it is unhealthy"
+                    (let [handlers (rts/routes (:routes started))
+                          _ (health/lock-application (:health started))]
+                      (is (= (handlers (mock/request :get "/health"))
+                             {:body    "UNHEALTHY"
+                              :headers {"Content-Type" "text/plain"}
+                              :status  503}))))))
 
 (deftest ^:integration should-serve-health-under-configured-url
   (testing "use the default url"
@@ -32,6 +45,8 @@
                              {:body    "HEALTHY"
                               :headers {"Content-Type" "text/plain"}
                               :status  200}))))))
+
+
 
 
 

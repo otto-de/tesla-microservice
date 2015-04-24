@@ -25,11 +25,13 @@
     unhealthy-response
     healthy-response))
 
-
 (defn handlers
   [self]
   [(c/GET (get-in self [:config :config :health-url] "/health") [_]
      (health-response self))])
+
+(defn lock-application [self]
+  (reset! (:locked self) true))
 
 (defrecord Health [config routes]
   component/Lifecycle
