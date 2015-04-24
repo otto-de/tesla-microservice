@@ -12,14 +12,7 @@
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]))
 
-;; http response for a healthy system
-(def healthy-response {:status  200
-                       :headers {"Content-Type" "text/plain"}
-                       :body    "HEALTHY"})
-;; http response for an unhealthy system
-(def unhealthy-response {:status  503
-                         :headers {"Content-Type" "text/plain"}
-                         :body    "UNHEALTHY"})
+
 
 (defn keyword-to-status [kw]
   (str/upper-case (name kw)))
@@ -67,12 +60,6 @@
                           extra-info)
       :system (system-infos (:config self)))))
 
-(defn health-response [self]
-  (timers/time! (:health-timer self)
-                (if (= (get-in (create-complete-status self) [:application :status]) :error)
-                  unhealthy-response
-                  healthy-response)))
-
 (defn status-response-body [self]
   (-> (create-complete-status self)
       (update-in [:application :statusDetails] status-details-to-json)
@@ -94,9 +81,7 @@
 (defn handlers
   [self]
   [(c/GET (get-in self [:config :config :status-url] "/status") [_]
-          (status-response self))
-   (c/GET (get-in self [:config :config :health-url] "/health") [_]
-          (health-response self))])
+          (status-response self))])
 
 
 (defrecord ApplicationStatus [config routes metering]

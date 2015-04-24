@@ -2,9 +2,6 @@
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.app-status :as app-status]
             [com.stuartsierra.component :as c]
-            [de.otto.tesla.stateful.configuring :as configuring]
-            [de.otto.tesla.stateful.metering :as metering]
-            [de.otto.tesla.stateful.routes :as routes]
             [environ.core :as env]
             [clojure.data.json :as json]
             [clojure.tools.logging :as log]
@@ -80,22 +77,6 @@
                         applicationStatus (get (get (json/read-str (:body page)) "application") "status")]
                     (is (= applicationStatus "WARNING")))))
 
-(deftest ^:integration should-serve-health-under-configured-url
-  (testing "use the default url"
-    (u/with-started [started (serverless-system {})]
-                    (let [handlers (rts/routes (:routes started))]
-                      (is (= (handlers (mock/request :get "/health"))
-                             {:body    "HEALTHY"
-                              :headers {"Content-Type" "text/plain"}
-                              :status  200})))))
-
-  (testing "use the configuration url"
-    (u/with-started [started (serverless-system {:health-url "/my-health"})]
-                    (let [handlers (rts/routes (:routes started))]
-                      (is (= (handlers (mock/request :get "/my-health"))
-                             {:body    "HEALTHY"
-                              :headers {"Content-Type" "text/plain"}
-                              :status  200}))))))
 
 (deftest ^:integration should-serve-status-under-configured-url
   (testing "use the default url"

@@ -2,6 +2,7 @@
   (:require [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.serving :as serving]
             [de.otto.tesla.stateful.app-status :as app-status]
+            [de.otto.tesla.stateful.health :as health]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.stateful.keep-alive :as keep-alive]
@@ -29,6 +30,7 @@
     :routes (routes/new-routes)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :metering (c/using (metering/new-metering) [:config])
+    :health (c/using (health/new-health) [:config :routes])
     :app-status (c/using (app-status/new-app-status) [:config :routes :metering])
     :server (c/using (serving/new-server) [:config :routes])))
 
