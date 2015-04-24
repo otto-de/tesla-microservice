@@ -9,20 +9,28 @@
             [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.stateful.routes :as routes]
-            [clojure.data.json :as json :only [write-str]]))
+            [de.otto.tesla.stateful.routes :as routes]))
+
+(defn wait! [system]
+  (if-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
+    (try
+      (log/info "<- Waiting " wait-time " milliseconds.")
+      (Thread/sleep (Integer. wait-time))
+      (catch Exception e (log/error e)))))
 
 (defn stop [system]
-  (log/info "<- stopping system")
   (beckon/reinit-all!)
-  (c/stop system)
-  (log/info "<- system stopped"))
+  (log/info "<- System will be stopped. Setting lock.")
+  (health/lock-application (:health system))
+  (wait! system)
+  (log/info "<- Stopping system.")
+  (c/stop system))
 
 (defn start-system [system]
   (let [started (c/start system)]
-      (doseq [sig ["INT" "TERM"]]
-        (reset! (beckon/signal-atom sig) #{(partial stop started)}))
-      started))
+    (doseq [sig ["INT" "TERM"]]
+      (reset! (beckon/signal-atom sig) #{(partial stop started)}))
+    started))
 
 (defn empty-system [runtime-config]
   (c/system-map

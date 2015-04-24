@@ -1,15 +1,8 @@
 (ns de.otto.tesla.stateful.health
   (:require [com.stuartsierra.component :as component]
             [compojure.core :as c]
-            [clojure.data.json :as json :only [write-str]]
             [clojure.tools.logging :as log]
-            [clojure.string :as str]
-            [de.otto.tesla.stateful.routes :as handlers]
-            [de.otto.tesla.stateful.metering :as metering]
-            [de.otto.status :as s]
-            [metrics.timers :as timers]
-            [de.otto.tesla.stateful.configuring :as configuring]))
-
+            [de.otto.tesla.stateful.routes :as handlers]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -36,13 +29,13 @@
 (defrecord Health [config routes]
   component/Lifecycle
   (start [self]
-    (log/info "-> starting Application Status")
+    (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
       (handlers/register-routes routes (handlers new-self))
       new-self))
 
   (stop [self]
-    (log/info "<- stopping Application Status")
+    (log/info "<- Stopping Healthcheck")
     self))
 
 (defn new-health []

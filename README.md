@@ -7,11 +7,13 @@ This is the common basis for some of otto.de's microservices. It is written in c
 ## Features included
 
 * Load configuration from filesystem.
-* Aggregate a status and application health.
+* Aggregate a status.
+* Reply to a health check.
 * Deliver a json status report.
 * Report to graphite using the metrics library.
 * Manage routes using compojure.
 * Serve content with an embedded jetty.
+* Shutdown gracefully. If necessary delayed, so load-balancers have time to notice.
 
 ## Addons
 
@@ -22,9 +24,9 @@ More features like access to mongodb, redis, etc. will be released at a later ti
 
 ## Usage
 
-Add this tpo your project dependencies:
+Add this to your project dependencies:
 
-`[de.otto/tesla-microservice "0.1.10"]`
+`[de.otto/tesla-microservice "0.1.11"]`
 
 See the included example on how to use it.
 

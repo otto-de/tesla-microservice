@@ -4,15 +4,14 @@
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.routes :as rts]
-            [ring.mock.request :as mock]
-            [de.otto.status :as s]))
+            [ring.mock.request :as mock]))
 
 (defn- serverless-system [runtime-config]
   (dissoc
     (system/empty-system runtime-config)
     :server))
 
-(deftest should-turn-unhealthy-when-locked
+(deftest ^:unit should-turn-unhealthy-when-locked
   (u/with-started [started (serverless-system {})]
                   (testing "it is still healthy when not yet locked"
                     (let [handlers (rts/routes (:routes started))]
