@@ -1,6 +1,8 @@
 (ns de.otto.tesla.system-test
   (:require [clojure.test :refer :all]
+            [com.stuartsierra.component :as c]
             [de.otto.tesla.util.test-utils :as u]
+
             [de.otto.tesla.system :as system]))
 
 (defn- serverless-system [runtime-config]
@@ -9,8 +11,13 @@
     :server))
 
 (deftest ^:unit should-start-empty-system-and-shut-it-down
-  (u/with-started
-    [started (system/empty-system {:server-port 56798})]
+  (let [started (system/start-system (serverless-system {}))
+        stopped (system/stop started) ]
+    (is (= "look ma, no exceptions" "look ma, no exceptions"))))
+
+(deftest ^:unit should-start-empty-system-and-shut-it-down-using-lib
+  (let [started (system/start-system (serverless-system {}))
+        stopped (c/stop started) ]
     (is (= "look ma, no exceptions" "look ma, no exceptions"))))
 
 (deftest should-lock-application-on-shutdown
