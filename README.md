@@ -41,6 +41,8 @@ More features will be released at a later time as separate addons.
 
 **Q:** Why tesla? **A:** It's a reference to the ingenious scientist and inventor.
 
+**Q:** Are there alternatives? **A:** Yes. You might want to look at [modularity.org](https://modularity.org/), [system](https://github.com/danielsz/system) and [duct](https://github.com/weavejester/duct).
+
 ## Initial Contributors
 
 Christian Stamm, Felix Bechstein, Ralf Sigmund, Kai Brandes, Florian Weyandt
