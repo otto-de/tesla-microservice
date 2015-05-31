@@ -2,6 +2,8 @@
 
 This is the common basis for some of otto.de's microservices. It is written in clojure using the [component framework](https://github.com/stuartsierra/component).
 
+`[de.otto/tesla-microservice "0.1.11"]`
+
 [![Build Status](https://travis-ci.org/otto-de/tesla-microservice.svg)](https://travis-ci.org/otto-de/tesla-microservice)
 [![Dependencies Status](http://jarkeeper.com/otto-de/tesla-microservice/status.svg)](http://jarkeeper.com/otto-de/tesla-microservice)
 
@@ -18,18 +20,14 @@ This is the common basis for some of otto.de's microservices. It is written in c
 
 ## Addons
 
-The basis included is stripped to the very minimum. As a first addon we published a [zookeeper observer](https://github.com/otto-de/tesla-zookeeper-observer).
+The basis included is stripped to the very minimum. Additional functionality is available as addons:
 
-More features like access to mongodb, redis, etc. will be released at a later time as separate addons.
+* [tesla-zookeeper-observer](https://github.com/otto-de/tesla-zookeeper-observer): Read only access to zookeeper.
+* [tesla-mongo-connect](https://github.com/otto-de/tesla-mongo-connect): Read/write access to mongodb.
+* [tesla-cachefile](https://github.com/otto-de/tesla-cachefile): Read and write a cachefile. Locally or in hdfs.
 
+More features will be released at a later time as separate addons.
 
-## Usage
-
-Add this to your project dependencies:
-
-`[de.otto/tesla-microservice "0.1.11"]`
-
-See the included example on how to use it.
 
 ## Examples
 
