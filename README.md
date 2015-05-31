@@ -31,31 +31,17 @@ Add this to your project dependencies:
 
 See the included example on how to use it.
 
-## Example
+## Examples
 
-Clone the repo. Start the example microservice with
-
-`$ lein run`
-
-Access the example service under `http://localhost:8080/example` and `http://localhost:8080/example/foo`.
-
-Access the status report under `http://localhost:8080/status`.
-
-The calculator used for uppercasing is a volume-licensed enterprise software.
-So you will notice, that after the uppercasing of 10 Strings, the status of the calculator and consequently the whole application will change from *OK* to *WARNING*.
-
+* A growing set of example apllications can be found at [tesla-examples](https://github.com/otto-de/tesla-example).
+* David & Germán created an example application based, among other, on tesla-microservice. They wrote a very instructive [blog post about it](http://blog.agilityfeat.com/2015/03/clojure-walking-skeleton/)
+* Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant. 
 
 ## FAQ
 
 **Q:** Is it any good? **A:** Yes.
 
 **Q:** Why tesla? **A:** It's a reference to the ingenious scientist and inventor.
-
-
-## TODO
-
-* extend documentation
-* add one or the other test
 
 ## Initial Contributors
 
