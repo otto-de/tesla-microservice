@@ -18,7 +18,6 @@
                            ;; io
                            [ring "1.3.2"]
                            [compojure "1.3.4"]
-                           [hiccup "1.0.5"]
                            [metrics-clojure "2.5.1"]
                            [metrics-clojure-graphite "2.5.1"]
 
@@ -28,8 +27,7 @@
                            [ch.qos.logback/logback-core "1.1.3"]
                            [ch.qos.logback/logback-classic "1.1.3"]
 
-                           ;; testing
-                           [ring-mock "0.1.5"]]
+                           ]
 
             :exclusions [org.clojure/clojure
                          org.slf4j/slf4j-nop
@@ -37,11 +35,7 @@
                          log4j
                          commons-logging/commons-logging]
 
-            :plugins [[lein-environ "1.0.0"]]
             :aot [de.otto.tesla.util.escapingmessageconverter]
-            :clean-targets [:target-path :compile-path "target"]
-            :source-paths ["src"]
-            :java-source-paths ["src/java"]
             :test-selectors {:default     (constantly true)
                              :integration :integration
                              :unit        :unit
@@ -49,7 +43,15 @@
             :profiles {:test    {:aot [de.otto.tesla.util.escapingmessageconverter]
                                  :env {:metering-reporter "console"
                                        :server-port       "9991"
-                                       :cache-dir         "/tmp"}}
+                                       :cache-dir         "/tmp"}
+                                 :dependencies [[ring-mock "0.1.5"]]
+                                 }
                        :meta    {:env {:app-name :tesla-meta}}
-                       :uberjar {:aot :all}}
+                       :uberjar {:aot :all}
+                       :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]
+                             :plugins [[lein-ancient "0.5.4"]
+                                       [lein-marginalia "0.8.0"]
+                                       [lein-environ "1.0.0"]]
+
+                             }}
             :test-paths ["test" "test-resources"])
