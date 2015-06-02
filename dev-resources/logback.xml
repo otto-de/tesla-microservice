@@ -1,13 +1,10 @@
 <configuration>
     <contextName>tesla</contextName>
 
-    <conversionRule conversionWord="mescaped"
-                    converterClass="de.otto.tesla.util.escapingmessageconverter" />
-
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <append>true</append>
         <encoder>
-            <pattern>%d{ISO8601} %-5p logger=%c thread=%t msg="%mescaped"%n</pattern>
+            <pattern>%d{ISO8601} %-5p logger=%c thread=%t msg="%m"%n</pattern>
         </encoder>
     </appender>
 
@@ -26,7 +23,7 @@
         </triggeringPolicy>
 
         <encoder>
-            <pattern>%d{ISO8601} %-5p logger=%c thread=%t  msg="%mescaped"%n</pattern>
+            <pattern>%d{ISO8601} %-5p logger=%c thread=%t  msg="%m"%n</pattern>
         </encoder>
     </appender>
 

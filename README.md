@@ -2,8 +2,15 @@
 
 This is the common basis for some of otto.de's microservices. It is written in clojure using the [component framework](https://github.com/stuartsierra/component).
 
+`[de.otto/tesla-microservice "0.1.13"]`
+
 [![Build Status](https://travis-ci.org/otto-de/tesla-microservice.svg)](https://travis-ci.org/otto-de/tesla-microservice)
 [![Dependencies Status](http://jarkeeper.com/otto-de/tesla-microservice/status.svg)](http://jarkeeper.com/otto-de/tesla-microservice)
+
+
+## Breaking changes
+
+_tesla-microservice_ is used for a number of different services now. Still it is a work in progress. See [CHANGES.md](./CHANGES.md) for instructions on breaking changes.
 
 ## Features included
 
@@ -18,32 +25,20 @@ This is the common basis for some of otto.de's microservices. It is written in c
 
 ## Addons
 
-The basis included is stripped to the very minimum. As a first addon we published a [zookeeper observer](https://github.com/otto-de/tesla-zookeeper-observer).
+The basis included is stripped to the very minimum. Additional functionality is available as addons:
 
-More features like access to mongodb, redis, etc. will be released at a later time as separate addons.
+* [tesla-zookeeper-observer](https://github.com/otto-de/tesla-zookeeper-observer): Read only access to zookeeper.
+* [tesla-mongo-connect](https://github.com/otto-de/tesla-mongo-connect): Read/write access to mongodb.
+* [tesla-cachefile](https://github.com/otto-de/tesla-cachefile): Read and write a cachefile. Locally or in hdfs.
+
+More features will be released at a later time as separate addons.
 
 
-## Usage
+## Examples
 
-Add this to your project dependencies:
-
-`[de.otto/tesla-microservice "0.1.11"]`
-
-See the included example on how to use it.
-
-## Example
-
-Clone the repo. Start the example microservice with
-
-`$ lein run`
-
-Access the example service under `http://localhost:8080/example` and `http://localhost:8080/example/foo`.
-
-Access the status report under `http://localhost:8080/status`.
-
-The calculator used for uppercasing is a volume-licensed enterprise software.
-So you will notice, that after the uppercasing of 10 Strings, the status of the calculator and consequently the whole application will change from *OK* to *WARNING*.
-
+* A growing set of example apllications can be found at [tesla-examples](https://github.com/otto-de/tesla-examples).
+* David & Germán created an example application based, among other, on tesla-microservice. They wrote a very instructive [blog post about it](http://blog.agilityfeat.com/2015/03/clojure-walking-skeleton/)
+* Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant.
 
 ## FAQ
 
@@ -51,11 +46,9 @@ So you will notice, that after the uppercasing of 10 Strings, the status of the 
 
 **Q:** Why tesla? **A:** It's a reference to the ingenious scientist and inventor.
 
+**Q:** Are there alternatives? **A:** Yes. You might want to look at [modularity.org](https://modularity.org/), [system](https://github.com/danielsz/system) and [duct](https://github.com/weavejester/duct).
 
-## TODO
 
-* extend documentation
-* add one or the other test
 
 ## Initial Contributors
 
