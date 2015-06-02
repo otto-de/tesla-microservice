@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.1.12"
+(defproject de.otto/tesla-microservice "0.1.13"
             :description "basic microservice."
             :url "https://github.com/otto-de/tesla-microservice"
             :license {:name "Apache License 2.0"
@@ -22,9 +22,7 @@
                            [metrics-clojure-graphite "2.5.1"]
 
                            ;; logging
-                           [org.clojure/tools.logging "0.3.1"]
-
-                           ]
+                           [org.clojure/tools.logging "0.3.1"]]
 
             :exclusions [org.clojure/clojure
                          org.slf4j/slf4j-nop

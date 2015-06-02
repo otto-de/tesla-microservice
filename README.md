@@ -2,10 +2,15 @@
 
 This is the common basis for some of otto.de's microservices. It is written in clojure using the [component framework](https://github.com/stuartsierra/component).
 
-`[de.otto/tesla-microservice "0.1.11"]`
+`[de.otto/tesla-microservice "0.1.13"]`
 
 [![Build Status](https://travis-ci.org/otto-de/tesla-microservice.svg)](https://travis-ci.org/otto-de/tesla-microservice)
 [![Dependencies Status](http://jarkeeper.com/otto-de/tesla-microservice/status.svg)](http://jarkeeper.com/otto-de/tesla-microservice)
+
+
+## Breaking changes
+
+_tesla-microservice_ is used for a number of different services now. Still it is a work in progress. See [CHANGES.md](./CHANGES.md) for instructions on breaking changes.
 
 ## Features included
 
@@ -33,7 +38,7 @@ More features will be released at a later time as separate addons.
 
 * A growing set of example apllications can be found at [tesla-examples](https://github.com/otto-de/tesla-examples).
 * David & Germán created an example application based, among other, on tesla-microservice. They wrote a very instructive [blog post about it](http://blog.agilityfeat.com/2015/03/clojure-walking-skeleton/)
-* Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant. 
+* Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant.
 
 ## FAQ
 
@@ -42,6 +47,8 @@ More features will be released at a later time as separate addons.
 **Q:** Why tesla? **A:** It's a reference to the ingenious scientist and inventor.
 
 **Q:** Are there alternatives? **A:** Yes. You might want to look at [modularity.org](https://modularity.org/), [system](https://github.com/danielsz/system) and [duct](https://github.com/weavejester/duct).
+
+
 
 ## Initial Contributors
 
