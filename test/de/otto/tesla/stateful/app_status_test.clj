@@ -86,13 +86,13 @@
                              200)))))
 
   (testing "use the configuration url"
-    (u/with-started [started (serverless-system {:status-url "/my-status"})]
+    (u/with-started [started (serverless-system {:status.path "/my-status"})]
                     (let [handlers (handler/handler (:handler started))]
                       (is (= (:status (handlers (mock/request :get "/my-status")))
                              200)))))
 
   (testing "default should be overridden"
-    (u/with-started [started (serverless-system {:status-url "/my-status"})]
+    (u/with-started [started (serverless-system {:status.path "/my-status"})]
                     (let [handlers (handler/handler (:handler started))]
                       (is (= (handlers (mock/request :get "/status"))
                              nil))))))
@@ -108,13 +108,13 @@
 
 (deftest determine-status-strategy
   (testing "it should use strict stategy if none is configured"
-    (let [config {:status-aggregation nil}]
+    (let [config {:config {:status-aggregation nil}}]
       (is (= (app-status/aggregation-strategy config) s/strict-strategy))))
 
   (testing "it should use forgiving stategy if forgiving is configured"
-    (let [config {:status-aggregation "forgiving"}]
+    (let [config {:config {:status-aggregation "forgiving"}}]
       (is (= (app-status/aggregation-strategy config) s/forgiving-strategy))))
 
   (testing "it should use strict stategy if something else is configured"
-    (let [config {:status-aggregation "unknown"}]
+    (let [config {:config {:status-aggregation "unknown"}}]
       (is (= (app-status/aggregation-strategy config) s/strict-strategy)))))
