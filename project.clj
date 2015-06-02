@@ -7,7 +7,7 @@
                   :url  "https://github.com/otto-de/tesla-microservice"}
             :dependencies [[org.clojure/clojure "1.6.0"]
                            [com.stuartsierra/component "0.2.3"]
-                           [clojurewerkz/propertied "1.2.0"]
+                           [gorillalabs/config "1.0.0"]
                            [org.clojure/data.json "0.2.6"]
                            [beckon "0.1.1"]
                            [environ "1.0.0"]
@@ -55,5 +55,6 @@
                                        [lein-marginalia "0.8.0"]
                                        [lein-environ "1.0.0"]]
 
-                             }}
+                             :env {:system "SYSTEM"
+                                   :env "ENV"}}}
             :test-paths ["test" "test-resources"])
