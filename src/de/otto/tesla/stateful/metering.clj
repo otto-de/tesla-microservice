@@ -37,7 +37,9 @@
 (defn- start-reporter! [registry config]
   (case (:metering-reporter (:config config))
     "graphite" (start-graphite! registry config)
-    "console" (start-console! registry config)))
+    "console" (start-console! registry config)
+    nil ;; default: do nothing!
+    ))
 
 (defprotocol PubMetering
   (gauge! [self gauge-callback-fn name])
@@ -55,7 +57,8 @@
                :reporter (start-reporter! registry config))))
   (stop [self]
     (log/info "<- stopping metering")
-    (.stop (:reporter self))
+    (when-let [reporter (:reporter self)]
+      (.stop reporter))
     self)
   PubMetering
   (gauge! [self gauge-callback-fn name]

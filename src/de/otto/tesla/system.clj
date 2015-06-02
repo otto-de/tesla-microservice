@@ -9,7 +9,7 @@
             [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.stateful.routes :as routes]))
+            [de.otto.tesla.stateful.handler :as handler]))
 
 (defn wait! [system]
   (if-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
@@ -26,19 +26,23 @@
   (log/info "<- Stopping system.")
   (c/stop system))
 
-(defn start-system [system]
+(defn start [system]
   (let [started (c/start system)]
     (doseq [sig ["INT" "TERM"]]
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))
 
-(defn empty-system [runtime-config]
+
+(defn base-system [runtime-config]
   (c/system-map
     :keep-alive (keep-alive/new-keep-alive)
-    :routes (routes/new-routes)
+    :handler (handler/new-handler)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :metering (c/using (metering/new-metering) [:config])
-    :health (c/using (health/new-health) [:config :routes])
-    :app-status (c/using (app-status/new-app-status) [:config :routes :metering])
-    :server (c/using (serving/new-server) [:config :routes])))
+    :health (c/using (health/new-health) [:config :handler])
+    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
+    :server (c/using (serving/new-server) [:config :handler])))
 
+;; deprecated stuff
+(def empty-system base-system)
+(def start-system start)

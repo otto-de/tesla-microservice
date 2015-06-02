@@ -7,7 +7,7 @@
             [clojure.tools.logging :as log]
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
-            [de.otto.tesla.stateful.routes :as rts]
+            [de.otto.tesla.stateful.handler :as handler]
             [ring.mock.request :as mock]
             [de.otto.status :as s]))
 
@@ -81,28 +81,28 @@
 (deftest ^:integration should-serve-status-under-configured-url
   (testing "use the default url"
     (u/with-started [started (serverless-system {})]
-                    (let [handlers (rts/routes (:routes started))]
+                    (let [handlers (handler/handler (:handler started))]
                       (is (= (:status (handlers (mock/request :get "/status")))
                              200)))))
 
   (testing "use the configuration url"
     (u/with-started [started (serverless-system {:status-url "/my-status"})]
-                    (let [handlers (rts/routes (:routes started))]
+                    (let [handlers (handler/handler (:handler started))]
                       (is (= (:status (handlers (mock/request :get "/my-status")))
                              200)))))
 
   (testing "default should be overridden"
     (u/with-started [started (serverless-system {:status-url "/my-status"})]
-                    (let [handlers (rts/routes (:routes started))]
+                    (let [handlers (handler/handler (:handler started))]
                       (is (= (handlers (mock/request :get "/status"))
                              nil))))))
 
 (deftest should-add-version-properties-to-status
   (testing "it should add the version properties"
     (u/with-started [started (serverless-system {})]
-                    (let [handlers (rts/routes (:routes started))
-                          response (mock/request :get "/status")
-                          status-map (json/read-json (:body (handlers response)))]
+                    (let [handlers (handler/handler (:handler started))
+                          request (mock/request :get "/status")
+                          status-map (json/read-json (:body (handlers request)))]
                       (is (= (get-in status-map [:application :version]) "test.version"))
                       (is (= (get-in status-map [:application :git]) "test.githash"))))))
 

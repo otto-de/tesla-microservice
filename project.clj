@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.1.12"
+(defproject de.otto/tesla-microservice "0.2.0-SNAPSHOT"
             :description "basic microservice."
             :url "https://github.com/otto-de/tesla-microservice"
             :license {:name "Apache License 2.0"
@@ -16,11 +16,14 @@
                            [de.otto/status "0.1.0"]
 
                            ;; io
-                           [ring "1.3.2"]
+                           [ring/ring-core "1.3.2"]
+                           [ring/ring-defaults "0.1.5"]
+
                            [compojure "1.3.4"]
                            [metrics-clojure "2.5.1"]
                            [metrics-clojure-graphite "2.5.1"]
 
+                           [ring/ring-jetty-adapter "1.3.2"]
                            ;; logging
                            [org.clojure/tools.logging "0.3.1"]
 
@@ -39,13 +42,14 @@
             :profiles {:test    {:env {:metering-reporter "console"
                                        :server-port       "9991"
                                        :cache-dir         "/tmp"}
-                                 :dependencies [[ring-mock "0.1.5"]]}
+                                 }
                        :meta    {:env {:app-name :tesla-meta}}
                        :uberjar {:aot :all}
                        :dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                             [org.slf4j/slf4j-api "1.7.12"]
                                             [ch.qos.logback/logback-core "1.1.3"]
-                                            [ch.qos.logback/logback-classic "1.1.3"]]
+                                            [ch.qos.logback/logback-classic "1.1.3"]
+                                            [ring-mock "0.1.5"]]
                              :plugins [[lein-ancient "0.5.4"]
                                        [lein-marginalia "0.8.0"]
                                        [lein-environ "1.0.0"]]
