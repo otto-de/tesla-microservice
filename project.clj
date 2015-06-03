@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.2.0-SNAPSHOT"
+(defproject de.otto/tesla-microservice "0.1.14"
             :description "basic microservice."
             :url "https://github.com/otto-de/tesla-microservice"
             :license {:name "Apache License 2.0"
@@ -25,9 +25,7 @@
 
                            [ring/ring-jetty-adapter "1.3.2"]
                            ;; logging
-                           [org.clojure/tools.logging "0.3.1"]
-
-                           ]
+                           [org.clojure/tools.logging "0.3.1"]]
 
             :exclusions [org.clojure/clojure
                          org.slf4j/slf4j-nop
