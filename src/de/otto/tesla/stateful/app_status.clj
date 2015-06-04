@@ -82,16 +82,14 @@
 (defn make-handler
   [self]
   (let [status-path (get-in self [:config :config :status-url] "/status")]
-    (c/routes (c/GET status-path
-                     []
-                (-> (c/GET status-path
-                           []
-                      (status-response self))
-                    (ring-defaults/wrap-defaults
-                      (assoc ring-defaults/site-defaults :session false
-                                                         :cookies false
-                                                         :static false
-                                                         :proxy true)))))))
+    (c/routes (-> (c/GET status-path
+                         []
+                    (status-response self))
+                  (ring-defaults/wrap-defaults
+                    (assoc ring-defaults/site-defaults :session false
+                                                       :cookies false
+                                                       :static false
+                                                       :proxy true))))))
 
 
 (defrecord ApplicationStatus [config handler metering]
