@@ -4,29 +4,25 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 
 ### 0.1.4
 The `routes`-component was abandoned in favour of the `handler`-component.
-In the ring library, handlers are the thing to push around (wrapping routes and middleware).
-Thus, moving from routes to handlers being managed, dependencies are untangled.
+In the ring library, handlers are the thing to push around (wrapping routes and middleware). You can choose your routing library now. Instead of [compojure](https://github.com/weavejester/compojure) you could also use e.g. [bidi](https://github.com/juxt/bidi).
 
-You may now choose your routing library in your components, not being tied to [compojure](https://github.com/weavejester/compojure). Go have a look at [bidi](https://github.com/juxt/bidi).
-in the components that use routes.
-
-
-If you have components dependant on the `routes` component, you need to follow our transition:
-
-Instead of adding a vector of (compojure)-routes using ```de.otto.tesla.stateful.routes/register-routes```, you now add a single ring handler
- using ```de.otto.tesla.stateful.handler/register-handler handler ```
+Change components relying on the old ```routes```-component should be trivial: Instead of adding a vector of (compojure)-routes using ```de.otto.tesla.stateful.routes/register-routes```,
 
 ```clojure
-      (de.otto.tesla.stateful.routes/register-routes
+      (routes/register-routes
         routes
         [(c/GET "/test" [] (test-fn))])
 ```
+
+just add a single ring handler using ```de.otto.tesla.stateful.handler/register-handler``` like this:
 
 ```clojure
       (handlers/register-handler
         handler
         (c/routes [(c/GET "/test" [] (test-fn))]))
 ```
+
+Note that the keyword for the dependency changed from ```:routes``` to ```:handler``` in the base system.
 
 
 ### 0.1.3
