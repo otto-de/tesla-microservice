@@ -2,7 +2,7 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document breaking changes.
 
-### 0.1.4
+### 0.1.14
 The `routes`-component was abandoned in favour of the `handler`-component.
 In the ring library, handlers are the thing to push around (wrapping routes and middleware). You can choose your routing library now. Instead of [compojure](https://github.com/weavejester/compojure) you could also use e.g. [bidi](https://github.com/juxt/bidi).
 
@@ -35,7 +35,7 @@ Add multiple routes like this:
 Note that the keyword for the dependency changed from ```:routes``` to ```:handler``` in the base system.
 
 
-### 0.1.3
+### 0.1.13
 Specific logging-dependencies and the escaping-messageconverter have been removed. You now have to (read: you are able to) configure logging yourself in your app. To exactly restore the old behaviour add these dependencies to you own application:
 
 ```clojure
