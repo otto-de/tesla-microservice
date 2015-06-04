@@ -19,8 +19,18 @@ just add a single ring handler using ```de.otto.tesla.stateful.handler/register-
 ```clojure
       (handlers/register-handler
         handler
-        (c/routes [(c/GET "/test" [] (test-fn))]))
+        (c/routes (c/GET "/test" [] (test-fn))))
 ```
+
+Add multiple routes like this:
+
+```clojure
+      (handlers/register-handler
+        handler
+        (c/routes (c/GET "/route1" [] (test-fn))
+                  (c/GET "/route1" [] (test-fn2))))
+```
+
 
 Note that the keyword for the dependency changed from ```:routes``` to ```:handler``` in the base system.
 
