@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [com.stuartsierra.component :as c]
             [de.otto.tesla.util.test-utils :as u]
-
+            [ring.adapter.jetty :as jetty]
             [de.otto.tesla.system :as system]))
 
 (defn- serverless-system [runtime-config]
@@ -11,14 +11,16 @@
     :server))
 
 (deftest ^:unit should-start-empty-system-and-shut-it-down
-  (let [started (system/start-system (serverless-system {}))
-        stopped (system/stop started) ]
-    (is (= "look ma, no exceptions" "look ma, no exceptions"))))
+  (with-redefs [jetty/run-jetty (fn [_ _] nil)]
+    (testing "start then shutdown using own method"
+      (let [started (system/start-system (system/empty-system {}))
+            stopped (system/stop started)]
+        (is (= "look ma, no exceptions" "look ma, no exceptions")))))
 
-(deftest ^:unit should-start-empty-system-and-shut-it-down-using-lib
-  (let [started (system/start-system (serverless-system {}))
-        stopped (c/stop started) ]
-    (is (= "look ma, no exceptions" "look ma, no exceptions"))))
+  (testing "start then shutdown using methodfrom library"
+    (let [started (system/start-system (system/empty-system {}))
+          stopped (c/stop started)]
+      (is (= "look ma, no exceptions" "look ma, no exceptions")))))
 
 (deftest should-lock-application-on-shutdown
   (testing "the lock is set"

@@ -7,19 +7,19 @@
 ;; The serving component is the frontend of the system.
 ;; It accepts requests and returns the data to be used by consuming systems.
 ;; For the moment a simple, blocking implementation with an embedded jetty is chosen.
-(defrecord Server [config routes]
+(defrecord Server [config handler]
   component/Lifecycle
   (start [self]
     (log/info "-> starting server")
     (let [port (Integer. (get-in config [:config :server-port]))
-          all-routes (handler/handler routes)
+          all-routes (handler/handler handler)
           server (jetty/run-jetty all-routes {:port port :join? false})]
-      (.setGracefulShutdown server 100)
       (assoc self :server server)))
 
   (stop [self]
     (log/info "<- stopping server")
-    (.stop (:server self))
+    (if-let [server (:server self)]
+      (.stop server))
     self))
 
 (defn new-server [] (map->Server {}))
