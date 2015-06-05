@@ -8,7 +8,7 @@
 
 (defn- serverless-system [runtime-config]
   (dissoc
-    (system/empty-system runtime-config)
+    (system/base-system runtime-config)
     :server))
 
 (deftest ^:unit should-turn-unhealthy-when-locked

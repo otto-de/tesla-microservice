@@ -7,19 +7,19 @@
 
 (defn- serverless-system [runtime-config]
   (dissoc
-    (system/empty-system runtime-config)
+    (system/base-system runtime-config)
     :server))
 
-(deftest ^:unit should-start-empty-system-and-shut-it-down
+(deftest ^:unit should-start-base-system-and-shut-it-down
   (with-redefs [jetty/run-jetty (fn [_ _] nil)]
     (testing "start then shutdown using own method"
-      (let [started (system/start-system (system/empty-system {}))
-            stopped (system/stop started)]
+      (let [started (system/start (system/base-system {}))
+            _ (system/stop started)]
         (is (= "look ma, no exceptions" "look ma, no exceptions")))))
 
   (testing "start then shutdown using methodfrom library"
-    (let [started (system/start-system (system/empty-system {}))
-          stopped (c/stop started)]
+    (let [started (system/start (system/base-system {}))
+          _ (c/stop started)]
       (is (= "look ma, no exceptions" "look ma, no exceptions")))))
 
 (deftest should-lock-application-on-shutdown

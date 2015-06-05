@@ -32,7 +32,6 @@
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))
 
-
 (defn base-system [runtime-config]
   (c/system-map
     :keep-alive (keep-alive/new-keep-alive)
@@ -42,7 +41,3 @@
     :health (c/using (health/new-health) [:config :handler])
     :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
     :server (c/using (serving/new-server) [:config :handler])))
-
-;; deprecated stuff
-(def empty-system base-system)
-(def start-system start)
