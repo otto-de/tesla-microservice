@@ -1,6 +1,6 @@
 ## Breaking changes
 
-_tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document breaking changes.
+_tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document breaking changes. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
 ### 0.1.14
 The `routes`-component was abandoned in favour of the `handler`-component.
