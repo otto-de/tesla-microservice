@@ -22,8 +22,9 @@
                            [compojure "1.3.4"]
                            [metrics-clojure "2.5.1"]
                            [metrics-clojure-graphite "2.5.1"]
+                           [http-kit "2.1.18"]
 
-                           [ring/ring-jetty-adapter "1.3.2"]
+
                            ;; logging
                            [org.clojure/tools.logging "0.3.1"]]
 
