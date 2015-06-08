@@ -34,8 +34,6 @@
 (defn lock-application [self]
   (reset! (:locked self) true))
 
-
-
 (defrecord Health [config handler]
   component/Lifecycle
   (start [self]

@@ -2,7 +2,7 @@
 
 This is the common basis for some of otto.de's microservices. It is written in clojure using the [component framework](https://github.com/stuartsierra/component).
 
-`[de.otto/tesla-microservice "0.1.14"]`
+`[de.otto/tesla-microservice "0.1.15"]`
 
 [![Build Status](https://travis-ci.org/otto-de/tesla-microservice.svg)](https://travis-ci.org/otto-de/tesla-microservice)
 [![Dependencies Status](http://jarkeeper.com/otto-de/tesla-microservice/status.svg)](http://jarkeeper.com/otto-de/tesla-microservice)
@@ -20,8 +20,14 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 * Deliver a json status report.
 * Report to graphite using the metrics library.
 * Manage handlers using ring.
-* Serve content with an embedded jetty.
 * Shutdown gracefully. If necessary delayed, so load-balancers have time to notice.
+
+## Choosing a server
+
+As of version ```0.1.15``` there is no server included any more directly in _tesla-microservice_. 
+This gives you the freedom to  a) not use any server at all (e.g. for embedded use) b) (very soon) choose another server e.g. a non-blocking one like httpkit or immutant. The available options are:
+
+* [tesla-jetty](https://github.com/otto-de/tesla-jetty): The tried and tested embedded jetty. 
 
 ## Addons
 

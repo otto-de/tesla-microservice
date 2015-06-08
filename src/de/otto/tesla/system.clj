@@ -1,6 +1,5 @@
 (ns de.otto.tesla.system
   (:require [com.stuartsierra.component :as c]
-            [de.otto.tesla.stateful.serving :as serving]
             [de.otto.tesla.stateful.app-status :as app-status]
             [de.otto.tesla.stateful.health :as health]
             [de.otto.tesla.stateful.configuring :as configuring]
@@ -39,5 +38,4 @@
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :metering (c/using (metering/new-metering) [:config])
     :health (c/using (health/new-health) [:config :handler])
-    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
-    :server (c/using (serving/new-server) [:config :handler])))
+    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])))

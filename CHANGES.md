@@ -6,6 +6,24 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 ### 0.1.15
 The function ```de.otto.tesla.system/start-system``` is renamed to ```start```, ```de.otto.tesla.system/empty-system``` is renamed to ```base-system```. 
 
+_tesla-microservice_ does not come with an embedded jetty server out of the box anymore. 
+
+To go on with jetty as before, add the new dependency in ```project.clj```:
+
+```clojure
+  [de.otto/tesla-microservice "0.1.15"]
+  [de.otto/tesla-jetty "0.1.0"]
+``` 
+
+Add the server to your system before you start it. Pass any additional dependencies of the server (```:example-page``` in this case).
+
+```clojure
+(system/start (serving-with-jetty/add-server (example-system {}) :example-page))
+```
+
+A working example for this is in the [simple-example](https://github.com/otto-de/tesla-examples/tree/master/simple-example). 
+You can also use the ```->```-threading macro as demonstrated in the [mongo-example](https://github.com/otto-de/tesla-examples/tree/master/mongo-example).  
+
 ### 0.1.14
 The `routes`-component was abandoned in favour of the `handler`-component.
 In the ring library, handlers are the thing to push around (wrapping routes and middleware). You can choose your routing library now. Instead of [compojure](https://github.com/weavejester/compojure) you could also use e.g. [bidi](https://github.com/juxt/bidi).
