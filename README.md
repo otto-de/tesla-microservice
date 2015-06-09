@@ -25,9 +25,10 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 ## Choosing a server
 
 As of version ```0.1.15``` there is no server included any more directly in _tesla-microservice_. 
-This gives you the freedom to  a) not use any server at all (e.g. for embedded use) b) (very soon) choose another server e.g. a non-blocking one like httpkit or immutant. The available options are:
+This gives you the freedom to  a) not use any server at all (e.g. for embedded use) b) choose another server e.g. a non-blocking one like httpkit or immutant. The available options are:
 
-* [tesla-jetty](https://github.com/otto-de/tesla-jetty): The tried and tested embedded jetty. 
+* [tesla-jetty](https://github.com/otto-de/tesla-jetty): The tried and tested embedded jetty.
+* [tesla-httpkit](https://github.com/otto-de/httpkit): The non-blocking httpkit. 
 
 ## Addons
 
