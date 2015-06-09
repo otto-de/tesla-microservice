@@ -28,7 +28,7 @@ As of version ```0.1.15``` there is no server included any more directly in _tes
 This gives you the freedom to  a) not use any server at all (e.g. for embedded use) b) choose another server e.g. a non-blocking one like httpkit or immutant. The available options are:
 
 * [tesla-jetty](https://github.com/otto-de/tesla-jetty): The tried and tested embedded jetty.
-* [tesla-httpkit](https://github.com/otto-de/httpkit): The non-blocking httpkit. 
+* [tesla-httpkit](https://github.com/otto-de/tesla-httpkit): The non-blocking httpkit. 
 
 ## Addons
 
