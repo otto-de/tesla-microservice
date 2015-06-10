@@ -11,8 +11,7 @@
             [de.otto.status :as s]
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as config]
-            [ring.middleware.defaults :as ring-defaults]
-            ))
+            [ring.middleware.defaults :as ring-defaults]))
 
 
 
@@ -82,16 +81,15 @@
 (defn make-handler
   [self]
   (let [status-path (config/config (:config self) [:status :path] "/status")]
-    (c/routes (c/GET status-path
-                     []
-                (-> (c/GET status-path
-                           []
-                      (status-response self))
-                    (ring-defaults/wrap-defaults
-                      (assoc ring-defaults/site-defaults :session false
-                                                         :cookies false
-                                                         :static false
-                                                         :proxy true)))))))
+    (c/routes (-> (c/GET status-path
+                         []
+                    (status-response self))
+                  (ring-defaults/wrap-defaults
+                    (assoc ring-defaults/site-defaults :session false
+                                                       :cookies false
+                                                       :static false
+                                                       :proxy true))))))
+
 
 
 (defrecord ApplicationStatus [config handler metering]
