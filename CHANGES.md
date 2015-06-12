@@ -2,6 +2,10 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document breaking changes. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.1.17
+Replaced property based configuration by EDN based configuration using [gorillalabs/config](https://github.com/gorillalabs/config).
+You need to update your configuration files.
+
 ### 0.1.16
 Moved config parameters:
 
