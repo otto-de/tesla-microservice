@@ -1,5 +1,4 @@
 (ns de.otto.tesla.stateful.metering-test
-  (:import (java.net UnknownHostException))
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.util.test-utils :as u]
@@ -19,7 +18,7 @@
          "some.name.foo.bar")))
 
 (deftest ^:unit metrics-registry-should-contain-correct-names
-  (u/with-started [started (dissoc (system/empty-system {}) :server)]
+  (u/with-started [started (dissoc (system/base-system {}) :server)]
                   (let [metering (:metering started)]
                     (metering/timer! metering "some.name.timer.bar")
                     (metering/gauge! metering #() "some.name.gauge.bar")

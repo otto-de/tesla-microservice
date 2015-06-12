@@ -1,6 +1,5 @@
 (ns de.otto.tesla.system
   (:require [com.stuartsierra.component :as c]
-            [de.otto.tesla.stateful.httpkit :as httpkit]
             [de.otto.tesla.stateful.app-status :as app-status]
             [de.otto.tesla.stateful.health :as health]
             [de.otto.tesla.stateful.configuring :as config]
@@ -33,7 +32,6 @@
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))
 
-
 (defn base-system [runtime-config]
   (c/system-map
     :keep-alive (keep-alive/new-keep-alive)
@@ -41,9 +39,4 @@
     :config (c/using (config/new-config runtime-config) [:keep-alive])
     :metering (c/using (metering/new-metering) [:config])
     :health (c/using (health/new-health) [:config :handler])
-    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
-    :server (c/using (httpkit/new-server) [:config :handler])))
-
-;; deprecated stuff
-(def empty-system base-system)
-(def start-system start)
+    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])))

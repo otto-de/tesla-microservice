@@ -13,7 +13,7 @@
 
 (defn- serverless-system [runtime-config]
   (dissoc
-    (system/empty-system runtime-config)
+    (system/base-system runtime-config)
     :server))
 
 (deftest ^:unit should-have-system-status-for-runtime-config
