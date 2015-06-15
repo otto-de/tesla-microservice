@@ -45,7 +45,7 @@
                              )))))
 
   (testing "use the configuration url"
-    (u/with-started [started (serverless-system {:health-url "/my-health"})]
+    (u/with-started [started (serverless-system {:health {:path "/my-health"}})]
                     (let [handlers (handler/handler (:handler started))]
                       (is (= (:body (handlers (mock/request :get "/my-health"))
                                "HEALTHY"

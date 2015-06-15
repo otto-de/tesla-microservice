@@ -17,21 +17,12 @@
     :server))
 
 (deftest ^:unit should-have-system-status-for-runtime-config
-  (u/with-started [system (serverless-system {:host-name "bar" :host-port "0123"})]
+  (u/with-started [system (serverless-system {:hostname "bar" :external-port "0123"})]
                   (let [status (:app-status system)
                         system-status (:system (app-status/status-response-body status))]
                     (is (= (:hostname system-status) "bar"))
                     (is (= (:port system-status) "0123"))
                     (is (not (nil? (:systemTime system-status)))))))
-
-(deftest ^:unit should-have-system-status-for-env-config
-  (with-redefs-fn {#'env/env {:host-name "foo" :host-port "1234"}}
-    #(u/with-started [system (serverless-system {})]
-                     (let [status (:app-status system)
-                           system-status (:system (app-status/status-response-body status))]
-                       (is (= (:hostname system-status) "foo"))
-                       (is (= (:port system-status) "1234"))
-                       (is (not (nil? (:systemTime system-status))))))))
 
 (deftest ^:unit should-sanitize-passwords
   (is (= (app-status/sanitize {:somerandomstuff                        "not-so-secret"
@@ -86,13 +77,13 @@
                              200)))))
 
   (testing "use the configuration url"
-    (u/with-started [started (serverless-system {:status-url "/my-status"})]
+    (u/with-started [started (serverless-system {:status {:path "/my-status"}})]
                     (let [handlers (handler/handler (:handler started))]
                       (is (= (:status (handlers (mock/request :get "/my-status")))
                              200)))))
 
   (testing "default should be overridden"
-    (u/with-started [started (serverless-system {:status-url "/my-status"})]
+    (u/with-started [started (serverless-system {:status {:path "/my-status"}})]
                     (let [handlers (handler/handler (:handler started))]
                       (is (= (handlers (mock/request :get "/status"))
                              nil))))))
@@ -108,13 +99,13 @@
 
 (deftest determine-status-strategy
   (testing "it should use strict stategy if none is configured"
-    (let [config {:status-aggregation nil}]
+    (let [config {:config {:status-aggregation nil}}]
       (is (= (app-status/aggregation-strategy config) s/strict-strategy))))
 
   (testing "it should use forgiving stategy if forgiving is configured"
-    (let [config {:status-aggregation "forgiving"}]
+    (let [config {:config {:status-aggregation "forgiving"}}]
       (is (= (app-status/aggregation-strategy config) s/forgiving-strategy))))
 
   (testing "it should use strict stategy if something else is configured"
-    (let [config {:status-aggregation "unknown"}]
+    (let [config {:config {:status-aggregation "unknown"}}]
       (is (= (app-status/aggregation-strategy config) s/strict-strategy)))))

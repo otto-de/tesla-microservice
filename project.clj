@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.1.15"
+(defproject de.otto/tesla-microservice "0.1.17"
             :description "basic microservice."
             :url "https://github.com/otto-de/tesla-microservice"
             :license {:name "Apache License 2.0"
@@ -7,7 +7,7 @@
                   :url  "https://github.com/otto-de/tesla-microservice"}
             :dependencies [[org.clojure/clojure "1.6.0"]
                            [com.stuartsierra/component "0.2.3"]
-                           [clojurewerkz/propertied "1.2.0"]
+                           [gorillalabs/config "1.0.0"]
                            [org.clojure/data.json "0.2.6"]
                            [beckon "0.1.1"]
                            [environ "1.0.0"]
@@ -46,5 +46,9 @@
                                             [ch.qos.logback/logback-classic "1.1.3"]
                                             [ring-mock "0.1.5"]]
                              :plugins [[lein-ancient "0.5.4"]
-                                       [lein-environ "1.0.0"]]}}
+                                       [lein-marginalia "0.8.0"]
+                                       [lein-environ "1.0.0"]]
+
+                             :env {:system "SYSTEM"
+                                   :env "ENV"}}}
             :test-paths ["test" "test-resources"])

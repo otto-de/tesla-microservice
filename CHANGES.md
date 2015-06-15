@@ -2,6 +2,19 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document breaking changes. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.1.17
+Replaced property based configuration by EDN based configuration using [gorillalabs/config](https://github.com/gorillalabs/config).
+You need to update your configuration files.
+
+### 0.1.16
+Moved config parameters:
+
+ * ```status.url``` to ```status.path```
+ * and ```health.url``` to ```health.path```.
+
+You do not need to change anything if you did not overwrite the default behaviour.
+
+If you need to get info from the config component, there's a new function config for that.
 
 ### 0.1.15
 The function ```de.otto.tesla.system/start-system``` is renamed to ```start```, ```de.otto.tesla.system/empty-system``` is renamed to ```base-system```. 

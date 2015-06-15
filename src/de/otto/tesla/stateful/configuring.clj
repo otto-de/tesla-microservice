@@ -1,54 +1,58 @@
 (ns de.otto.tesla.stateful.configuring
   "This component is responsible for loading the configuration."
   (:require [com.stuartsierra.component :as component]
-            [clojurewerkz.propertied.properties :as p]
             [clojure.tools.logging :as log]
-            [clojure.java.io :as io]
-            [de.otto.tesla.util.keyword :as kwutil]
-            [environ.core :as env :only [env]]))
+            [gorillalabs.config :as config]
+            [environ.core :as environ]))
 
-(defn- load-properties-from-resource [resource]
-  (kwutil/sanitize-keywords
-    (p/properties->map
-      (p/load-from resource) false)))
 
-(defn- load-properties [name & [type]]
-  (cond
-    (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))
-    (io/resource name) (load-properties-from-resource (io/resource name))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Access functions
 
-(defn load-config []
-  (let [defaults (load-properties "default.properties")
-        config (load-properties (or (:config-file env/env) "application.properties") :file)
-        local (load-properties "local.properties")]
-    (merge defaults config local env/env)))
+(defn config
+  ([config-component]
+   (:config config-component)) ;; DO NOT USE, THIS IS FOR LEGACY SUPPORT ONLY!
+  ([config-component key-path]
+   (get-in (:config config-component) key-path))
+  ([config-component key-path default]
+   (get-in (:config config-component) key-path default)))
 
-(defn load-and-merge [runtime-config]
-  (merge (load-config) runtime-config))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Special access functions
+
+(defn external-hostname [config-component]
+  ;; old function was otto-specific
+  (config config-component [:hostname] "localhost")
+  )
+
+(defn external-port [config-component]
+  ;; old function was otto-specific
+  (config config-component [:external-port]))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Component related stuff
+
+(defn- load-config [_]
+  (config/init (str (environ/env :system) "-" (environ/env :env))))
 
 ;; Load config on startup.
-(defrecord Configuring [runtime-config]
+(defrecord Configuring [runtime-config load-config-fn]
   component/Lifecycle
   (start [self]
     (log/info "-> loading configuration.")
-    (log/info runtime-config)
-    (assoc self :config (load-and-merge runtime-config)
-                :version (load-properties "version.properties")))
+    (assoc self :config (merge (load-config-fn self) runtime-config)
+                :version {:version "test.version"
+                          :commit  "test.githash"}))
 
   (stop [self]
     (log/info "<- stopping configuration.")
     self))
 
-(defn new-config [runtime-config] (map->Configuring {:runtime-config runtime-config}))
+(defn new-config [runtime-config & {:keys [load-config-fn] :or {load-config-fn load-config}}]
+  (map->Configuring {:runtime-config runtime-config
+                     :load-config-fn load-config-fn
+                     }))
 
-;; The hostname and port visble from the outside are different for
-;; different environments.
-;; These methods default to Marathon defaults.
-(defn external-hostname [self]
-  (let [conf (:config self)]
-    (or (:host conf) (:host-name conf) (:hostname conf) "localhost")))
-
-;; see above
-(defn external-port [self]
-  (let [conf (:config self)]
-    (or (:port0 conf) (:host-port conf) (:server-port conf))))
