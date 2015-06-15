@@ -1,3 +1,5 @@
+> "If Edison had a needle to find in a haystack, he would proceed at once with the diligence of the bee to examine straw after straw until he found the object of his search." - Nikola Tesla
+
 #tesla-microservice
 
 This is the common basis for some of otto.de's microservices. It is written in clojure using the [component framework](https://github.com/stuartsierra/component).
