@@ -3,7 +3,8 @@
             [compojure.core :as c]
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.handler :as handler]
-            [ring.middleware.defaults :as ring-defaults]))
+            [ring.middleware.defaults :as ring-defaults]
+            [de.otto.tesla.stateful.configuring :as config]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -21,7 +22,7 @@
 
 (defn make-handler
   [self]
-  (let [health-path (get-in self [:config :config :health-url] "/health")]
+  (let [health-path (config/config (:config self) [:health :path] "/health")]
     (c/routes (-> (c/GET health-path
                          []
                     (health-response self))
@@ -30,7 +31,6 @@
                                                        :cookies false
                                                        :static false
                                                        :proxy true))))))
-
 (defn lock-application [self]
   (reset! (:locked self) true))
 

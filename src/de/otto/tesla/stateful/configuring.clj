@@ -5,7 +5,17 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [de.otto.tesla.util.keyword :as kwutil]
-            [environ.core :as env :only [env]]))
+            [environ.core :as env :only [env]]
+            [clojure.string :as s]))
+
+
+(defn config
+  ([config]
+   (:config config))
+  ([config key-path]
+   (get (:config config) (keyword (s/join "." (map name key-path)))))
+  ([config key-path default]
+   (get (:config config) (keyword (s/join "." (map name key-path))) default)))
 
 (defn- load-properties-from-resource [resource]
   (kwutil/sanitize-keywords

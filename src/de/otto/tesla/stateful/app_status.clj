@@ -10,7 +10,7 @@
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.status :as s]
             [metrics.timers :as timers]
-            [de.otto.tesla.stateful.configuring :as configuring]
+            [de.otto.tesla.stateful.configuring :as config]
             [ring.middleware.defaults :as ring-defaults]))
 
 
@@ -26,8 +26,8 @@
 
 (defn system-infos [config]
   {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
-   :hostname   (configuring/external-hostname config)
-   :port       (configuring/external-port config)})
+   :hostname   (config/external-hostname config)
+   :port       (config/external-port config)})
 
 (defn sanitize-str [s]
   (apply str (repeat (count s) "*")))
@@ -42,18 +42,17 @@
         (map (partial sanitize-mapentry checklist) config)))
 
 (defn aggregation-strategy [config]
-  (if (= (get-in config [:status-aggregation]) "forgiving")
+  (if (= (config/config config [:status-aggregation]) "forgiving")
     s/forgiving-strategy
     s/strict-strategy))
 
 (defn create-complete-status [self]
-  (let [config (get-in self [:config :config])
-        version-info (get-in self [:config :version])
+  (let [version-info (get-in self [:config :version]) ;; TODO: Make this a separate component to read stuff from MANIFEST.MF
         aggregate-strategy (:status-aggregation self)
-        extra-info {:name          (:name config)
+        extra-info {:name          (config/config (:config self) [:name])
                     :version       (:version version-info)
                     :git           (:commit version-info)
-                    :configuration (sanitize config ["passwd" "pwd"])}]
+                    :configuration (sanitize (config/config (:config self)) ["pwd" "passwd"])}]
     (assoc
       (s/aggregate-status :application
                           aggregate-strategy
@@ -81,7 +80,7 @@
 
 (defn make-handler
   [self]
-  (let [status-path (get-in self [:config :config :status-url] "/status")]
+  (let [status-path (config/config (:config self) [:status :path] "/status")]
     (c/routes (-> (c/GET status-path
                          []
                     (status-response self))
@@ -92,6 +91,7 @@
                                                        :proxy true))))))
 
 
+
 (defrecord ApplicationStatus [config handler metering]
   component/Lifecycle
   (start [self]
@@ -99,7 +99,7 @@
     (let [new-self (assoc self
                      :status-timer (metering/timer! metering "status")
                      :health-timer (metering/timer! metering "health")
-                     :status-aggregation (aggregation-strategy (:config config))
+                     :status-aggregation (aggregation-strategy config)
                      :status-functions (atom []))]
 
       (handlers/register-handler handler (make-handler new-self))
