@@ -1,7 +1,11 @@
-## Breaking changes
+## Changes
 
-_tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document breaking changes. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
+_tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document changes and give instructions on breaking ones. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+
+### 0.1.16
+
+Speedup of unit-tests (and possibly runtime behaviour) by simpler implmentation of the `:keep-alive`-component.
 
 ### 0.1.15
 The function ```de.otto.tesla.system/start-system``` is renamed to ```start```, ```de.otto.tesla.system/empty-system``` is renamed to ```base-system```. 
