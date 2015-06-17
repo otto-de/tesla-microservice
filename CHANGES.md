@@ -2,6 +2,9 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document changes and give instructions on breaking ones. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.1.17
+
+Fix wrapping of middleware to not apply to all routes in the application, which created problems with POST-request.
 
 ### 0.1.16
 

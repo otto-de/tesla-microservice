@@ -4,7 +4,7 @@
 
 This is the common basis for some of otto.de's microservices. It is written in clojure using the [component framework](https://github.com/stuartsierra/component).
 
-`[de.otto/tesla-microservice "0.1.16"]`
+`[de.otto/tesla-microservice "0.1.17"]`
 
 [![Build Status](https://travis-ci.org/otto-de/tesla-microservice.svg)](https://travis-ci.org/otto-de/tesla-microservice)
 [![Dependencies Status](http://jarkeeper.com/otto-de/tesla-microservice/status.svg)](http://jarkeeper.com/otto-de/tesla-microservice)
