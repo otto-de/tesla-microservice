@@ -18,11 +18,7 @@
                           response (handlers (mock/request :get "/health"))]
                       (are [key value] (= value (get response key))
                                        :body "HEALTHY"
-                                       :status 200
-                                       )
-                      (are [key value] (= value (get (:headers response) key))
-                                       "Content-Type" "text/plain; charset=utf-8")
-                      ))
+                                       :status 200)))
 
                   (testing "when locked, it is unhealthy"
                     (let [handlers (handler/handler (:handler started))
@@ -31,10 +27,7 @@
                           ]
                       (are [key value] (= value (get response key))
                                        :body "UNHEALTHY"
-                                       :status 503
-                                       )
-                      (are [key value] (= value (get (:headers response) key))
-                                       "Content-Type" "text/plain; charset=utf-8")))))
+                                       :status 503)))))
 
 (deftest ^:integration should-serve-health-under-configured-url
   (testing "use the default url"

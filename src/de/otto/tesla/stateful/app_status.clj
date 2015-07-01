@@ -10,9 +10,7 @@
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.status :as s]
             [metrics.timers :as timers]
-            [de.otto.tesla.stateful.configuring :as configuring]
-            [ring.middleware.defaults :as ring-defaults]))
-
+            [de.otto.tesla.stateful.configuring :as configuring]))
 
 
 (defn keyword-to-status [kw]
@@ -82,16 +80,7 @@
 (defn make-handler
   [self]
   (let [status-path (get-in self [:config :config :status-url] "/status")]
-    (c/routes (c/GET status-path
-                     []
-                (-> (c/GET status-path
-                         []
-                    (status-response self))
-                  (ring-defaults/wrap-defaults
-                    (assoc ring-defaults/site-defaults :session false
-                                                       :cookies false
-                                                       :static false
-                                                       :proxy true)))))))
+    (c/routes (c/GET status-path [] (status-response self)))))
 
 
 (defrecord ApplicationStatus [config handler metering]
