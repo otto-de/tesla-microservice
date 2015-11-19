@@ -1,0 +1,21 @@
+{
+ :status-url               "/status"
+ :health-url               "/health"
+
+ ; metering
+ :metering-reporter        "console"
+ :console-interval-seconds "100"
+
+ ; activate graphite like this:
+ ;:metering-reporter "graphite"
+ ;:graphite-host "localhost"
+ ;:graphite-port "2003"
+ ;:graphite-prefix "my-app-prefix"
+ ;:graphite-interval-seconds "60"
+
+ :server-port              "8080"
+
+ ; use this if you need a grace-time during which
+ ; the system reports unhealthy before shutting down.
+ ;:wait-ms-on-stop "10000"
+ }

@@ -46,7 +46,7 @@
     (log/info "-> loading configuration.")
     (log/info runtime-config)
     (assoc self :config (load-and-merge runtime-config)
-                :version (load-properties "version.properties")))
+                :version (load-properties "version.properties" :properties)))
 
   (stop [self]
     (log/info "<- stopping configuration.")
