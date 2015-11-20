@@ -4,9 +4,9 @@
             [clojurewerkz.propertied.properties :as p]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
-            [clojure.edn :as edn]
             [de.otto.tesla.util.keyword :as kwutil]
-            [environ.core :as env :only [env]])
+            [environ.core :as env :only [env]]
+            [de.otto.tesla.util.env_var_reader :only[read-env-var]])
   (:import (java.io PushbackReader)))
 
 (defn- load-properties-from-resource [resource]
@@ -15,7 +15,7 @@
       (p/load-from resource) false)))
 
 (defn- load-properties-from-edn [resource]
-  (edn/read (PushbackReader. (io/reader resource))))
+  (read (PushbackReader. (io/reader resource))))
 
 (defn- load-properties [name & [type]]
   (cond

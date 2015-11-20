@@ -12,9 +12,9 @@
 
 (deftest ^:unit should-read-property-from-default-config
   (testing "should be possible to prefer reading configs from property files"
-  (u/with-started [started (test-system {:property-file-preferred true})]
-                  (let [conf (:config (:conf started))]
-                    (is (= (:foo-bar conf) "baz"))))))
+    (u/with-started [started (test-system {:property-file-preferred true})]
+                    (let [conf (:config (:conf started))]
+                      (is (= (:foo-bar conf) "baz"))))))
 
 (deftest ^:unit should-read-property-from-default-edn-file
   (u/with-started [started (test-system {})]
@@ -75,4 +75,8 @@
   (io/delete-file "other.properties")
   (io/delete-file "application.properties"))
 
+(deftest ^:integration should-substitute-env-variables-while-reading
+  (with-redefs-fn {#'env/env {"MyVar" "MyVarValue"}}
+    #(is (= (get-in (configuring/load-config) [:foo :conf-from-env])
+            "MyVarValue"))))
 
