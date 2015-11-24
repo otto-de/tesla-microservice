@@ -11,10 +11,11 @@
         :conf (configuring/new-config rt-conf))))
 
 (deftest referencing-env-properties
-  (testing "should parse a env-property from env which does not exist as nil"
+  (testing "should return empty if env prop does not exist and fallback not provided"
     (with-redefs [env/env {}]
-      (is (thrown? RuntimeException
-                   (u/with-started [started (test-system {})]))))))
+      (u/with-started [started (test-system {})
+                       conf (get-in started [:conf :config])]
+                      (is (= (:prop-without-fallback conf) ""))))))
 
 (deftest ^:unit should-read-property-from-default-config
   (testing "should be possible to prefer reading configs from property files"

@@ -35,7 +35,7 @@
                    :unit        :unit
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
-             :dev     {:env {:my-custom-status-url "/status"}
+             :dev     {:env {:prop-without-fallback "prop-value"}
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [org.slf4j/slf4j-api "1.7.12"]
                                       [ch.qos.logback/logback-core "1.1.3"]

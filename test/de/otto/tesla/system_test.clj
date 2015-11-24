@@ -39,7 +39,7 @@
 
 
 (deftest ^:integration should-substitute-env-variables-while-reading
-  (with-redefs [env/env {:my-custom-status-url "/custom/status/path"}]
+  (with-redefs [env/env {:my-custom-status-url "/custom/status/path" :prop-without-fallback "some prop value"}]
     (u/with-started [started (system/base-system {})]
                     (testing "should load the status-path property from edn"
                       (is (= "/custom/status/path"
@@ -48,4 +48,9 @@
                     (testing "should point to edn-configured custom status url"
                       (let [handlers (handler/handler (:handler started))
                             response (handlers (mock/request :get "/custom/status/path"))]
-                        (is (= 200 (:status response))))))))
+                        (is (= 200 (:status response)))))))
+
+  (u/with-started [started (system/base-system {})]
+                  (testing "should fallback to default for status path"
+                    (is (= "/status"
+                           (:status-url (configuring/load-config)))))))

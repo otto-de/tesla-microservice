@@ -1,4 +1,5 @@
-{:server-port       "9991"
- :status-url        #ts/env :my-custom-status-url
- :metering-reporter "console"
- :foo               {:edn           "baz"}}
+{:server-port           "9991"
+ :status-url            #ts/env [:my-custom-status-url "/status"]
+ :prop-without-fallback #ts/env [:prop-without-fallback]
+ :metering-reporter     "console"
+ :foo                   {:edn "baz"}}
