@@ -6,7 +6,7 @@
             [clojure.java.io :as io]
             [de.otto.tesla.util.keyword :as kwutil]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.util.env_var_reader :only[read-env-var]])
+            [de.otto.tesla.util.env_var_reader :only [read-env-var]])
   (:import (java.io PushbackReader)))
 
 (defn- load-properties-from-resource [resource]
@@ -32,10 +32,12 @@
 (defn load-config []
   (let [defaults (load-properties "default.edn")
         local (load-properties "local.edn")]
-    (merge defaults local env/env)))
+    (merge defaults local)))
 
 (defn load-and-merge [runtime-config]
-  (if (and (not (:property-file-preferred runtime-config)) (io/resource "default.edn"))
+  (if (and
+        (not (:property-file-preferred runtime-config))
+        (io/resource "default.edn"))
     (merge (load-config) runtime-config)
     (merge (load-config-from-property-files) runtime-config)))
 

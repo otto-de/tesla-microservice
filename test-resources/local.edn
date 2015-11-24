@@ -1,1 +1,4 @@
-{:foo {:bar "baz" :conf-from-env #ts/env "MyVar"}}
+{:server-port       "9991"
+ :status-url        #ts/env :my-custom-status-url
+ :metering-reporter "console"
+ :foo               {:edn           "baz"}}

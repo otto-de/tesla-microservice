@@ -24,14 +24,22 @@
                     (is (= (:port system-status) "0123"))
                     (is (not (nil? (:systemTime system-status)))))))
 
-(deftest ^:unit should-have-system-status-for-env-config
-  (with-redefs-fn {#'env/env {:host-name "foo" :host-port "1234"}}
-    #(u/with-started [system (serverless-system {})]
-                     (let [status (:app-status system)
-                           system-status (:system (app-status/status-response-body status))]
-                       (is (= (:hostname system-status) "foo"))
-                       (is (= (:port system-status) "1234"))
-                       (is (not (nil? (:systemTime system-status))))))))
+(deftest ^:unit host-name-and-port-on-app-status
+  (testing "should add host and port from env to app-status in property-file case"
+    (with-redefs-fn {#'env/env {:host-name "foo" :host-port "1234"}}
+      #(u/with-started [system (serverless-system {:property-file-preferred true})]
+                       (let [status (:app-status system)
+                             system-status (:system (app-status/status-response-body status))]
+                         (is (= (:hostname system-status) "foo"))
+                         (is (= (:port system-status) "1234"))
+                         (is (not (nil? (:systemTime system-status))))))))
+  (testing "should add host and port from env to app-status in edn-file case"
+    (u/with-started [system (serverless-system {})]
+                    (let [status (:app-status system)
+                          system-status (:system (app-status/status-response-body status))]
+                      (is (= (:hostname system-status) "localhost"))
+                      (is (= (:port system-status) "9991"))
+                      (is (not (nil? (:systemTime system-status))))))))
 
 (deftest ^:unit should-sanitize-passwords
   (is (= (app-status/sanitize {:somerandomstuff                        "not-so-secret"
