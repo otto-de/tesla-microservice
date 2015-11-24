@@ -5,26 +5,39 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [de.otto.tesla.util.keyword :as kwutil]
-            [environ.core :as env :only [env]]))
+            [environ.core :as env :only [env]]
+            [de.otto.tesla.util.env_var_reader :only[read-env-var]])
+  (:import (java.io PushbackReader)))
 
 (defn- load-properties-from-resource [resource]
   (kwutil/sanitize-keywords
     (p/properties->map
       (p/load-from resource) false)))
 
+(defn- load-properties-from-edn [resource]
+  (read (PushbackReader. (io/reader resource))))
+
 (defn- load-properties [name & [type]]
   (cond
+    (and (= :properties type) (io/resource name)) (load-properties-from-resource (io/resource name))
     (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))
-    (io/resource name) (load-properties-from-resource (io/resource name))))
+    (io/resource name) (load-properties-from-edn (io/resource name))))
 
-(defn load-config []
-  (let [defaults (load-properties "default.properties")
+(defn load-config-from-property-files []
+  (let [defaults (load-properties "default.properties" :properties)
         config (load-properties (or (:config-file env/env) "application.properties") :file)
-        local (load-properties "local.properties")]
+        local (load-properties "local.properties" :properties)]
     (merge defaults config local env/env)))
 
+(defn load-config []
+  (let [defaults (load-properties "default.edn")
+        local (load-properties "local.edn")]
+    (merge defaults local env/env)))
+
 (defn load-and-merge [runtime-config]
-  (merge (load-config) runtime-config))
+  (if (and (not (:property-file-preferred runtime-config)) (io/resource "default.edn"))
+    (merge (load-config) runtime-config)
+    (merge (load-config-from-property-files) runtime-config)))
 
 ;; Load config on startup.
 (defrecord Configuring [runtime-config]
@@ -33,13 +46,14 @@
     (log/info "-> loading configuration.")
     (log/info runtime-config)
     (assoc self :config (load-and-merge runtime-config)
-                :version (load-properties "version.properties")))
+                :version (load-properties "version.properties" :properties)))
 
   (stop [self]
     (log/info "<- stopping configuration.")
     self))
 
-(defn new-config [runtime-config] (map->Configuring {:runtime-config runtime-config}))
+(defn new-config [runtime-config]
+  (map->Configuring {:runtime-config runtime-config}))
 
 ;; The hostname and port visble from the outside are different for
 ;; different environments.

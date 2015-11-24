@@ -11,9 +11,15 @@
         :conf (configuring/new-config rt-conf))))
 
 (deftest ^:unit should-read-property-from-default-config
+  (testing "should be possible to prefer reading configs from property files"
+    (u/with-started [started (test-system {:property-file-preferred true})]
+                    (let [conf (:config (:conf started))]
+                      (is (= (:foo-bar conf) "baz"))))))
+
+(deftest ^:unit should-read-property-from-default-edn-file
   (u/with-started [started (test-system {})]
-                  (let [conf (:config (:conf started))]
-                    (is (= (:foo-bar conf) "baz")))))
+                  (let [edn-conf (:config (:conf started))]
+                    (is (= (get-in edn-conf [:foo :bar]) "baz")))))
 
 (deftest ^:unit should-read-property-from-runtime-config
   (u/with-started [started (test-system {:foo-bar "bak"})]
@@ -22,14 +28,12 @@
 
 (deftest ^:unit should-read-propper-keywords
   (testing "should read the cache-dir as propper sanatized keyowrd from config"
-    (let [loaded-properties (configuring/load-config)]
+    (let [loaded-properties (configuring/load-config-from-property-files)]
       (is (not (empty? (:cache-dir loaded-properties))))))
 
   (testing "should read the metering-reporter as propper sanatized keyowrd from config"
-    (let [loaded-properties (configuring/load-config)]
+    (let [loaded-properties (configuring/load-config-from-property-files)]
       (is (not (empty? (:metering-reporter loaded-properties)))))))
-
-
 
 (deftest ^:unit should-determine-hostname-from-properties-with-defined-precedence
   (testing "should prefer $HOST"
@@ -58,7 +62,7 @@
 
 (deftest ^:integration should-read-properties-from-file
   (spit "application.properties" "foooo=barrrr")
-  (is (= (:foooo (configuring/load-config))
+  (is (= (:foooo (configuring/load-config-from-property-files))
          "barrrr"))
   (io/delete-file "application.properties"))
 
@@ -66,8 +70,13 @@
   (spit "application.properties" "foooo=value")
   (spit "other.properties" "foooo=other-value")
   (with-redefs-fn {#'env/env {:config-file "other.properties"}}
-    #(is (= (:foooo (configuring/load-config))
+    #(is (= (:foooo (configuring/load-config-from-property-files))
             "other-value")))
   (io/delete-file "other.properties")
   (io/delete-file "application.properties"))
+
+(deftest ^:integration should-substitute-env-variables-while-reading
+  (with-redefs-fn {#'env/env {"MyVar" "MyVarValue"}}
+    #(is (= (get-in (configuring/load-config) [:foo :conf-from-env])
+            "MyVarValue"))))
 
