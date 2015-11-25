@@ -14,14 +14,10 @@
     (p/properties->map
       (p/load-from resource) false)))
 
-(defn- load-properties-from-edn [resource]
-  (read (PushbackReader. (io/reader resource))))
-
 (defn- load-properties [name & [type]]
   (cond
     (and (= :properties type) (io/resource name)) (load-properties-from-resource (io/resource name))
-    (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))
-    (io/resource name) (load-properties-from-edn (io/resource name))))
+    (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))))
 
 (defn load-config-from-property-files []
   (let [defaults (load-properties "default.properties" :properties)
@@ -29,16 +25,22 @@
         local (load-properties "local.properties" :properties)]
     (merge defaults config local env/env)))
 
-(defn load-config []
-  (let [defaults (load-properties "default.edn")
-        local (load-properties "local.edn")]
-    (merge defaults local)))
+(defn- load-edn [name]
+  (when-let [resource (io/resource name)]
+    (-> resource
+        (io/reader)
+        (PushbackReader.)
+        (read))))
+
+(defn load-config-from-edn-files []
+  (let [defaults (load-edn "default.edn")
+        config (load-edn (or (:config-file env/env) "application.edn"))
+        local (load-edn "local.edn")]
+    (merge defaults config local)))
 
 (defn load-and-merge [runtime-config]
-  (if (and
-        (not (:property-file-preferred runtime-config))
-        (io/resource "default.edn"))
-    (merge (load-config) runtime-config)
+  (if-not (:property-file-preferred runtime-config)
+    (merge (load-config-from-edn-files) runtime-config)
     (merge (load-config-from-property-files) runtime-config)))
 
 ;; Load config on startup.

@@ -30,6 +30,12 @@
                     (is (= (:foo-prop edn-conf) nil))
                     (is (= (get-in edn-conf [:foo :edn]) "baz")))))
 
+(deftest ^:unit should-read-property-from-custom-edn-file
+  (with-redefs [env/env {:config-file "test.edn"}]
+    (u/with-started [started (test-system {})]
+                    (let [edn-conf (get-in started [:conf :config])]
+                      (is (= (get-in edn-conf [:health-url]) "/test/health"))))))
+
 (deftest ^:unit should-read-property-from-runtime-config
   (u/with-started [started (test-system {:foo-rt "bat" :fooz {:nested 123}})]
                   (let [edn-conf (get-in started [:conf :config])]
@@ -45,7 +51,7 @@
       (is (not (nil? (:metering-reporter loaded-properties))))))
 
   (testing "should read default properties from edn-property-files"
-    (let [loaded-properties (configuring/load-config)]
+    (let [loaded-properties (configuring/load-config-from-edn-files)]
       (is (not (nil? (:server-port loaded-properties))))
       (is (not (nil? (:metering-reporter loaded-properties)))))))
 
