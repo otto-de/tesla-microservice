@@ -2,6 +2,24 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document changes and give instructions on breaking ones. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.1.21
+
+Config can be provided via EDN-files.
+
+Those files are looked up and merged:
+
+* `default.edn`
+* `{your-custom.edn`
+* `local.edn`
+
+The `your-custom.edn}` can be specified via a ENV-variable named `config-file`. All
+EDN-config-files have to be in the class path.
+
+If you want to stick with the "old" properties-files, you have to specify a runtime-config
+in your system that says:
+
+    :property-file-preferred true
+
 ### 0.1.17
 
 Fix wrapping of middleware to not apply to all routes in the application, which created problems with POST-request.
