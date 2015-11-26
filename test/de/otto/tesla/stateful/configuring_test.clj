@@ -55,30 +55,54 @@
       (is (not (nil? (:server-port loaded-properties))))
       (is (not (nil? (:metering-reporter loaded-properties)))))))
 
-(deftest ^:unit should-determine-hostname-from-properties-with-defined-precedence
-  (testing "should prefer $HOST"
-    (u/with-started [started (test-system {:host "host" :host-name "host-name" :hostname "hostname"})]
-                    (is (= "host" (configuring/external-hostname (:conf started))))))
-  (testing "should prefer $HOST_NAME"
-    (u/with-started [started (test-system {:host-name "host-name" :hostname "hostname"})]
-                    (is (= "host-name" (configuring/external-hostname (:conf started))))))
-  (testing "should choose $HOSTNAME"
-    (u/with-started [started (test-system {:hostname "hostname"})]
-                    (is (= "hostname" (configuring/external-hostname (:conf started))))))
-  (testing "should fallback to localhost"
+(deftest ^:unit determine-hostname-from-config-and-env-with-defined-precedence
+  (testing "it prefers a explicitly configured :host-name"
+    (with-redefs [env/env {:host "host" :host-name "host-name" :hostname "hostname"}]
+      (u/with-started [started (test-system {:host-name "configured"})]
+                      (is (= "configured"
+                             (configuring/external-hostname (:conf started)))))))
+  (testing "it falls back to env-vars and prefers $HOST"
+    (with-redefs [env/env {:host "host" :host-name "host-name" :hostname "hostname"}]
+      (u/with-started [started (test-system {})]
+                      (is (= "host"
+                             (configuring/external-hostname (:conf started)))))))
+  (testing "it falls back to env-vars and prefers $HOST_NAME"
+    (with-redefs [env/env {:host-name "host-name" :hostname "hostname"}]
+      (u/with-started [started (test-system {})]
+                      (is (= "host-name"
+                             (configuring/external-hostname (:conf started)))))))
+  (testing "it falls back to env-vars and looks finally for $HOSTNAME"
+    (with-redefs [env/env {:hostname "hostname"}]
+      (u/with-started [started (test-system {})]
+                      (is (= "hostname"
+                             (configuring/external-hostname (:conf started)))))))
+  (testing "it eventually falls back to localhost"
     (u/with-started [started (test-system {})]
-                    (is (= "localhost" (configuring/external-hostname (:conf started)))))))
+                    (is (= "localhost"
+                           (configuring/external-hostname (:conf started)))))))
 
-(deftest ^:unit should-determine-hostport-from-properties-with-defined-precedence
-  (testing "should prefer $PORT0"
-    (u/with-started [started (test-system {:port0 "0" :host-port "1" :server-port "2"})]
-                    (is (= "0" (configuring/external-port (:conf started))))))
-  (testing "should prefer $HOST_PORT"
-    (u/with-started [started (test-system {:host-port "1" :server-port "2"})]
-                    (is (= "1" (configuring/external-port (:conf started))))))
-  (testing "should fallback to $SERVER_PORT"
-    (u/with-started [started (test-system {:server-port "2"})]
-                    (is (= "2" (configuring/external-port (:conf started)))))))
+(deftest ^:unit determine-hostport-from-config-and-env-with-defined-precedence
+  (with-redefs [configuring/load-config-from-edn-files (constantly {})]
+    (testing "it prefers a explicitly configured :hostname"
+      (with-redefs [env/env {:port0 "0" :host-port "1" :server-port "2"}]
+        (u/with-started [started (test-system {:server-port "configured"})]
+                        (is (= "configured"
+                               (configuring/external-port (:conf started)))))))
+    (testing "it falls back to env-vars and prefers $PORT0"
+      (with-redefs [env/env {:port0 "0" :host-port "1" :server-port "2"}]
+        (u/with-started [started (test-system {})]
+                        (is (= "0"
+                               (configuring/external-port (:conf started)))))))
+    (testing "it falls back to env-vars and prefers $HOST_PORT"
+      (with-redefs [env/env {:host-port "1" :server-port "2"}]
+        (u/with-started [started (test-system {})]
+                        (is (= "1"
+                               (configuring/external-port (:conf started)))))))
+    (testing "it falls back to env-vars and finally takes $SERVER_PORT"
+      (with-redefs [env/env {:server-port "2"}]
+        (u/with-started [started (test-system {})]
+                        (is (= "2"
+                               (configuring/external-port (:conf started)))))))))
 
 (deftest ^:integration should-read-properties-from-file
   (spit "application.properties" "foooo=barrrr")

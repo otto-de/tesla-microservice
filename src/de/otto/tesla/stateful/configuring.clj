@@ -64,11 +64,12 @@
 ;; The hostname and port visble from the outside are different for
 ;; different environments.
 ;; These methods default to Marathon defaults.
-(defn external-hostname [self]
-  (let [conf (:config self)]
-    (or (:host conf) (:host-name conf) (:hostname conf) "localhost")))
+(defn external-hostname [{:keys [config]}]
+  (or (:host-name config)
+      (:host env/env) (:host-name env/env) (:hostname env/env)
+      "localhost"))
 
 ;; see above
-(defn external-port [self]
-  (let [conf (:config self)]
-    (or (:port0 conf) (:host-port conf) (:server-port conf))))
+(defn external-port [{:keys [config]}]
+  (or (:server-port config)
+      (:port0 env/env) (:host-port env/env) (:server-port env/env)))

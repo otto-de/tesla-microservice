@@ -17,7 +17,7 @@
     :server))
 
 (deftest ^:unit should-have-system-status-for-runtime-config
-  (u/with-started [system (serverless-system {:host-name "bar" :host-port "0123"})]
+  (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"})]
                   (let [status (:app-status system)
                         system-status (:system (app-status/status-response-body status))]
                     (is (= (:hostname system-status) "bar"))
@@ -26,7 +26,7 @@
 
 (deftest ^:unit host-name-and-port-on-app-status
   (testing "should add host and port from env to app-status in property-file case"
-    (with-redefs-fn {#'env/env {:host-name "foo" :host-port "1234"}}
+    (with-redefs-fn {#'env/env {:host-name "foo" :server-port "1234"}}
       #(u/with-started [system (serverless-system {:property-file-preferred true})]
                        (let [status (:app-status system)
                              system-status (:system (app-status/status-response-body status))]
