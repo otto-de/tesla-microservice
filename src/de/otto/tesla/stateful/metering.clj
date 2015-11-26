@@ -13,32 +13,39 @@
     (com.codahale.metrics MetricFilter)
     (java.util.concurrent TimeUnit)))
 
-(defn prefix [config]
-  (str (:graphite-prefix (:config config)) "." (configuring/external-hostname config)))
+(defn- short-hostname [hostname]
+  (re-find #"[^.]*" hostname))
 
-(defn- start-graphite! [registry config]
+(defn- graphite-host-prefix [{:keys [config] :as c}]
+  (let [external-hostname (configuring/external-hostname c)
+        hostname (if (:graphite-shorten-hostname? config)
+                   (short-hostname external-hostname)
+                   external-hostname)]
+    (str (:graphite-prefix config) "." hostname)))
+
+(defn- start-graphite! [registry {:keys [config] :as c}]
   (let [reporter (graphite/reporter registry
-                                    {:host          (:graphite-host (:config config))
-                                     :port          (Integer. (:graphite-port (:config config)))
-                                     :prefix        (prefix config)
+                                    {:host          (:graphite-host config)
+                                     :port          (Integer. (:graphite-port config))
+                                     :prefix        (graphite-host-prefix c)
                                      :rate-unit     TimeUnit/SECONDS
                                      :duration-unit TimeUnit/MILLISECONDS
                                      :filter        MetricFilter/ALL})]
     (log/info "-> starting graphite reporter.")
-    (graphite/start reporter (Integer/parseInt (:graphite-interval-seconds (:config config))))
+    (graphite/start reporter (Integer/parseInt (:graphite-interval-seconds config)))
     reporter))
 
-(defn- start-console! [registry config]
+(defn- start-console! [registry {:keys [config]}]
   (let [reporter (console/reporter registry {})]
     (log/info "-> starting console reporter.")
-    (console/start reporter (Integer/parseInt (:console-interval-seconds (:config config))))
+    (console/start reporter (Integer/parseInt (:console-interval-seconds config)))
     reporter))
 
 (defn- start-reporter! [registry config]
-  (case (:metering-reporter (:config config))
+  (case (:metering-reporter config)
     "graphite" (start-graphite! registry config)
     "console" (start-console! registry config)
-    nil ;; default: do nothing!
+    nil                                                     ;; default: do nothing!
     ))
 
 (defprotocol PubMetering
@@ -52,9 +59,9 @@
   (start [self]
     (log/info "-> starting metering.")
     (let [registry (metrics/new-registry)]
-        (assoc self
-               :registry registry
-               :reporter (start-reporter! registry config))))
+      (assoc self
+        :registry registry
+        :reporter (start-reporter! registry config))))
   (stop [self]
     (log/info "<- stopping metering")
     (when-let [reporter (:reporter self)]

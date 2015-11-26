@@ -5,11 +5,15 @@
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.configuring :as configuring]))
 
-
-(deftest ^:unit should-return-prefix-for-testhost
-  (with-redefs-fn {#'configuring/external-hostname (fn [_] "testhost")}
-    #(is (= (metering/prefix {:config {:graphite-prefix "a_random_prefix"}})
-            "a_random_prefix.testhost"))))
+(def graphite-host-prefix #'metering/graphite-host-prefix)
+(deftest ^:unit graphite-prefix-test
+  (testing "returns prefix for testhost"
+    (with-redefs [configuring/external-hostname (constantly "testhost.example.com")]
+      (is (= "a-prefix.testhost.example.com"
+             (graphite-host-prefix {:config {:graphite-prefix "a-prefix"}})))
+      (is (= "a-prefix.testhost"
+             (graphite-host-prefix {:config {:graphite-shorten-hostname? true
+                                             :graphite-prefix "a-prefix"}}))))))
 
 (deftest ^:unit the-metrics-lib-accepts-a-vector-for-building-the-name
   (is (= (metrics.core/metric-name ["some.name.foo.bar"])
@@ -27,3 +31,11 @@
                       (is (true? (contains? names "some.name.timer.bar")))
                       (is (true? (contains? names "some.name.gauge.bar")))
                       (is (true? (contains? names "some.name.counter.bar")))))))
+
+(def short-hostname #'metering/short-hostname)
+(deftest short-hostname-test
+  (testing "it only returns the important part of a full-qualified hostname"
+    (is (= ""
+           (short-hostname "")))
+    (is (= "mesos-slave-dev-399946"
+           (short-hostname "mesos-slave-dev-399946.lhotse.ov.otto.de")))))
