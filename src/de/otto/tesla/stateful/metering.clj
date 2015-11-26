@@ -23,15 +23,18 @@
                    external-hostname)]
     (str (:graphite-prefix config) "." hostname)))
 
+(defn graphite-conf [{:keys [config] :as c}]
+  {:host          (:graphite-host config)
+   :port          (Integer. (:graphite-port config))
+   :prefix        (graphite-host-prefix c)
+   :rate-unit     TimeUnit/SECONDS
+   :duration-unit TimeUnit/MILLISECONDS
+   :filter        MetricFilter/ALL})
+
 (defn- start-graphite! [registry {:keys [config] :as c}]
-  (let [reporter (graphite/reporter registry
-                                    {:host          (:graphite-host config)
-                                     :port          (Integer. (:graphite-port config))
-                                     :prefix        (graphite-host-prefix c)
-                                     :rate-unit     TimeUnit/SECONDS
-                                     :duration-unit TimeUnit/MILLISECONDS
-                                     :filter        MetricFilter/ALL})]
-    (log/info "-> starting graphite reporter.")
+  (let [graphite-conf (graphite-conf c)
+        reporter (graphite/reporter registry graphite-conf)]
+    (log/info "-> starting graphite reporter:" graphite-conf)
     (graphite/start reporter (Integer/parseInt (:graphite-interval-seconds config)))
     reporter))
 
@@ -42,7 +45,7 @@
     reporter))
 
 (defn- start-reporter! [registry config]
-  (case (:metering-reporter config)
+  (case (get-in config [:config :metering-reporter])
     "graphite" (start-graphite! registry config)
     "console" (start-console! registry config)
     nil                                                     ;; default: do nothing!
