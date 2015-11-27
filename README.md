@@ -32,6 +32,35 @@ This gives you the freedom to  a) not use any server at all (e.g. for embedded u
 * [tesla-jetty](https://github.com/otto-de/tesla-jetty): The tried and tested embedded jetty.
 * [tesla-httpkit](https://github.com/otto-de/tesla-httpkit): The non-blocking httpkit. 
 
+## Configuring
+
+Applications build with `tesla-microservices` can be configured via 
+`edn`-files, that have to be located in the class path.
+
+### Order of loading and merging
+
+1. A file named `default.edn` is loaded. 
+2. A file named by the ENV-variable `$CONFIG_FILE` is loaded.
+3. A file name `local.edn` is loaded.
+
+The configuration hash-map in those files is loaded and merged in the
+specified order. Which mean configurations for the same key is overridden
+by the latter occurrence.
+
+### ENV-variables
+
+In contrast to former versions of `tesla-microservice` ENV-variables are not
+merged into the configuration.
+
+But you can easily specify ENV-variables, that should be accessible in
+your configuration:
+
+```edn
+{
+ :my-app-secret  #ts/env [:my-env-dep-app-secret "default"]
+}
+```
+
 ## Addons
 
 The basis included is stripped to the very minimum. Additional functionality is available as addons:
