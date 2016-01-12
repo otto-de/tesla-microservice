@@ -5,22 +5,22 @@
             :url  "http://www.apache.org/license/LICENSE-2.0.html"}
   :scm {:name "git"
         :url  "https://github.com/otto-de/tesla-microservice"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [com.stuartsierra/component "0.2.3"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [com.stuartsierra/component "0.3.1"]
                  [clojurewerkz/propertied "1.2.0"]
                  [org.clojure/data.json "0.2.6"]
                  [beckon "0.1.1"]
-                 [environ "1.0.0"]
-                 [clj-time "0.9.0"]
+                 [environ "1.0.1"]
+                 [clj-time "0.11.0"]
 
                  [de.otto/status "0.1.0"]
 
                  ;; io
-                 [ring/ring-core "1.3.2"]
+                 [ring/ring-core "1.4.0"]
 
-                 [compojure "1.3.4"]
-                 [metrics-clojure "2.5.1"]
-                 [metrics-clojure-graphite "2.5.1"]
+                 [compojure "1.4.0"]
+                 [metrics-clojure "2.6.0"]
+                 [metrics-clojure-graphite "2.6.0"]
 
                  [org.clojure/tools.logging "0.3.1"]]
 
@@ -37,7 +37,7 @@
   :profiles {:uberjar {:aot :all}
              :dev     {:env {:prop-without-fallback "prop-value"}
                        :dependencies [[javax.servlet/servlet-api "2.5"]
-                                      [org.slf4j/slf4j-api "1.7.12"]
+                                      [org.slf4j/slf4j-api "1.7.13"]
                                       [ch.qos.logback/logback-core "1.1.3"]
                                       [ch.qos.logback/logback-classic "1.1.3"]
                                       [ring-mock "0.1.5"]]
