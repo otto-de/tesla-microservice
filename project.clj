@@ -19,8 +19,8 @@
                  [ring/ring-core "1.4.0"]
 
                  [compojure "1.4.0"]
-                 [metrics-clojure "2.6.0"]
-                 [metrics-clojure-graphite "2.6.0"]
+                 [metrics-clojure "2.6.1"]
+                 [metrics-clojure-graphite "2.6.1"]
 
                  [org.clojure/tools.logging "0.3.1"]]
 
