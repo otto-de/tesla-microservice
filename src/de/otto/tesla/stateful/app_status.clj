@@ -7,7 +7,6 @@
             [clj-time.local :as local-time]
             [environ.core :as env]
             [de.otto.tesla.stateful.handler :as handlers]
-            [de.otto.tesla.stateful.metering :as metering]
             [de.otto.status :as s]
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]))
@@ -69,7 +68,7 @@
 ;; http://spec.otto.de/media_types/application_vnd_otto_monitoring_status_json.html .
 ;; Right now it applies only partially.
 (defn status-response [self]
-  (timers/time! (:status-timer self)
+  (timers/time! (timers/timer ["status"])
                 {:status  200
                  :headers {"Content-Type" "application/json"}
                  :body    (json/write-str (status-response-body self))}))
@@ -88,8 +87,6 @@
   (start [self]
     (log/info "-> starting Application Status")
     (let [new-self (assoc self
-                     :status-timer (metering/timer! metering "status")
-                     :health-timer (metering/timer! metering "health")
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
 

@@ -3,7 +3,8 @@
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
-            [de.otto.tesla.stateful.configuring :as configuring]))
+            [de.otto.tesla.stateful.configuring :as configuring]
+            [metrics.timers :as timers]))
 
 (def graphite-host-prefix #'metering/graphite-host-prefix)
 (deftest ^:unit graphite-prefix-test
@@ -27,10 +28,12 @@
                     (metering/timer! metering "some.name.timer.bar")
                     (metering/gauge! metering #() "some.name.gauge.bar")
                     (metering/counter! metering "some.name.counter.bar")
+                    (timers/timer ["direct.usage.timer"])
                     (let [names (.getNames (:registry metering))]
                       (is (true? (contains? names "some.name.timer.bar")))
                       (is (true? (contains? names "some.name.gauge.bar")))
-                      (is (true? (contains? names "some.name.counter.bar")))))))
+                      (is (true? (contains? names "some.name.counter.bar")))
+                      (is (true? (contains? names "direct.usage.timer")))))))
 
 (def short-hostname #'metering/short-hostname)
 (deftest short-hostname-test

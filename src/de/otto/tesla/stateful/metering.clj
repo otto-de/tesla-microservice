@@ -61,7 +61,7 @@
   component/Lifecycle
   (start [self]
     (log/info "-> starting metering.")
-    (let [registry (metrics/new-registry)]
+    (let [registry metrics/default-registry]
       (assoc self
         :registry registry
         :reporter (start-reporter! registry config))))
