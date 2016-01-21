@@ -11,6 +11,11 @@
         :conf (configuring/new-config rt-conf))))
 
 (deftest referencing-env-properties
+  (testing "should return env-property if referenced in edn-config"
+    (with-redefs [env/env {:prop-without-fallback "prop-value"}]
+      (u/with-started [started (test-system {})
+                       conf (get-in started [:conf :config])]
+                      (is (= (:prop-without-fallback conf) "prop-value")))))
   (testing "should return empty if env prop does not exist and fallback not provided"
     (with-redefs [env/env {}]
       (u/with-started [started (test-system {})
