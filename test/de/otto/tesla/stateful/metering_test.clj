@@ -14,7 +14,7 @@
              (graphite-host-prefix {:config {:graphite-prefix "a-prefix"}})))
       (is (= "a-prefix.testhost"
              (graphite-host-prefix {:config {:graphite-shorten-hostname? true
-                                             :graphite-prefix "a-prefix"}}))))))
+                                             :graphite-prefix            "a-prefix"}}))))))
 
 (deftest ^:unit the-metrics-lib-accepts-a-vector-for-building-the-name
   (is (= (metrics.core/metric-name ["some.name.foo.bar"])
@@ -28,11 +28,13 @@
                     (metering/timer! metering "some.name.timer.bar")
                     (metering/gauge! metering #() "some.name.gauge.bar")
                     (metering/counter! metering "some.name.counter.bar")
+                    (metering/histogram! metering "some.name.histogram.bar")
                     (timers/timer ["direct.usage.timer"])
                     (let [names (.getNames (:registry metering))]
                       (is (true? (contains? names "some.name.timer.bar")))
                       (is (true? (contains? names "some.name.gauge.bar")))
                       (is (true? (contains? names "some.name.counter.bar")))
+                      (is (true? (contains? names "some.name.histogram.bar")))
                       (is (true? (contains? names "direct.usage.timer")))))))
 
 (def short-hostname #'metering/short-hostname)

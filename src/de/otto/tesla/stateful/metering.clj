@@ -5,6 +5,7 @@
     [metrics.timers :as timers]
     [metrics.counters :as counters]
     [metrics.gauges :as gauges]
+    [metrics.histograms :as histograms]
     [metrics.reporters.graphite :as graphite]
     [metrics.reporters.console :as console]
     [clojure.tools.logging :as log]
@@ -54,7 +55,8 @@
 (defprotocol PubMetering
   (gauge! [self gauge-callback-fn name])
   (timer! [self name])
-  (counter! [self name]))
+  (counter! [self name])
+  (histogram! [self name]))
 
 ;; Initialises a metrics-registry and a graphite reporter.
 (defrecord Metering [config]
@@ -76,7 +78,9 @@
   (timer! [self name]
     (timers/timer (:registry self) [name]))
   (counter! [self name]
-    (counters/counter (:registry self) [name])))
+    (counters/counter (:registry self) [name]))
+  (histogram! [self name]
+    (histograms/histogram (:registry self) [name])))
 
 
 (defn new-metering [] (map->Metering {}))
