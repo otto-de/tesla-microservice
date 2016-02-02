@@ -10,7 +10,7 @@
                  [clojurewerkz/propertied "1.2.0"]
                  [org.clojure/data.json "0.2.6"]
                  [beckon "0.1.1"]
-                 [environ "1.0.1"]
+                 [environ "1.0.2"]
                  [clj-time "0.11.0"]
 
                  [de.otto/status "0.1.0"]
@@ -36,10 +36,10 @@
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
              :dev     {:dependencies [[javax.servlet/servlet-api "2.5"]
-                                      [org.slf4j/slf4j-api "1.7.13"]
+                                      [org.slf4j/slf4j-api "1.7.14"]
                                       [ch.qos.logback/logback-core "1.1.3"]
                                       [ch.qos.logback/logback-classic "1.1.3"]
                                       [ring-mock "0.1.5"]]
-                       :plugins      [[lein-ancient "0.5.4"]
-                                      [lein-environ "1.0.0"]]}}
+                       :plugins      [[lein-ancient "0.6.8"]
+                                      [lein-environ "1.0.2"]]}}
   :test-paths ["test" "test-resources"])
