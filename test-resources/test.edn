@@ -1,1 +1,2 @@
-{:health-url "/test/health"}
+{:health-url "/test/health"
+ :foo        {:local true}}

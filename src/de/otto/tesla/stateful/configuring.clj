@@ -9,6 +9,13 @@
             [de.otto.tesla.util.env_var_reader :only [read-env-var]])
   (:import (java.io PushbackReader)))
 
+(defn deep-merge
+  "Recursively merges maps. If vals are not maps, the last value wins."
+  [& vals]
+  (if (every? map? vals)
+    (apply merge-with deep-merge vals)
+    (last vals)))
+
 (defn- load-properties-from-resource [resource]
   (kwutil/sanitize-keywords
     (p/properties->map
@@ -34,13 +41,14 @@
 
 (defn load-config-from-edn-files []
   (let [defaults (load-edn "default.edn")
-        config (load-edn (or (:config-file env/env) "application.edn"))
-        local (load-edn "local.edn")]
-    (merge defaults config local)))
+        application (load-edn (or (:config-file env/env) "application.edn"))
+        local (load-edn "local.edn")
+        configs (filter some? [defaults application local])]
+    (apply deep-merge configs)))
 
 (defn load-and-merge [runtime-config]
   (if-not (:property-file-preferred runtime-config)
-    (merge (load-config-from-edn-files) runtime-config)
+    (deep-merge (load-config-from-edn-files) runtime-config)
     (merge (load-config-from-property-files) runtime-config)))
 
 ;; Load config on startup.

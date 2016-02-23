@@ -39,15 +39,25 @@
   (with-redefs [env/env {:config-file "test.edn"}]
     (u/with-started [started (test-system {})]
                     (let [edn-conf (get-in started [:conf :config])]
-                      (is (= (get-in edn-conf [:health-url]) "/test/health"))))))
+                      (is (= (get-in edn-conf [:health-url]) "/test/health"))
+                      (is (= (get-in edn-conf [:foo :local]) true))
+                      (is (= (get-in edn-conf [:foo :edn]) "baz"))))))
+
+(deftest ^:unit should-ignore-missing-custom-edn-file
+  (with-redefs [env/env {:config-file "non-existing.edn"}]
+    (u/with-started [started (test-system {:runtime 123})]
+                    (let [edn-conf (get-in started [:conf :config])]
+                      (is (= (get-in edn-conf [:runtime]) 123))
+                      (is (= (get-in edn-conf [:health-url]) "/health"))
+                      (is (= (get-in edn-conf [:foo :edn]) "baz"))))))
 
 (deftest ^:unit should-read-property-from-runtime-config
-  (u/with-started [started (test-system {:foo-rt "bat" :fooz {:nested 123}})]
+  (u/with-started [started (test-system {:foo-rt "bat" :foo {:nested 123}})]
                   (let [edn-conf (get-in started [:conf :config])]
                     (is (= (:foo-prop edn-conf) nil))
                     (is (= (:foo-rt edn-conf) "bat"))
                     (is (= (get-in edn-conf [:foo :edn]) "baz"))
-                    (is (= (get-in edn-conf [:fooz :nested]) 123)))))
+                    (is (= (get-in edn-conf [:foo :nested]) 123)))))
 
 (deftest ^:unit should-read-default-properties
   (testing "should read default properties from property-files"
@@ -123,3 +133,42 @@
             "other-value")))
   (io/delete-file "other.properties")
   (io/delete-file "application.properties"))
+
+(deftest ^:unit deep-merge-test
+  (testing "simple cases"
+    (is (= {:a 1 :b 2}
+           (configuring/deep-merge {:a 1} 
+                                   {:b 2})))
+    (is (= {:a 1 :b 2}
+           (configuring/deep-merge {:a 1 :b 1} 
+                                   {:b 2})))
+    (is (= {:a 2 :b 2}
+           (configuring/deep-merge {:a 1 :b 1} 
+                                   {:a 2 :b 2})))
+    (is (= {:a 3 :b 2 :c 3}
+           (configuring/deep-merge {:a 1 :b 1} 
+                                   {:b 2} 
+                                   {:a 3 :c 3}))))
+  (testing "nested maps"
+    (is (= {:a {:b {:c 1 :d 2}}}
+           (configuring/deep-merge {:a {:b {:c 1}}} 
+                                   {:a {:b {:d 2}}})))
+    (is (= {:a {:b {:c 2 :d 2} :f 3}}
+           (configuring/deep-merge {:a {:b {:c 1}}} 
+                                   {:a {:b {:c 2 :d 2}}}
+                                   {:a {:f 3}}))))
+  (testing "collections as values"
+    (is (= {:a [4 5 6]}
+           (configuring/deep-merge {:a [1 2 3]} {:a [4 5 6]}))))
+
+  (testing "reseting values"
+    (is (= {:a nil}
+           (configuring/deep-merge {:a 1} {:a nil}))))
+  
+  (testing "missing things"
+    (is (= {:a 1}
+           (configuring/deep-merge {:a 1} {})))
+    (is (= nil
+           (configuring/deep-merge {:a 1} nil)))
+    (is (= {:a 1}
+           (apply configuring/deep-merge (filter some? [{:a 1} nil]))))))
