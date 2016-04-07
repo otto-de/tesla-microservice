@@ -12,7 +12,7 @@
     [clojure.tools.logging :as log]
     [de.otto.tesla.stateful.configuring :as configuring])
   (:import
-    (com.codahale.metrics MetricFilter)
+    (com.codahale.metrics MetricFilter Timer)
     (java.util.concurrent TimeUnit)))
 
 (defn- short-hostname [hostname]
@@ -52,6 +52,11 @@
     "console" (start-console! registry config)
     nil                                                     ;; default: do nothing!
     ))
+
+(defn update-timer! [^Timer timer timestamp-in-ms]
+  (.update timer
+           (- (System/currentTimeMillis) timestamp-in-ms)
+           (TimeUnit/MILLISECONDS)))
 
 (defn metered-execution [component-name fn & fn-params]
   (let [timing (timers/start (timers/timer [component-name "time"]))
