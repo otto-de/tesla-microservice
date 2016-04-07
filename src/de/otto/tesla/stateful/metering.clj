@@ -3,6 +3,7 @@
     [com.stuartsierra.component :as component]
     [metrics.core :as metrics]
     [metrics.timers :as timers]
+    [metrics.meters :as meters]
     [metrics.counters :as counters]
     [metrics.gauges :as gauges]
     [metrics.histograms :as histograms]
@@ -51,6 +52,21 @@
     "console" (start-console! registry config)
     nil                                                     ;; default: do nothing!
     ))
+
+(defn metered-execution [component-name fn & fn-params]
+  (let [timing (timers/start (timers/timer [component-name "time"]))
+        exception-meter (meters/meter [component-name "exception"])
+        messages-meter (meters/meter [component-name "messages" "processed"])]
+    (try
+      (let [return-value (apply fn fn-params)]
+        (meters/mark! messages-meter)
+        return-value)
+      (catch Exception e
+        (meters/mark! exception-meter)
+        (log/error e (str "Exception in " component-name))
+        (throw e))
+      (finally
+        (timers/stop timing)))))
 
 (defprotocol PubMetering
   (gauge! [self gauge-callback-fn name])
