@@ -8,9 +8,9 @@
             [environ.core :as env]
             [de.otto.tesla.stateful.handler :as handlers]
             [de.otto.status :as s]
+            [de.otto.tesla.util.sanitize :as san]
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]))
-
 
 (defn keyword-to-status [kw]
   (str/upper-case (name kw)))
@@ -26,18 +26,6 @@
    :hostname   (configuring/external-hostname config)
    :port       (configuring/external-port config)})
 
-(defn sanitize-str [s]
-  (apply str (repeat (count s) "*")))
-
-(defn sanitize-mapentry [checklist [k v]]
-  {k (if (some true? (map #(.contains (name k) %) checklist))
-       (sanitize-str v)
-       v)})
-
-(defn sanitize [config checklist]
-  (into {}
-        (map (partial sanitize-mapentry checklist) config)))
-
 (defn aggregation-strategy [config]
   (if (= (get-in config [:status-aggregation]) "forgiving")
     s/forgiving-strategy
@@ -50,7 +38,7 @@
         extra-info {:name          (:name config)
                     :version       (:version version-info)
                     :git           (:commit version-info)
-                    :configuration (sanitize config ["passwd" "pwd"])}]
+                    :configuration (san/sanitize config)}]
     (assoc
       (s/aggregate-status :application
                           aggregate-strategy

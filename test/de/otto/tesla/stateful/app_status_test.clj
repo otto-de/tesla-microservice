@@ -41,14 +41,6 @@
                       (is (= (:port system-status) "9991"))
                       (is (not (nil? (:systemTime system-status))))))))
 
-(deftest ^:unit should-sanitize-passwords
-  (is (= (app-status/sanitize {:somerandomstuff                        "not-so-secret"
-                               :somerandomstuff-passwd-somerandomstuff "secret"
-                               :somerandomstuff-pwd-somerandomstuff    "secret"} ["passwd" "pwd"])
-         {:somerandomstuff                        "not-so-secret"
-          :somerandomstuff-passwd-somerandomstuff "******"
-          :somerandomstuff-pwd-somerandomstuff    "******"})))
-
 (defrecord MockStatusSource [response]
   c/Lifecycle
   (start [self]

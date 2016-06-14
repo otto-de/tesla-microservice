@@ -6,7 +6,8 @@
             [clojure.java.io :as io]
             [de.otto.tesla.util.keyword :as kwutil]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.util.env_var_reader :only [read-env-var]])
+            [de.otto.tesla.util.env_var_reader :only [read-env-var]]
+            [de.otto.tesla.util.sanitize :as san])
   (:import (java.io PushbackReader)))
 
 (defn deep-merge
@@ -58,7 +59,7 @@
     (log/info "-> loading configuration.")
     (log/info runtime-config)
     (let [config (load-and-merge runtime-config)]
-      (log/info "-> using configuration:\n" (with-out-str (clojure.pprint/pprint config)))
+      (log/info "-> using configuration:\n" (with-out-str (clojure.pprint/pprint (san/sanitize config))))
       (assoc self :config config
                   :version (load-properties "version.properties" :properties))))
 
