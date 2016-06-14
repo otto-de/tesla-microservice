@@ -5,7 +5,7 @@
 (deftest ^:unit should-sanitize-passwords
          (is (= (san/sanitize {:somerandomstuff                        "not-so-secret"
                                       :somerandomstuff-passwd-somerandomstuff "secret"
-                                      :somerandomstuff-pwd-somerandomstuff    "secret"})
+                                      :somerandomstuff-pwd-somerandomstuff    "longersecret"})
                 {:somerandomstuff                        "not-so-secret"
-                 :somerandomstuff-passwd-somerandomstuff "******"
-                 :somerandomstuff-pwd-somerandomstuff    "******"})))
+                 :somerandomstuff-passwd-somerandomstuff "***"
+                 :somerandomstuff-pwd-somerandomstuff    "***"})))
