@@ -38,7 +38,7 @@
         extra-info {:name          (:name config)
                     :version       (:version version-info)
                     :git           (:commit version-info)
-                    :configuration (san/sanitize config)}]
+                    :configuration (san/hide-passwds config)}]
     (assoc
       (s/aggregate-status :application
                           aggregate-strategy

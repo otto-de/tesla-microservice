@@ -59,7 +59,7 @@
     (log/info "-> loading configuration.")
     (log/info runtime-config)
     (let [config (load-and-merge runtime-config)]
-      (log/info "-> using configuration:\n" (with-out-str (clojure.pprint/pprint (san/sanitize config))))
+      (log/info "-> using configuration:\n" (with-out-str (clojure.pprint/pprint (san/hide-passwds config))))
       (assoc self :config config
                   :version (load-properties "version.properties" :properties))))
 

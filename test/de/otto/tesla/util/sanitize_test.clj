@@ -3,9 +3,12 @@
             [de.otto.tesla.util.sanitize :as san]))
 
 (deftest ^:unit should-sanitize-passwords
-         (is (= (san/sanitize {:somerandomstuff                        "not-so-secret"
-                                      :somerandomstuff-passwd-somerandomstuff "secret"
-                                      :somerandomstuff-pwd-somerandomstuff    "longersecret"})
-                {:somerandomstuff                        "not-so-secret"
-                 :somerandomstuff-passwd-somerandomstuff "***"
-                 :somerandomstuff-pwd-somerandomstuff    "***"})))
+  (is (= (san/hide-passwds {:somerandomstuff                    "not-so-secret"
+                        :somerandomstuff-passwd-somerandomstuff "secret"
+                        :somerandomstuff-pwd-somerandomstuff    "longersecret"
+                        :nested                                 {:some-passwd "secret"}})
+         {:somerandomstuff                        "not-so-secret"
+          :somerandomstuff-passwd-somerandomstuff "***"
+          :somerandomstuff-pwd-somerandomstuff    "***"
+          :nested                                 {:some-passwd "***"}
+          })))

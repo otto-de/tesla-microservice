@@ -2,11 +2,12 @@
 
 (def checklist ["password" "pwd" "passwd"])
 
-(defn sanitize-mapentry [checklist [k v]]
-  {k (if (some true? (map #(.contains (name k) %) checklist))
-       "***"
-       v)})
+(defn hide-passwd [k v]
+  (if (some true? (map #(.contains (name k) %) checklist))
+    "***"
+    v))
 
-(defn sanitize [map-with-secrets]
-  (into {}
-        (map (partial sanitize-mapentry checklist) map-with-secrets)))
+(defn hide-passwds [map]
+  (reduce
+    (fn [new-map [k v]] (assoc new-map k (if (map? v) (hide-passwds v) (hide-passwd k v))))
+    {} map))
