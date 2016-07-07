@@ -93,4 +93,4 @@ More features will be released at a later time as separate addons.
 Christian Stamm, Felix Bechstein, Ralf Sigmund, Kai Brandes, Florian Weyandt
 
 ## License
-Apache License
+Released under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0) license.
