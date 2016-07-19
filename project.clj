@@ -12,6 +12,7 @@
                  [beckon "0.1.1"]
                  [environ "1.0.2"]
                  [clj-time "0.11.0"]
+                 [overtone/at-at "1.2.0"]
 
                  [de.otto/status "0.1.0"]
 
