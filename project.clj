@@ -38,6 +38,5 @@
                                       [ch.qos.logback/logback-core "1.1.7"]
                                       [ch.qos.logback/logback-classic "1.1.7"]
                                       [ring-mock "0.1.5"]]
-                       :plugins      [[lein-ancient "0.6.8"]
-                                      [lein-environ "1.0.2"]]}}
+                       :plugins      [[lein-ancient "0.6.10"]]}}
   :test-paths ["test" "test-resources"])
