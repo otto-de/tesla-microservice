@@ -24,26 +24,28 @@
 
 (defn- load-properties [name & [type]]
   (cond
-    (and (= :properties type) (io/resource name)) (load-properties-from-resource (io/resource name))
+    (and (= :resource type) (io/resource name)) (load-properties-from-resource (io/resource name))
     (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))))
 
 (defn load-config-from-property-files []
-  (let [defaults (load-properties "default.properties" :properties)
+  (let [defaults (load-properties "default.properties" :resource)
         config (load-properties (or (:config-file env/env) "application.properties") :file)
-        local (load-properties "local.properties" :properties)]
+        local (load-properties "local.properties" :resource)]
     (merge defaults config local env/env)))
 
-(defn- load-edn [name]
-  (when-let [resource (io/resource name)]
+(defn- load-edn [name & [type]]
+  (when-let [resource (cond
+                        (= :resource type) (io/resource name)
+                        (and (= :file type) (.exists (io/file name))) (io/file name))]
     (-> resource
         (io/reader)
         (PushbackReader.)
         (read))))
 
 (defn load-config-from-edn-files []
-  (let [defaults (load-edn "default.edn")
-        application (load-edn (or (:config-file env/env) "application.edn"))
-        local (load-edn "local.edn")
+  (let [defaults (load-edn "default.edn" :resource)
+        application (load-edn (or (:config-file env/env) "application.edn") :file)
+        local (load-edn "local.edn" :resource)
         configs (filter some? [defaults application local])]
     (apply deep-merge configs)))
 
@@ -61,7 +63,7 @@
     (let [config (load-and-merge runtime-config)]
       (log/info "-> using configuration:\n" (with-out-str (clojure.pprint/pprint (san/hide-passwds config))))
       (assoc self :config config
-                  :version (load-properties "version.properties" :properties))))
+                  :version (load-properties "version.properties" :resource))))
 
   (stop [self]
     (log/info "<- stopping configuration.")
