@@ -18,11 +18,37 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 
 * Load configuration from filesystem.
 * Aggregate a status.
+* Execute functions with a scheduler
 * Reply to a health check.
 * Deliver a json status report.
 * Report to graphite using the metrics library.
 * Manage handlers using ring.
 * Shutdown gracefully. If necessary delayed, so load-balancers have time to notice.
+
+## Examples
+
+* A growing set of example apllications can be found at [tesla-examples](https://github.com/otto-de/tesla-examples).
+* David & Germán created an example application based, among other, on tesla-microservice. They wrote a very instructive [blog post about it](http://blog.agilityfeat.com/2015/03/clojure-walking-skeleton/)
+* Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant.
+
+### Scheduler
+
+The scheduler executes functions based on a schedule. It is based on [overtones at-at](https://github.com/overtone/at-at) project.
+
+To use the scheduler, you have to hook the `scheduler component` into your system. 
+```clj
+(assoc your-system :scheduler (c/using (sch/new-scheduler) []))
+```
+
+`your-system` is the result from the function `base-system` from `de.otto.tesla.system`.
+
+To actually use it you have to pass the `:scheduler` to the component in which it is invoked like this:
+```clj
+(de.otto.tesla.stateful.scheduler/schedule scheduler scheduled-function interval)
+```
+
+where the `scheduled-function` is executed every `interval` in milliseconds. 
+
 
 ## Choosing a server
 
@@ -70,13 +96,6 @@ The basis included is stripped to the very minimum. Additional functionality is 
 * [tesla-cachefile](https://github.com/otto-de/tesla-cachefile): Read and write a cachefile. Locally or in hdfs.
 
 More features will be released at a later time as separate addons.
-
-
-## Examples
-
-* A growing set of example apllications can be found at [tesla-examples](https://github.com/otto-de/tesla-examples).
-* David & Germán created an example application based, among other, on tesla-microservice. They wrote a very instructive [blog post about it](http://blog.agilityfeat.com/2015/03/clojure-walking-skeleton/)
-* Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant.
 
 ## FAQ
 
