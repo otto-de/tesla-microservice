@@ -68,6 +68,8 @@ The `app-status` is injected under the keyword :app-status from the base system.
            (de.otto.status/status-detail :status-id status message)))
 ```
 
+For further information and usages take a look at the: [status library](https://github.com/otto-de/status)
+
 ## Choosing a server
 
 As of version ```0.1.15``` there is no server included any more directly in _tesla-microservice_. 
