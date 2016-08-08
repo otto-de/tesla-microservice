@@ -16,7 +16,7 @@
                  [clojurewerkz/propertied "1.2.0"]
                  [com.stuartsierra/component "0.3.1"]
                  [compojure "1.5.1"]
-                 [environ "1.0.3"]
+                 [environ "1.1.0"]
                  [metrics-clojure "2.7.0"]
                  [metrics-clojure-graphite "2.7.0"]
                  [overtone/at-at "1.2.0"]
