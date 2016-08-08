@@ -5,10 +5,10 @@
 (deftest ^:unit should-sanitize-passwords
   (is (= (san/hide-passwds {:somerandomstuff                    "not-so-secret"
                         :somerandomstuff-passwd-somerandomstuff "secret"
-                        :somerandomstuff-pwd-somerandomstuff    "longersecret"
+                        :somerandomstuff-pw-somerandomstuff    "longersecret"
                         :nested                                 {:some-passwd "secret"}})
          {:somerandomstuff                        "not-so-secret"
           :somerandomstuff-passwd-somerandomstuff "***"
-          :somerandomstuff-pwd-somerandomstuff    "***"
+          :somerandomstuff-pw-somerandomstuff    "***"
           :nested                                 {:some-passwd "***"}
           })))

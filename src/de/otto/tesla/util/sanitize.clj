@@ -1,6 +1,6 @@
 (ns de.otto.tesla.util.sanitize)
 
-(def checklist ["password" "pwd" "passwd"])
+(def checklist ["password" "pw" "passwd"])
 
 (defn hide-passwd [k v]
   (if (some true? (map #(.contains (name k) %) checklist))
