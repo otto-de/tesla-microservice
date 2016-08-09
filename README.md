@@ -87,6 +87,9 @@ your configuration:
 }
 ```
 
+ENV-variables are read with [environ](https://github.com/weavejester/environ). To see
+which keyword represents which ENV-var have a look in their docs. 
+
 ## Addons
 
 The basis included is stripped to the very minimum. Additional functionality is available as addons:
