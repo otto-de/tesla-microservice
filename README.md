@@ -49,6 +49,26 @@ To actually use it you have to pass the `:scheduler` to the component in which i
 
 where the `scheduled-function` is executed every `interval` in milliseconds. 
 
+### app-status
+
+The app-status indicates the current status of your microservice. To use it you can register a status function to it.
+
+Here is a simple example for a function that checks if an atom is empty or not.
+
+```clj
+(de.otto.tesla.stateful.app-status/register-status-fun app-status #(status atom))
+``` 
+
+The `app-status` is injected under the keyword :app-status from the base system.
+
+```clj
+(defn status [atom]
+      (let [status (if @atom :error :ok)
+            message (if @atom "Atom is empty" "Atom is not empty")]
+           (de.otto.status/status-detail :status-id status message)))
+```
+
+For further information and usages take a look at the: [status library](https://github.com/otto-de/status)
 
 ## Choosing a server
 
