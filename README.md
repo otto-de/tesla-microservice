@@ -37,7 +37,7 @@ The scheduler executes functions based on a schedule. It is based on [overtones 
 
 To use the scheduler, you have to hook the `scheduler component` into your system. 
 ```clj
-(assoc your-system :scheduler (c/using (sch/new-scheduler) []))
+(assoc your-system :scheduler (c/using (sch/new-scheduler) [:config]))
 ```
 
 `your-system` is the result from the function `base-system` from `de.otto.tesla.system`.
@@ -48,6 +48,7 @@ To actually use it you have to pass the `:scheduler` to the component in which i
 ```
 
 where the `scheduled-function` is executed every `interval` in milliseconds. 
+The number of threads of the overtone-pool used, can be specified by the property `scheduler-cpu-count`.
 
 ### app-status
 

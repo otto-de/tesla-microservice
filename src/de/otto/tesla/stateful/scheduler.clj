@@ -12,18 +12,27 @@
   ([{executor :executor} function# ms-period interspaced?]
    "Calls function repeatedly every ms-period milliseconds if interspaced? is false.
     Else calls function every ms-period milliseconds after the function returned."
-  (if interspaced?
-    (at/interspaced ms-period function# executor)
-    (at/every ms-period function# executor))))
+   (if interspaced?
+     (at/interspaced ms-period function# executor)
+     (at/every ms-period function# executor))))
 
+(defn only-specified [config]
+  (filter (fn [[_ v]] (not (nil? v))) config))
 
-(defrecord Scheduler []
+(defn as-seq [v]
+  (apply concat v))
+
+(defn new-pool [config]
+  (let [config {:cpu-count (get-in config [:config :scheduler-num-threads])}]
+    (apply at/mk-pool (-> (only-specified config) (as-seq)))))
+
+(defrecord Scheduler [config]
   c/Lifecycle
   (start [self]
     (log/info "-> Start Scheduler")
     (let [new-self (assoc self
                      :schedules (atom [])
-                     :executor (at/mk-pool))]
+                     :executor (new-pool config))]
       new-self))
 
   (stop [self]
