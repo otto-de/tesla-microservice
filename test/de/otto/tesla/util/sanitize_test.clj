@@ -7,10 +7,12 @@
                             :somerandomstuff-passwd-somerandomstuff "secret"
                             :somerandomstuff-pw-somerandomstuff     "longersecret"
                             :my-private-stuff                       "sonotpublic"
+                            :my-secret-stuff                        "psstsecret"
                             :nested                                 {:some-passwd "secret"}})
          {:somerandomstuff                        "not-so-secret"
           :somerandomstuff-passwd-somerandomstuff "***"
           :somerandomstuff-pw-somerandomstuff     "***"
           :my-private-stuff                       "***"
+          :my-secret-stuff                        "***"
           :nested                                 {:some-passwd "***"}
           })))
