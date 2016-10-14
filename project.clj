@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.3.36"
+(defproject de.otto/tesla-microservice "0.3.37-SNAPSHOT"
   :description "basic microservice."
   :url "https://github.com/otto-de/tesla-microservice"
   :license {:name "Apache License 2.0"
@@ -27,6 +27,7 @@
                org.slf4j/slf4j-log4j12
                log4j
                commons-logging/commons-logging]
+  :lein-release {:deploy-via :clojars}
 
   :test-selectors {:default     (constantly true)
                    :integration :integration
@@ -38,5 +39,5 @@
                                       [ch.qos.logback/logback-core "1.1.7"]
                                       [ch.qos.logback/logback-classic "1.1.7"]
                                       [ring-mock "0.1.5"]]
-                       :plugins      [[lein-ancient "0.6.10"]]}}
+                       :plugins      [[lein-ancient "0.6.10"][lein-release/lein-release "1.0.9"]]}}
   :test-paths ["test" "test-resources"])
