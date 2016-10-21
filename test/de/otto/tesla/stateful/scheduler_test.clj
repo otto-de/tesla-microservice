@@ -4,12 +4,15 @@
             [de.otto.tesla.stateful.scheduler :as schedule]
             [de.otto.tesla.util.test-utils :as u]
             [overtone.at-at :as at]
-            [com.stuartsierra.component :as c]))
+            [com.stuartsierra.component :as c]
+            [de.otto.tesla.stateful.handler :as handler]
+            [ring.mock.request :as mock]
+            [clojure.data.json :as json]))
 
 (defn- serverless-system [runtime-config]
   (-> (system/base-system runtime-config)
       (dissoc :server)
-      (assoc :scheduler (c/using (schedule/new-scheduler) [:config]))))
+      (assoc :scheduler (c/using (schedule/new-scheduler) [:config :app-status]))))
 
 (deftest ^:unit should-call-function-at-scheduled-rate
   (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"})]
@@ -53,3 +56,31 @@
                     at/mk-pool (assert-map-args! nil)]
         (u/with-started [system (serverless-system config)]
                         (is ()))))))
+
+(deftest ^:unit scheduler-app-status
+  (with-redefs [schedule/as-readable-time (constantly "mock-time")]
+    (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"})]
+                    (let [{:keys [scheduler handler]} system
+                          handler-fn (handler/handler handler)]
+                      (testing "should register and return status-details in app-status"
+                        (schedule/schedule scheduler #(Thread/sleep 10) 10 :desc "Job 1")
+                        (schedule/schedule scheduler #(Thread/sleep 10) 10 :interspaced? true :desc "Job 2")
+                        (is (= {:poolInfo      {:threadPool {:active    2
+                                                             :poolSize  2
+                                                             :queueSize 0}}
+                                :scheduledJobs {:1 {:createdAt    "mock-time"
+                                                    :desc         "Job 1"
+                                                    :initialDelay 0
+                                                    :msPeriod     10
+                                                    :scheduled?   true}
+                                                :2 {:createdAt    "mock-time"
+                                                    :desc         "Job 2"
+                                                    :initialDelay 0
+                                                    :msPeriod     10
+                                                    :scheduled?   true}}
+                                :status        "OK"}
+                               (-> (mock/request :get "/status")
+                                   (handler-fn)
+                                   :body
+                                   (json/read-str :key-fn keyword)
+                                   (get-in [:application :statusDetails :scheduler])))))))))
