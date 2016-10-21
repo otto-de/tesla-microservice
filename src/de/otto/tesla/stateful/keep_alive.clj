@@ -5,7 +5,7 @@
   (:import (java.util.concurrent CountDownLatch)))
 
 (defn exit-keep-alive []
-  (log/info "<- stopping keepalive"))
+  (log/info "<- stopping keepalive thread: " (.getName (Thread/currentThread))))
 
 (defn enter-keep-alive []
   (log/info "-> starting keepalive thread: " (.getName (Thread/currentThread))))
@@ -22,13 +22,11 @@
 (defrecord KeepAlive [cd-latch]
   component/Lifecycle
   (start [self]
-    (log/info "-> starting keepalive")
     (let [cd-latch (CountDownLatch. 1)]
       (start-keep-alive-thread cd-latch)
       (assoc self :cd-latch cd-latch)))
 
   (stop [self]
-    (log/info "<- stopping keepalive")
     (.countDown cd-latch)
     self))
 
