@@ -6,7 +6,9 @@
             [ring.mock.request :as mock]
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.tesla.stateful.configuring :as configuring]
-            [environ.core :as env]))
+            [environ.core :as env]
+            [overtone.at-at :as at]
+            [de.otto.tesla.stateful.scheduler :as scheduler]))
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
   (testing "start then shutdown using own method"
@@ -54,3 +56,12 @@
                   (testing "should fallback to default for status path"
                     (is (= "/status"
                            (:status-url (configuring/load-config-from-edn-files)))))))
+
+(deftest the-scheduler-in-the-base-system
+  (testing "should schedule and execute task NOW"
+    (u/with-started [started (system/base-system {})]
+                    (let [work-done (atom :no-work-done)
+                          {:keys [scheduler]} started]
+                      (at/after 0 #(reset! work-done :work-done!) (scheduler/pool scheduler))
+                      (Thread/sleep 10)
+                      (is (= :work-done! @work-done))))))

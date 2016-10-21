@@ -5,6 +5,7 @@
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.stateful.keep-alive :as keep-alive]
+            [de.otto.tesla.stateful.scheduler :as scheduler]
             [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
@@ -38,4 +39,5 @@
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :metering (c/using (metering/new-metering) [:config])
     :health (c/using (health/new-health) [:config :handler])
-    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])))
+    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
+    :scheduler (c/using (scheduler/new-scheduler) [:config :app-status])))
