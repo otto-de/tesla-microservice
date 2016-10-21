@@ -1,60 +1,58 @@
 (ns de.otto.tesla.stateful.scheduler
   (:require [com.stuartsierra.component :as c]
             [clojure.tools.logging :as log]
-            [overtone.at-at :as at]
+            [overtone.at-at :as ot]
             [de.otto.tesla.stateful.app-status :as app-status])
   (:import (java.util.concurrent ScheduledThreadPoolExecutor)))
 
-(defn as-seq [v]
+(defn- as-seq [v]
   (apply concat v))
 
-(defn schedule
-  "Calls function repeatedly every ms-period milliseconds if interspaced? is false.
-    Else calls function every ms-period milliseconds after the function returned."
-  [{:keys [executor]} function# ms-period & {:as args}]
-  (if (:interspaced? args)
-    (apply (partial at/interspaced ms-period function# executor) (as-seq args))
-    (apply (partial at/every ms-period function# executor) (as-seq args))))
+(defn- new-ot-pool [config]
+  (let [pool-config (get-in config [:config :scheduler] {})]
+    (apply ot/mk-pool (as-seq pool-config))))
 
-(defn new-pool [config]
-  (let [scheduler-config (get-in config [:config :scheduler] {})]
-    (apply at/mk-pool (-> scheduler-config (as-seq)))))
-
-(defn as-readable-time [l]
+(defn- as-readable-time [l]
   (.format (java.text.SimpleDateFormat. "EEEE HH':'mm':'ss's'") l))
 
-(defn job-details [{:keys [id created-at initial-delay desc ms-period scheduled?]}]
+(defn- job-details [{:keys [id created-at initial-delay desc ms-period scheduled?]}]
   [(keyword (str id)) {:desc         desc
                        :createdAt    (as-readable-time created-at)
                        :initialDelay initial-delay
                        :msPeriod     ms-period
                        :scheduled?   @scheduled?}])
 
-(defn pool-details [{:keys [pool-atom]}]
+(defn- pool-details [{:keys [pool-atom]}]
   (when pool-atom
-    (let [{:keys [^ScheduledThreadPoolExecutor thread-pool]} @pool-atom]
+    (let [^ScheduledThreadPoolExecutor thread-pool (:thread-pool @pool-atom)]
       {:threadPool {:active    (.getActiveCount thread-pool)
                     :queueSize (.size (.getQueue thread-pool))
                     :poolSize  (.getPoolSize thread-pool)}})))
 
-(defn scheduler-app-status [{:keys [executor]}]
+(defn- scheduler-app-status [{:keys [pool]}]
   {:scheduler {:status        :ok
-               :poolInfo      (pool-details executor)
-               :scheduledJobs (into {} (map job-details (at/scheduled-jobs executor)))}})
+               :poolInfo      (pool-details pool)
+               :scheduledJobs (into {} (map job-details (ot/scheduled-jobs pool)))}})
+
+(defprotocol SchedulerPool
+  (pool [self]))
 
 (defrecord Scheduler [config app-status]
   c/Lifecycle
   (start [self]
     (log/info "-> Start Scheduler")
-    (let [new-self (assoc self
-                     :executor (new-pool config))]
+    (let [new-self (assoc self :pool (new-ot-pool config))]
       (app-status/register-status-fun app-status (partial scheduler-app-status new-self))
       new-self))
 
   (stop [self]
     (log/info "<- Stop Scheduler")
-    (at/stop-and-reset-pool! (:executor self))
-    self))
+    (ot/stop-and-reset-pool! (:pool self))
+    self)
+
+  SchedulerPool
+  (pool [self]
+    (:pool self)))
 
 (defn new-scheduler []
   (map->Scheduler {}))

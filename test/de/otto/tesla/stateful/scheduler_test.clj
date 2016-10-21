@@ -19,19 +19,19 @@
                   (let [scheduler (:scheduler system)]
                     (testing "Function gets called every 10 ms"
                       (let [calls (atom 0)]
-                        (schedule/schedule scheduler #(swap! calls inc) 10)
+                        (at/every 10 #(swap! calls inc) (schedule/pool scheduler))
                         (Thread/sleep 25)
                         (is (= @calls 3))))
 
                     (testing "Function gets called every 10 ms with initial delay"
                       (let [calls (atom 0)]
-                        (schedule/schedule scheduler #(swap! calls inc) 10 :initial-delay 10)
+                        (at/every 10 #(swap! calls inc) (schedule/pool scheduler) :initial-delay 10)
                         (Thread/sleep 25)
                         (is (= @calls 2))))
 
                     (testing "Function gets called every 10 ms AFTER the function last returned"
                       (let [calls (atom 0)]
-                        (schedule/schedule scheduler #((Thread/sleep 10) (swap! calls inc)) 10 :interspaced? true)
+                        (at/interspaced 10 #((Thread/sleep 10) (swap! calls inc)) (schedule/pool scheduler))
                         (Thread/sleep 25)
                         (is (= @calls 1)))))))
 
@@ -63,8 +63,8 @@
                     (let [{:keys [scheduler handler]} system
                           handler-fn (handler/handler handler)]
                       (testing "should register and return status-details in app-status"
-                        (schedule/schedule scheduler #(Thread/sleep 10) 10 :desc "Job 1")
-                        (schedule/schedule scheduler #(Thread/sleep 10) 10 :interspaced? true :desc "Job 2")
+                        (at/every 10 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 1")
+                        (at/interspaced 10 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 2")
                         (is (= {:poolInfo      {:threadPool {:active    2
                                                              :poolSize  2
                                                              :queueSize 0}}
