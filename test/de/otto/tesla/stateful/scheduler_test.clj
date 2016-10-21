@@ -65,9 +65,9 @@
                       (testing "should register and return status-details in app-status"
                         (at/every 10 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 1")
                         (at/interspaced 10 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 2")
-                        (is (= {:poolInfo      {:threadPool {:active    2
-                                                             :poolSize  2
-                                                             :queueSize 0}}
+                        (is (= {:poolInfo      {:active    2
+                                                :poolSize  2
+                                                :queueSize 0}
                                 :scheduledJobs {:1 {:createdAt    "mock-time"
                                                     :desc         "Job 1"
                                                     :initialDelay 0

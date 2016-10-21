@@ -25,9 +25,9 @@
 (defn- pool-details [{:keys [pool-atom]}]
   (when pool-atom
     (let [^ScheduledThreadPoolExecutor thread-pool (:thread-pool @pool-atom)]
-      {:threadPool {:active    (.getActiveCount thread-pool)
-                    :queueSize (.size (.getQueue thread-pool))
-                    :poolSize  (.getPoolSize thread-pool)}})))
+      {:active    (.getActiveCount thread-pool)
+       :queueSize (.size (.getQueue thread-pool))
+       :poolSize  (.getPoolSize thread-pool)})))
 
 (defn- scheduler-app-status [{:keys [pool]}]
   {:scheduler {:status        :ok
