@@ -30,17 +30,14 @@
   (fn [& {:as args}] (is (= args args-assert-val))))
 
 (deftest ^:unit configuring-the-schedule
-  (testing "should filter out nil values"
-    (is (= [[:b :bar] [:c :foo]]
-           (schedule/only-specified {:a nil
-                                     :b :bar
-                                     :c :foo}))))
-
   (testing "should pass nr cpus to pool if specified"
-    (let [config {:scheduler-num-threads 2
-                  :some-other :property}]
+    (let [config {:scheduler {:cpu-count      2
+                              :stop-delayed?  false
+                              :stop-periodic? true}}]
       (with-redefs [at/stop-and-reset-pool! (constantly nil)
-                    at/mk-pool (assert-map-args! {:cpu-count 2})]
+                    at/mk-pool (assert-map-args! {:cpu-count      2
+                                                  :stop-delayed?  false
+                                                  :stop-periodic? true})]
         (u/with-started [system (serverless-system config)]
                         (is ())))))
 

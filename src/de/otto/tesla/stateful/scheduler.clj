@@ -16,15 +16,12 @@
      (at/interspaced ms-period function# executor)
      (at/every ms-period function# executor))))
 
-(defn only-specified [config]
-  (filter (fn [[_ v]] (not (nil? v))) config))
-
 (defn as-seq [v]
   (apply concat v))
 
 (defn new-pool [config]
-  (let [config {:cpu-count (get-in config [:config :scheduler-num-threads])}]
-    (apply at/mk-pool (-> (only-specified config) (as-seq)))))
+  (let [scheduler-config (get-in config [:config :scheduler] {})]
+    (apply at/mk-pool (-> scheduler-config (as-seq)))))
 
 (defrecord Scheduler [config]
   c/Lifecycle
