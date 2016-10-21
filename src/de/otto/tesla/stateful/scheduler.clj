@@ -3,21 +3,16 @@
             [clojure.tools.logging :as log]
             [overtone.at-at :as at]))
 
-
-(defn schedule
-  "Calls function repeatedly every ms-period milliseconds."
-
-  ([self function# ms-period]
-   (schedule self function# ms-period false))
-  ([{executor :executor} function# ms-period interspaced?]
-   "Calls function repeatedly every ms-period milliseconds if interspaced? is false.
-    Else calls function every ms-period milliseconds after the function returned."
-   (if interspaced?
-     (at/interspaced ms-period function# executor)
-     (at/every ms-period function# executor))))
-
 (defn as-seq [v]
   (apply concat v))
+
+(defn schedule
+  "Calls function repeatedly every ms-period milliseconds if interspaced? is false.
+    Else calls function every ms-period milliseconds after the function returned."
+  [{:keys [executor]} function# ms-period & {:as args}]
+  (if (:interspaced? args)
+    (apply (partial at/interspaced ms-period function# executor) (as-seq args))
+    (apply (partial at/every ms-period function# executor) (as-seq args))))
 
 (defn new-pool [config]
   (let [scheduler-config (get-in config [:config :scheduler] {})]
