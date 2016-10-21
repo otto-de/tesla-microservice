@@ -9,7 +9,7 @@
   (apply concat v))
 
 (defn- new-ot-pool [config]
-  (let [pool-config (get-in config [:config :scheduler] {})]
+  (let [pool-config (get-in config [:config :scheduler])]
     (apply ot/mk-pool (as-seq pool-config))))
 
 (defn- as-readable-time [l]

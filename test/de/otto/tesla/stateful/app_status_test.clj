@@ -67,7 +67,13 @@
 
                     (testing "it shows the substatus"
                       (is (= (get application-body "statusDetails")
-                             {"mock" {"message" "nevermind" "status" "OK"}}))))))
+                             {"mock"      {"message" "nevermind"
+                                           "status"  "OK"}
+                              "scheduler" {"poolInfo"      {"active"    0
+                                                            "poolSize"  0
+                                                            "queueSize" 0}
+                                           "scheduledJobs" {}
+                                           "status"        "OK"}}))))))
 
 (deftest ^:unit should-show-warning-as-application-status
   (u/with-started [started (mock-status-system {:mock {:status  :warning

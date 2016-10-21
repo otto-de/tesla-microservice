@@ -7,7 +7,9 @@
             [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.handler :as handler]
             [ring.mock.request :as mock]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [de.otto.tesla.stateful.scheduler :as scheduler])
+  (:import (java.util.concurrent ScheduledThreadPoolExecutor)))
 
 (defn- serverless-system [runtime-config]
   (-> (system/base-system runtime-config)
@@ -53,13 +55,14 @@
   (testing "should pass nothing to pool if nothing is specified"
     (let [config {:some-other :property}]
       (with-redefs [at/stop-and-reset-pool! (constantly nil)
-                    at/mk-pool (assert-map-args! nil)]
+                    at/mk-pool (assert-map-args! {:cpu-count 0})]
         (u/with-started [system (serverless-system config)]
                         (is ()))))))
 
 (deftest ^:unit scheduler-app-status
   (with-redefs [schedule/as-readable-time (constantly "mock-time")]
-    (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"})]
+    (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"
+                                                :scheduler {:cpu-count 2}})]
                     (let [{:keys [scheduler handler]} system
                           handler-fn (handler/handler handler)]
                       (testing "should register and return status-details in app-status"
@@ -84,3 +87,16 @@
                                    :body
                                    (json/read-str :key-fn keyword)
                                    (get-in [:application :statusDetails :scheduler])))))))))
+
+(deftest ^:unit scheduler-default-conf
+  (testing "should startup pool with core-pool-size of 0 if nothing else is configured"
+    (u/with-started [system (serverless-system {})]
+                    (let [{:keys [scheduler]} system
+                          ^ScheduledThreadPoolExecutor thread-pool (:thread-pool @(:pool-atom (scheduler/pool scheduler)))]
+                      (is (= 0 (.getCorePoolSize thread-pool))))))
+
+  (testing "should startup pool with configured core-pool-size"
+    (u/with-started [system (serverless-system {:scheduler {:cpu-count 2}})]
+                    (let [{:keys [scheduler]} system
+                          ^ScheduledThreadPoolExecutor thread-pool (:thread-pool @(:pool-atom (scheduler/pool scheduler)))]
+                      (is (= 2 (.getCorePoolSize thread-pool)))))))

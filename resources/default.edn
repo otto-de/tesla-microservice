@@ -12,7 +12,7 @@
  ;:graphite-port "2003"
  ;:graphite-prefix "my-app-prefix"
  ;:graphite-interval-seconds "60"
-
+ :scheduler                {:cpu-count 0}
  :server-port              "8080"
 
  ; use this if you need a grace-time during which
