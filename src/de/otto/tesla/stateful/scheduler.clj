@@ -47,15 +47,12 @@
   (start [self]
     (log/info "-> Start Scheduler")
     (let [new-self (assoc self
-                     :schedules (atom [])
                      :executor (new-pool config))]
       (app-status/register-status-fun app-status (partial scheduler-app-status new-self))
       new-self))
 
   (stop [self]
     (log/info "<- Stop Scheduler")
-    (doseq [job @(:schedules self)]
-      (at/kill job))
     (at/stop-and-reset-pool! (:executor self))
     self))
 
