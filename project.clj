@@ -1,10 +1,10 @@
-(defproject de.otto/tesla-microservice "0.4.1-SNAPSHOT"
+(defproject org.clojars.deas/tesla-microservice "0.4.1-SNAPSHOT"
   :description "basic microservice."
-  :url "https://github.com/otto-de/tesla-microservice"
+  :url "https://github.com/deas/tesla-microservice"
   :license {:name "Apache License 2.0"
             :url  "http://www.apache.org/license/LICENSE-2.0.html"}
   :scm {:name "git"
-        :url  "https://github.com/otto-de/tesla-microservice"}
+        :url  "https://github.com/deas/tesla-microservice"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.logging "0.3.1"]
