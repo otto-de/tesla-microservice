@@ -36,7 +36,7 @@
                     (is (= (get-in edn-conf [:foo :edn]) "baz")))))
 
 (deftest ^:unit should-read-property-from-custom-edn-file
-  (with-redefs [env/env {:config-file "test.edn"}]
+  (with-redefs [env/env {:config-file "./test-resources/test.edn"}]
     (u/with-started [started (test-system {})]
                     (let [edn-conf (get-in started [:conf :config])]
                       (is (= (get-in edn-conf [:health-url]) "/test/health"))
