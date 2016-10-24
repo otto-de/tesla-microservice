@@ -14,8 +14,10 @@
         (is (= false @exited?))
         (let [started (-> (kalive/new-keep-alive)
                           (c/start))]
+          (Thread/sleep 10)
           (is (= true @entered?))
           (is (= false @exited?))
           (c/stop started))
+        (Thread/sleep 10)
         (is (= true @entered?))
         (is (= true @exited?))))))
