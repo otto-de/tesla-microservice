@@ -17,25 +17,29 @@
       (assoc :scheduler (c/using (schedule/new-scheduler) [:config :app-status]))))
 
 (deftest ^:unit should-call-function-at-scheduled-rate
-  (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"})]
-                  (let [scheduler (:scheduler system)]
-                    (testing "Function gets called every 10 ms"
-                      (let [calls (atom 0)]
-                        (at/every 20 #(swap! calls inc) (schedule/pool scheduler))
-                        (Thread/sleep 50)
-                        (is (= @calls 3))))
+  (testing "Function gets called every 20 ms"
+    (u/with-started [system (serverless-system {:scheduler {:cpu-count 1}})]
+                    (let [scheduler (:scheduler system)
+                          calls (atom 0)]
+                      (at/every 20 #(swap! calls inc) (schedule/pool scheduler))
+                      (Thread/sleep 50)
+                      (is (= @calls 3)))))
 
-                    (testing "Function gets called every 10 ms with initial delay"
-                      (let [calls (atom 0)]
-                        (at/every 20 #(swap! calls inc) (schedule/pool scheduler) :initial-delay 20)
-                        (Thread/sleep 50)
-                        (is (= @calls 2))))
+  (testing "Function gets called every 20 ms with initial delay"
+    (u/with-started [system (serverless-system {:scheduler {:cpu-count 1}})]
+                    (let [scheduler (:scheduler system)
+                          calls (atom 0)]
+                      (at/every 20 #(swap! calls inc) (schedule/pool scheduler) :initial-delay 20)
+                      (Thread/sleep 50)
+                      (is (= @calls 2)))))
 
-                    (testing "Function gets called every 10 ms AFTER the function last returned"
-                      (let [calls (atom 0)]
-                        (at/interspaced 20 #((Thread/sleep 10) (swap! calls inc)) (schedule/pool scheduler))
-                        (Thread/sleep 50)
-                        (is (= @calls 1)))))))
+  (testing "Function gets called every 20 ms AFTER the function last returned"
+    (u/with-started [system (serverless-system {:scheduler {:cpu-count 1}})]
+                    (let [scheduler (:scheduler system)
+                          calls (atom 0)]
+                      (at/interspaced 20 #((Thread/sleep 10) (swap! calls inc)) (schedule/pool scheduler))
+                      (Thread/sleep 50)
+                      (is (= @calls 1))))))
 
 (defn assert-map-args! [args-assert-val]
   (fn [& {:as args}] (is (= args args-assert-val))))
