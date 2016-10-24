@@ -2,6 +2,21 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document changes and give instructions on breaking ones. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.5.0  
+
+The scheudler is now part of the tesla-base-system.  
+Per default no threads are kept in the thread-pool it manages.
+
+### 0.4.0
+
+The scheudler does not have the `de.otto.tesla.stateful.scheduler/schedule` function anymore.  
+Instead it only wraps the overtone pool and provides it via `de.otto.tesla.stateful.scheduler/pool`.  
+The pool then can be used with the overtone API like that:
+
+```clj
+(overtone.at-at/every 100 #(println "Hello world") (de.otto.tesla.stateful.scheduler/pool scheduler) :desc "HelloWord Task")
+```
+
 ### 0.1.24
 
 Config can be provided via EDN-files.
