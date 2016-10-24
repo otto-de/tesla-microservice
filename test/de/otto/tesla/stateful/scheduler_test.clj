@@ -21,20 +21,20 @@
                   (let [scheduler (:scheduler system)]
                     (testing "Function gets called every 10 ms"
                       (let [calls (atom 0)]
-                        (at/every 10 #(swap! calls inc) (schedule/pool scheduler))
-                        (Thread/sleep 25)
+                        (at/every 20 #(swap! calls inc) (schedule/pool scheduler))
+                        (Thread/sleep 50)
                         (is (= @calls 3))))
 
                     (testing "Function gets called every 10 ms with initial delay"
                       (let [calls (atom 0)]
-                        (at/every 10 #(swap! calls inc) (schedule/pool scheduler) :initial-delay 10)
-                        (Thread/sleep 25)
+                        (at/every 20 #(swap! calls inc) (schedule/pool scheduler) :initial-delay 20)
+                        (Thread/sleep 50)
                         (is (= @calls 2))))
 
                     (testing "Function gets called every 10 ms AFTER the function last returned"
                       (let [calls (atom 0)]
-                        (at/interspaced 10 #((Thread/sleep 10) (swap! calls inc)) (schedule/pool scheduler))
-                        (Thread/sleep 25)
+                        (at/interspaced 20 #((Thread/sleep 10) (swap! calls inc)) (schedule/pool scheduler))
+                        (Thread/sleep 50)
                         (is (= @calls 1)))))))
 
 (defn assert-map-args! [args-assert-val]
@@ -66,20 +66,21 @@
                     (let [{:keys [scheduler handler]} system
                           handler-fn (handler/handler handler)]
                       (testing "should register and return status-details in app-status"
-                        (at/every 10 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 1")
-                        (at/interspaced 10 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 2")
-                        (is (= {:poolInfo      {:active    2
+                        (at/every 20 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 1")
+                        (at/interspaced 20 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 2")
+                        (Thread/sleep 10)
+                        (is (= {:poolInfo      {:active    0
                                                 :poolSize  2
-                                                :queueSize 0}
+                                                :queueSize 2}
                                 :scheduledJobs {:1 {:createdAt    "mock-time"
                                                     :desc         "Job 1"
                                                     :initialDelay 0
-                                                    :msPeriod     10
+                                                    :msPeriod     20
                                                     :scheduled?   true}
                                                 :2 {:createdAt    "mock-time"
                                                     :desc         "Job 2"
                                                     :initialDelay 0
-                                                    :msPeriod     10
+                                                    :msPeriod     20
                                                     :scheduled?   true}}
                                 :status        "OK"}
                                (-> (mock/request :get "/status")
