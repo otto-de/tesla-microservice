@@ -33,22 +33,15 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 
 ### Scheduler
 
-The scheduler executes functions based on a schedule. It is based on [overtones at-at](https://github.com/overtone/at-at) project.
-
-To use the scheduler, you have to hook the `scheduler component` into your system. 
+The scheduler wraps a thread-pool which can be used for scheduling tasks. It is based on [overtones at-at](https://github.com/overtone/at-at) project.
+To actually use it you have to pass the `:scheduler` as a dependency to the component in which it should be used.
+Afterwards you can schedule tasks using the overtone api like this:  
 ```clj
-(assoc your-system :scheduler (c/using (sch/new-scheduler) [:config]))
+(overtone.at-at/every 100 #(println "Hello world") (de.otto.tesla.stateful.scheduler/pool scheduler) :desc "HelloWord Task")
 ```
 
-`your-system` is the result from the function `base-system` from `de.otto.tesla.system`.
-
-To actually use it you have to pass the `:scheduler` to the component in which it is invoked like this:
-```clj
-(de.otto.tesla.stateful.scheduler/schedule scheduler scheduled-function interval)
-```
-
-where the `scheduled-function` is executed every `interval` in milliseconds. 
-The number of threads of the overtone-pool used, can be specified by the property `scheduler-cpu-count`.
+The overtone-pool wrapped by the scheduler can be configured by the config-entry `:scheduler`. (See `overtone.at-at/mk-pool`)
+By default the pool holds no threads.
 
 ### app-status
 
