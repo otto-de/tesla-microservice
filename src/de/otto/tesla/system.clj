@@ -35,8 +35,8 @@
 (defn base-system [runtime-config]
   (c/system-map
     :keep-alive (keep-alive/new-keep-alive)
-    :handler (handler/new-handler)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
+    :handler (c/using (handler/new-handler) [:config])
     :metering (c/using (metering/new-metering) [:config])
     :health (c/using (health/new-health) [:config :handler])
     :app-status (c/using (app-status/new-app-status) [:config :handler :metering])

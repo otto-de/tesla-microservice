@@ -19,3 +19,17 @@
       (is (= ["ping" "pong"]  (map :handler-name @(:the-handlers handler))))
       (is (= :pong ((handler/handler handler) :ping)))
       (is (= :ping ((handler/handler handler) :pong))))))
+
+(deftest timed-handler
+  (testing "should use timed handler"
+    (let [reportings (atom [])]
+      (with-redefs [handler/time-taken (constantly 100)
+                    handler/report-request-timings! (fn [handler-name time-taken] (swap! reportings conj [handler-name time-taken]))]
+        (let [handler (-> (handler/->Handler {:config {:handler {:report-timings? true}}}) (c/start))]
+          (handler/register-handler handler (fn [r] (when (= r :ping) :pong)))
+          (handler/register-handler handler (fn [r] (when (= r :pong) :ping)))
+          (is (= ["tesla-handler-0" "tesla-handler-1"] (map :handler-name @(:the-handlers handler))))
+          (is (= :pong ((handler/handler handler) :ping)))
+          (is (= [["tesla-handler-0" 100]] @reportings))
+          (is (= :ping ((handler/handler handler) :pong)))
+          (is (= [["tesla-handler-0" 100] ["tesla-handler-1" 100]] @reportings)))))))

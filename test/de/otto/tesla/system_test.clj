@@ -65,3 +65,40 @@
                       (at/after 0 #(reset! work-done :work-done!) (scheduler/pool scheduler))
                       (Thread/sleep 10)
                       (is (= :work-done! @work-done))))))
+
+(defrecord SingleRoute [rname single-route]
+  c/Lifecycle
+  (start [self]
+    (handler/register-handler (:handler self) rname single-route)
+    self)
+  (stop [self] self))
+
+(defn test-route [id]
+  (c/using (->SingleRoute (str "route-" id) (fn [{:keys [uri]}]
+                                              (when (= uri (str "/route-" id))
+                                                :ping))) [:handler]))
+
+(deftest request-timing
+  (testing "should time and report request for handler"
+    (let [reportings (atom [])]
+      (with-redefs [handler/time-taken (constantly 100)
+                    handler/report-request-timings! (fn [handler-name time-taken] (swap! reportings conj [handler-name time-taken]))]
+        (u/with-started [started (-> (system/base-system {:handler {:report-timings? true}})
+                                     (assoc
+                                       :route0 (test-route 0)
+                                       :route1 (test-route 1)
+                                       :route2 (test-route 2)
+                                       :route3 (test-route 3)))]
+                        (let [single-handler-fn (handler/handler (:handler started))]
+                          (single-handler-fn (mock/request :get "/route-0"))
+                          (single-handler-fn (mock/request :get "/route-1"))
+                          (single-handler-fn (mock/request :get "/route-2"))
+                          (single-handler-fn (mock/request :get "/route-3"))
+                          (single-handler-fn (mock/request :get "/route-3"))
+                          (single-handler-fn (mock/request :get "/route-3"))
+                          (is (= [["route-0" 100]
+                                  ["route-1" 100]
+                                  ["route-2" 100]
+                                  ["route-3" 100]
+                                  ["route-3" 100]
+                                  ["route-3" 100]] @reportings))))))))
