@@ -10,6 +10,11 @@
 (defn new-handler-name [self]
   (str "tesla-handler-" (count @(:the-handlers self))))
 
+(defn- handler-execution-result [request {:keys [handler-name handler]}]
+  (when-let [response (handler request)]
+    {:response     response
+     :handler-name handler-name}))
+
 (defrecord Handler []
   component/Lifecycle
   (start [self]
@@ -28,7 +33,9 @@
 
   (handler [self]
     (let [handlers (:the-handlers self)]
-      (apply c/routes (map :handler @handlers)))))
+      (fn [request]
+        (-> (some (partial handler-execution-result request) @handlers)
+            :response)))))
 
 (defn new-handler []
   (map->Handler {}))
