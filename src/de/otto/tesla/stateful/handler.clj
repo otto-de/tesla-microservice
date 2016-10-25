@@ -23,11 +23,12 @@
     (register-handler self (new-handler-name self) handler))
 
   (register-handler [self handler-name handler]
-    (swap! (:the-handlers self) #(conj % [handler-name handler])))
+    (swap! (:the-handlers self) #(conj % {:handler-name handler-name
+                                          :handler      handler})))
 
   (handler [self]
     (let [handlers (:the-handlers self)]
-      (apply c/routes (map second @handlers)))))
+      (apply c/routes (map :handler @handlers)))))
 
 (defn new-handler []
   (map->Handler {}))
