@@ -23,18 +23,21 @@
   (fn [request]
     (-> (first-handler-result handlers request) :response)))
 
-(defn- report-request-timings! [handler-name time-taken]
-  (-> (timers/timer ["handler" "requests" handler-name])
+(defn timer-id [reporting-base-path handler-name]
+  (conj reporting-base-path handler-name))
+
+(defn- report-request-timings! [reporting-base-path handler-name time-taken]
+  (-> (timers/timer (timer-id reporting-base-path handler-name))
       (.update time-taken TimeUnit/MILLISECONDS)))
 
 (defn- time-taken [start-time]
   (- (System/currentTimeMillis) start-time))
 
-(defn- timed-handler [handlers]
+(defn- timed-handler [reporting-base-path handlers]
   (fn [request]
     (let [start-time (System/currentTimeMillis)]
       (when-let [{:keys [response handler-name]} (first-handler-result handlers request)]
-        (report-request-timings! handler-name (time-taken start-time))
+        (report-request-timings! reporting-base-path handler-name (time-taken start-time))
         response))))
 
 (defrecord Handler [config]
@@ -43,6 +46,7 @@
     (log/info "-> starting Handler")
     (assoc self
       :report-timings? (get-in config [:config :handler :report-timings?])
+      :reporting-base-path (get-in config [:config :handler :reporting-base-path] ["serving" "requests"])
       :the-handlers (atom [])))
 
   (stop [self]
@@ -60,7 +64,7 @@
   (handler [self]
     (let [handlers @(:the-handlers self)]
       (if (:report-timings? self)
-        (timed-handler handlers)
+        (timed-handler (:reporting-base-path self) handlers)
         (default-handler handlers)))))
 
 (defn new-handler []

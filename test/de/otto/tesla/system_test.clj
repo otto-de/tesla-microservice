@@ -82,7 +82,7 @@
   (testing "should time and report request for handler"
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
-                    handler/report-request-timings! (fn [handler-name time-taken] (swap! reportings conj [handler-name time-taken]))]
+                    handler/report-request-timings! (fn [_ handler-name time-taken] (swap! reportings conj [handler-name time-taken]))]
         (u/with-started [started (-> (system/base-system {:handler {:report-timings? true}})
                                      (assoc
                                        :route0 (test-route 0)
