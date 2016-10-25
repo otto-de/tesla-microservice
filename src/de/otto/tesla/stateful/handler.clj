@@ -11,10 +11,9 @@
 (defn- new-handler-name [self]
   (str "tesla-handler-" (count @(:the-handlers self))))
 
-(defn- handler-execution-result [request {:keys [handler-name handler]}]
-  (when-let [response (handler request)]
-    {:response     response
-     :handler-name handler-name}))
+(defn- handler-execution-result [request {handler-fn :handler :as handler-map}]
+  (when-let [response (handler-fn request)]
+    (assoc handler-map :response response)))
 
 (defn- first-handler-result [handlers request]
   (some (partial handler-execution-result request) handlers))
