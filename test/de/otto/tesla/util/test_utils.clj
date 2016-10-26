@@ -3,6 +3,20 @@
             [com.stuartsierra.component :as comp]
             [ring.mock.request :as mock]))
 
+(defmacro eventually [body & {:keys [timeout interval]
+                              :or   {timeout  5000
+                                     interval 10}}]
+  `(let [start-time# (System/currentTimeMillis)]
+     (loop []
+       (let [last-stats# (atom nil)
+             pass?# (with-redefs [clojure.test/do-report (fn [s#] (reset! last-stats# s#))]
+                      (clojure.test/is ~body))
+             took-too-long?# (> (- (System/currentTimeMillis) start-time#) ~timeout)]
+         (if (or pass?# took-too-long?#)
+           (clojure.test/do-report @last-stats#)
+           (do
+             (Thread/sleep ~interval)
+             (recur)))))))
 
 (defmacro with-started
   "bindings => [name init ...]
