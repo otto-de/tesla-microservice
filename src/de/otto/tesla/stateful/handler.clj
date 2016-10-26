@@ -73,6 +73,12 @@
   (register-timed-handler [self handler] [self handler uri-resource-chooser-fn use-status-codes?])
   (handler [self]))
 
+
+(def all-resources identity)
+(def all-but-last-resource #(if (empty? %) % (pop %)))
+(def use-status-codes true)
+(def do-not-use-status-codes false)
+
 (defrecord Handler [config]
   component/Lifecycle
   (start [self]
@@ -94,7 +100,7 @@
                                                  :handler      handler})))
 
   (register-timed-handler [self handler]
-    (register-timed-handler self handler identity true))
+    (register-timed-handler self handler all-resources true))
 
   (register-timed-handler [self handler uri-resource-chooser-fn use-status-codes?]
     (swap! (:registered-handlers self) #(conj % {:timed?                  true
