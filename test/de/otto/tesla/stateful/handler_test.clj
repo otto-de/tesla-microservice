@@ -33,23 +33,29 @@
                 :uri-resource-chooser-fn (partial take 1)
                 :use-status-codes?       false}]
       (is (= ["base" "path" "foo"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))))
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))
+      (is (= ["base" "path"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {})))))
 
   (testing "should build path with first 2 resources of uri"
     (let [item {:timed?                  true
                 :uri-resource-chooser-fn (partial take 2)
                 :use-status-codes?       false}]
       (is (= ["base" "path" "foo" "bar"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))))
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))
+      (is (= ["base" "path"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {})))))
 
   (testing "should build path with all but last resource of uri"
     (let [item {:timed?                  true
-                :uri-resource-chooser-fn pop
+                :uri-resource-chooser-fn #(if (empty? %) % (pop %))
                 :use-status-codes?       false}]
       (is (= ["base" "path" "foo" "bar" "baz"]
              (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))
       (is (= ["base" "path" "foo" "bar" "baz" "baf" "bif"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf/bif/bum?item=123"} {}))))))
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf/bif/bum?item=123"} {})))
+      (is (= ["base" "path"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {}))))))
 
 (deftest request-based-timer-id-with-status
   (testing "should build path with status code"
@@ -62,6 +68,11 @@
              (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {:status 404})))
       (is (= ["base" "path" "foo" "bar" "500"]
              (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {:status 500}))))))
+
+(deftest trimmed-uri-path
+  (testing "should trim uri path"
+    (is (= "foo/bar/baz" (handler/trimmed-uri-path "/foo/bar/baz?a=b&c=d")))
+    (is (= nil (handler/trimmed-uri-path "/?a=b&c=d")))))
 
 (deftest reporting-base-path
   (testing "should use default reporting base-path"

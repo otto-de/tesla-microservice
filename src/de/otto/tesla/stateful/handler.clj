@@ -23,12 +23,15 @@
 
 (def without-leading-and-trailing-slash #"/?(.*[^/])/?")
 
-(defn- trimmed-uri-path [uri]
+(defn trimmed-uri-path [uri]
   (let [path (.getPath (URI. uri))]
     (second (re-matches without-leading-and-trailing-slash path))))
 
 (defn- extract-uri-resources [{:keys [uri-resource-chooser-fn]} {:keys [uri]}]
-  (uri-resource-chooser-fn (string/split (trimmed-uri-path uri) #"/")))
+  (uri-resource-chooser-fn
+    (if-let [splittable (trimmed-uri-path uri)]
+      (string/split splittable #"/")
+      [])))
 
 (defn request-based-timer-id [reporting-base-path {:keys [use-status-codes?] :as item} request response]
   (concat
@@ -70,7 +73,7 @@
                                                  :handler      handler})))
 
   (register-timed-handler [self handler]
-    (register-timed-handler self handler pop true))
+    (register-timed-handler self handler identity true))
 
   (register-timed-handler [self handler uri-resource-chooser-fn use-status-codes?]
     (swap! (:registered-handlers self) #(conj % {:timed?                  true
