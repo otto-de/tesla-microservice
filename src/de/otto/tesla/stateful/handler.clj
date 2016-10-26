@@ -1,15 +1,28 @@
 (ns de.otto.tesla.stateful.handler
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.logging :as log]
-            [metrics.timers :as timers]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [metrics.core :as mcore])
   (:import (java.util.concurrent TimeUnit)
-           (java.net URI)))
+           (java.net URI)
+           (com.codahale.metrics MetricRegistry SlidingTimeWindowReservoir Timer)))
 
-(defprotocol HandlerContainer
-  (register-handler [self handler])
-  (register-timed-handler [self handler] [self handler uri-resource-chooser-fn use-status-codes?])
-  (handler [self]))
+(defn- sliding-window-timer [reporting-time-window-in-min]
+  (Timer. (SlidingTimeWindowReservoir. reporting-time-window-in-min TimeUnit/MINUTES)))
+
+(defn register-timer [timer mname]
+  (.register ^MetricRegistry mcore/default-registry mname timer))
+
+(defn new-stored-and-registered-timer [timers reporting-time-window-in-min mname]
+  (let [t (sliding-window-timer reporting-time-window-in-min)]
+    (register-timer t mname)
+    (swap! timers assoc mname t)
+    t))
+
+(defn- timer-for-id [{:keys [timers reporting-time-window-in-min]} t-id]
+  (let [mname (mcore/metric-name t-id)]
+    (or (get @timers mname)
+        (new-stored-and-registered-timer timers reporting-time-window-in-min mname))))
 
 (defn- new-handler-name [self]
   (str "tesla-handler-" (count @(:registered-handlers self))))
@@ -39,20 +52,26 @@
     (extract-uri-resources item request)
     (when use-status-codes? [(str (:status response))])))
 
-(defn- report-request-timings! [reporting-base-path item request response time-taken]
-  (-> (timers/timer (request-based-timer-id reporting-base-path item request response))
-      (.update time-taken TimeUnit/MILLISECONDS)))
+(defn- report-request-timings! [{:keys [reporting-base-path] :as self} item request response time-taken]
+  (let [timer-id (request-based-timer-id reporting-base-path item request response)]
+    (-> (timer-for-id self timer-id)
+        (.update time-taken TimeUnit/MILLISECONDS))))
 
 (defn- time-taken [start-time]
   (- (System/currentTimeMillis) start-time))
 
-(defn- single-handler-fn [reporting-base-path handlers]
+(defn- single-handler-fn [{:keys [registered-handlers] :as self}]
   (fn [request]
     (let [start-time (System/currentTimeMillis)]
-      (when-let [{:keys [response timed?] :as item} (first-handler-result handlers request)]
+      (when-let [{:keys [response timed?] :as item} (first-handler-result @registered-handlers request)]
         (when timed?
-          (report-request-timings! reporting-base-path item request response (time-taken start-time)))
+          (report-request-timings! self item request response (time-taken start-time)))
         response))))
+
+(defprotocol HandlerContainer
+  (register-handler [self handler])
+  (register-timed-handler [self handler] [self handler uri-resource-chooser-fn use-status-codes?])
+  (handler [self]))
 
 (defrecord Handler [config]
   component/Lifecycle
@@ -60,6 +79,8 @@
     (log/info "-> starting Handler")
     (assoc self
       :reporting-base-path (get-in config [:config :handler :reporting-base-path] ["serving" "requests"])
+      :reporting-time-window-in-min (get-in config [:config :handler :reporting-time-window-in-min] 1)
+      :timers (atom {})
       :registered-handlers (atom [])))
 
   (stop [self]
@@ -83,8 +104,7 @@
                                                  :handler                 handler})))
 
   (handler [self]
-    (let [handlers @(:registered-handlers self)]
-      (single-handler-fn (:reporting-base-path self) handlers))))
+    (single-handler-fn self)))
 
 (defn new-handler []
   (map->Handler {}))

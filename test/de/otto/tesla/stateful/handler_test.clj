@@ -1,7 +1,8 @@
 (ns de.otto.tesla.stateful.handler-test
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.handler :as handler]
-            [com.stuartsierra.component :as c]))
+            [com.stuartsierra.component :as c])
+  (:import (com.codahale.metrics Timer)))
 
 (deftest registering-handlers
   (testing "should register a handler and return a single handling-function"
@@ -78,8 +79,8 @@
   (testing "should use default reporting base-path"
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
-                    handler/report-request-timings! (fn [base-path _ _ _ _] (reset! reportings base-path))]
-        (let [handler (-> (handler/->Handler {:config {:handler {:report-timings? true}}}) (c/start))]
+                    handler/report-request-timings! (fn [self _ _ _ _] (reset! reportings (:reporting-base-path self)))]
+        (let [handler (-> (handler/->Handler {}) (c/start))]
           (handler/register-timed-handler handler (fn [r] (when (= r :ping) :pong)))
           (is (= :pong ((handler/handler handler) :ping)))
           (is (= ["serving" "requests"] @reportings))))))
@@ -87,9 +88,41 @@
   (testing "should use configured reporting base-path"
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
-                    handler/report-request-timings! (fn [base-path _ _ _ _] (reset! reportings base-path))]
-        (let [handler (-> (handler/->Handler {:config {:handler {:report-timings?     true
-                                                                 :reporting-base-path ["foo" "bar" "baz"]}}}) (c/start))]
+                    handler/report-request-timings! (fn [self _ _ _ _] (reset! reportings (:reporting-base-path self)))]
+        (let [handler (-> (handler/->Handler {:config {:handler {:reporting-base-path ["foo" "bar" "baz"]}}}) (c/start))]
           (handler/register-timed-handler handler (fn [r] (when (= r :ping) :pong)))
           (is (= :pong ((handler/handler handler) :ping)))
           (is (= ["foo" "bar" "baz"] @reportings)))))))
+
+
+(deftest storing-timers
+  (let [handler (-> (handler/->Handler {}) (c/start))
+        timer-updates (atom [])
+        mock-timer (proxy [Timer] [] (update [v _] (swap! timer-updates conj v)))
+        custom-handler-fn (fn [r] (when (= (:uri r) "/ping") {:status 200 :body :pong}))]
+    (with-redefs [handler/register-timer (constantly nil)
+                  handler/time-taken (constantly 100)
+                  handler/sliding-window-timer (constantly mock-timer)]
+
+      (testing "should store registered timer"
+        (handler/register-timed-handler handler custom-handler-fn)
+        (is (= [{:handler                 custom-handler-fn
+                 :handler-name            "tesla-handler-0"
+                 :timed?                  true
+                 :uri-resource-chooser-fn identity
+                 :use-status-codes?       true}]
+               @(:registered-handlers handler))))
+
+      (testing "should respond with valid response and store + update timer"
+        (is (= {:status 200
+                :body   :pong}
+               ((handler/handler handler) {:uri "/ping"})))
+        (is (= {"serving.requests.ping.200" mock-timer} @(:timers handler)))
+        (is (= [100] @timer-updates)))
+
+      (testing "should reuse timer for further updates"
+        ((handler/handler handler) {:uri "/ping"})
+        ((handler/handler handler) {:uri "/ping"})
+
+        (is (= {"serving.requests.ping.200" mock-timer} @(:timers handler)))
+        (is (= [100 100 100] @timer-updates))))))
