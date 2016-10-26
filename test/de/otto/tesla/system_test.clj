@@ -66,39 +66,41 @@
                       (Thread/sleep 10)
                       (is (= :work-done! @work-done))))))
 
-(defrecord SingleRoute [rname single-route]
+(defrecord SingleRoute [single-route]
   c/Lifecycle
   (start [self]
-    (handler/register-handler (:handler self) rname single-route)
+    (handler/register-timed-handler (:handler self) single-route)
     self)
   (stop [self] self))
 
-(defn test-route [id]
-  (c/using (->SingleRoute (str "route-" id) (fn [{:keys [uri]}]
-                                              (when (= uri (str "/route-" id))
-                                                :ping))) [:handler]))
+(defn ping-for [route-uri]
+  (fn [{:keys [uri]}]
+    (when (= uri route-uri)
+      :ping)))
 
 (deftest request-timing
   (testing "should time and report request for handler"
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
-                    handler/report-request-timings! (fn [_ handler-name time-taken] (swap! reportings conj [handler-name time-taken]))]
-        (u/with-started [started (-> (system/base-system {:handler {:report-timings? true}})
+                    handler/report-request-timings! (fn [_ item _ _ time-taken] (swap! reportings conj [(:handler-name item) time-taken]))]
+        (u/with-started [started (-> (system/base-system {})
+                                     (dissoc :health :app-status :scheduler)
                                      (assoc
-                                       :route0 (test-route 0)
-                                       :route1 (test-route 1)
-                                       :route2 (test-route 2)
-                                       :route3 (test-route 3)))]
+                                       :route0 (c/using (->SingleRoute (ping-for "/route-0")) [:handler])
+                                       :route1 (c/using (->SingleRoute (ping-for "/route-1")) [:handler :route0])
+                                       :route2 (c/using (->SingleRoute (ping-for "/route-2")) [:handler :route1])
+                                       :route3 (c/using (->SingleRoute (ping-for "/route-3")) [:handler :route2])))]
                         (let [single-handler-fn (handler/handler (:handler started))]
+                          (is (= 4 (count (filter :timed? @(:registered-handlers (:handler started))))))
                           (single-handler-fn (mock/request :get "/route-0"))
                           (single-handler-fn (mock/request :get "/route-1"))
                           (single-handler-fn (mock/request :get "/route-2"))
                           (single-handler-fn (mock/request :get "/route-3"))
                           (single-handler-fn (mock/request :get "/route-3"))
                           (single-handler-fn (mock/request :get "/route-3"))
-                          (is (= [["route-0" 100]
-                                  ["route-1" 100]
-                                  ["route-2" 100]
-                                  ["route-3" 100]
-                                  ["route-3" 100]
-                                  ["route-3" 100]] @reportings))))))))
+                          (is (= [["tesla-handler-0" 100]
+                                  ["tesla-handler-1" 100]
+                                  ["tesla-handler-2" 100]
+                                  ["tesla-handler-3" 100]
+                                  ["tesla-handler-3" 100]
+                                  ["tesla-handler-3" 100]] @reportings))))))))
