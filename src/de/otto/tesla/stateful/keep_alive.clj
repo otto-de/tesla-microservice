@@ -16,18 +16,22 @@
   (exit-keep-alive))
 
 (defn start-keep-alive-thread [cd-latch]
-  (-> (Thread. (partial wait-for-count-down-latch cd-latch))
-      (.start)))
+  (doto (Thread. ^Runnable (partial wait-for-count-down-latch cd-latch))
+    (.start)))
 
 (defrecord KeepAlive [cd-latch]
   component/Lifecycle
   (start [self]
+    (log/info "-> starting keepalive")
     (let [cd-latch (CountDownLatch. 1)]
-      (start-keep-alive-thread cd-latch)
-      (assoc self :cd-latch cd-latch)))
+      (assoc self
+        :thread (start-keep-alive-thread cd-latch)
+        :cd-latch cd-latch)))
 
   (stop [self]
+    (log/info "<- stopping keepalive")
     (.countDown cd-latch)
-    self))
+    (dissoc self :thread)))
 
-(defn new-keep-alive [] (map->KeepAlive {}))
+(defn new-keep-alive []
+  (map->KeepAlive {}))
