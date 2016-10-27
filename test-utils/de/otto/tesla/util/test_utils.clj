@@ -1,23 +1,23 @@
 (ns de.otto.tesla.util.test-utils
-  (:require [clojure.test :refer :all]
-            [com.stuartsierra.component :as comp]
-            [ring.mock.request :as mock]))
+  (:require
+    [com.stuartsierra.component :as comp]
+    [ring.mock.request :as mock]))
 
-(defmacro eventually 
+(defmacro eventually
   "Generic assertion macro, that waits for a predicate test to become true.
   'form' is a predicate test, that clojure.test/is can understand
   'timeout': optional; in ms; how long to wait in total (defaults to 5000)
   'interval' optional; in ms; how long to pause between tries (defaults to 10)
-  
+
   Example:
   Since this will fail half of the time ...
     (is (= 1 (rand-int 2)))
-  
+
   ... use this:
     (eventually (= 1 (rand-int 2)))"
   [form & {:keys [timeout interval]
-                              :or   {timeout  5000
-                                     interval 10}}]
+           :or   {timeout  5000
+                  interval 10}}]
   `(let [start-time# (System/currentTimeMillis)]
      (loop []
        (let [last-stats# (atom nil)
@@ -52,36 +52,8 @@
     (throw (IllegalArgumentException.
              "not a vector or bindings-count is not even"))))
 
-
-(defn merged-map-entry [request args k]
-  (let [merged (merge (k request) (k args))]
-    {k merged}))
-
-(defn mock-request [method url args]
-  (let [request (mock/request method url)
-        all-keys (keys args)
-        new-input (map (partial merged-map-entry request args) all-keys)]
-    (merge request (into {} new-input))))
-
-(deftest testing-the-mock-request
-  (testing "should create mock-request"
-    (is (= (mock-request :get "url" {})
-           {:headers        {"host" "localhost"}
-            :query-string   nil
-            :remote-addr    "localhost"
-            :request-method :get
-            :scheme         :http
-            :server-name    "localhost"
-            :server-port    80
-            :uri            "url"})))
-  (testing "should create mock-request"
-    (is (= (mock-request :get "url" {:headers {"content-type" "application/json"}})
-           {:headers        {"host"         "localhost"
-                             "content-type" "application/json"}
-            :query-string   nil
-            :remote-addr    "localhost"
-            :request-method :get
-            :scheme         :http
-            :server-name    "localhost"
-            :server-port    80
-            :uri            "url"}))))
+(defn mock-request
+  "merges additional arguments into a mock-request"
+  [method url args]
+  (let [request (mock/request method url)]
+    (merge-with merge request args)))
