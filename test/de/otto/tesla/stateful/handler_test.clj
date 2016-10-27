@@ -49,7 +49,7 @@
 
   (testing "should build path with all but last resource of uri"
     (let [item {:timed?                  true
-                :uri-resource-chooser-fn #(if (empty? %) % (pop %))
+                :uri-resource-chooser-fn butlast
                 :use-status-codes?       false}]
       (is (= ["base" "path" "foo" "bar" "baz"]
              (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))

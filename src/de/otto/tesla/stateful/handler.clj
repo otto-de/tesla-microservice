@@ -75,7 +75,7 @@
 
 
 (def all-resources identity)
-(def all-but-last-resource #(if (empty? %) % (pop %)))
+(def all-but-last-resource butlast)
 (def use-status-codes true)
 (def do-not-use-status-codes false)
 
