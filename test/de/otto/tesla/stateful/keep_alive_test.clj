@@ -2,7 +2,8 @@
   (:require
     [clojure.test :refer :all]
     [de.otto.tesla.stateful.keep-alive :as kalive]
-    [com.stuartsierra.component :as c]))
+    [com.stuartsierra.component :as c]
+    [de.otto.tesla.util.test-utils :refer [eventually]]))
 
 (deftest starting-and-stopping-the-keepalive-component
   (testing "should not start and stop keepalive-thread"
@@ -10,14 +11,12 @@
           exited? (atom false)]
       (with-redefs [kalive/enter-keep-alive (fn [] (reset! entered? true))
                     kalive/exit-keep-alive (fn [] (reset! exited? true))]
-        (is (= false @entered?))
-        (is (= false @exited?))
+        (eventually (= false @entered?))
+        (eventually (= false @exited?))
         (let [started (-> (kalive/new-keep-alive)
                           (c/start))]
-          (Thread/sleep 10)
-          (is (= true @entered?))
-          (is (= false @exited?))
+          (eventually (= true @entered?))
+          (eventually (= false @exited?))
           (c/stop started))
-        (Thread/sleep 10)
-        (is (= true @entered?))
-        (is (= true @exited?))))))
+        (eventually (= true @entered?))
+        (eventually (= true @exited?))))))

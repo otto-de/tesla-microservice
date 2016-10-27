@@ -23,8 +23,7 @@
                   (testing "when locked, it is unhealthy"
                     (let [handlers (handler/handler (:handler started))
                           _ (health/lock-application (:health started))
-                          response (handlers (mock/request :get "/health"))
-                          ]
+                          response (handlers (mock/request :get "/health"))]
                       (are [key value] (= value (get response key))
                                        :body "UNHEALTHY"
                                        :status 503)))))

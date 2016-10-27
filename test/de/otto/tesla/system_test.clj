@@ -7,6 +7,7 @@
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.tesla.stateful.configuring :as configuring]
             [environ.core :as env]
+            [de.otto.tesla.util.test-utils :refer [eventually]]
             [overtone.at-at :as at]
             [de.otto.tesla.stateful.scheduler :as scheduler]))
 
@@ -63,8 +64,7 @@
                     (let [work-done (atom :no-work-done)
                           {:keys [scheduler]} started]
                       (at/after 0 #(reset! work-done :work-done!) (scheduler/pool scheduler))
-                      (Thread/sleep 10)
-                      (is (= :work-done! @work-done))))))
+                      (eventually (= :work-done! @work-done))))))
 
 (defrecord SingleRoute [single-route]
   c/Lifecycle
