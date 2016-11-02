@@ -31,38 +31,34 @@
 (deftest building-timer-id
   (testing "should build path with first resource of uri"
     (let [item {:timed?                  true
-                :uri-resource-chooser-fn (partial take 1)
-                :use-status-codes?       false}]
-      (is (= ["base" "path" "foo"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))
-      (is (= ["base" "path"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {})))))
+                :uri-resource-chooser-fn (partial take 1)}]
+      (is (= ["base" "path" "foo" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {:status 200})))
+      (is (= ["base" "path" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {:status 200})))))
 
   (testing "should build path with first 2 resources of uri"
     (let [item {:timed?                  true
-                :uri-resource-chooser-fn (partial take 2)
-                :use-status-codes?       false}]
-      (is (= ["base" "path" "foo" "bar"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))
-      (is (= ["base" "path"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {})))))
+                :uri-resource-chooser-fn (partial take 2)}]
+      (is (= ["base" "path" "foo" "bar" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {:status 200})))
+      (is (= ["base" "path" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {:status 200})))))
 
   (testing "should build path with all but last resource of uri"
     (let [item {:timed?                  true
-                :uri-resource-chooser-fn butlast
-                :use-status-codes?       false}]
-      (is (= ["base" "path" "foo" "bar" "baz"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {})))
-      (is (= ["base" "path" "foo" "bar" "baz" "baf" "bif"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf/bif/bum?item=123"} {})))
-      (is (= ["base" "path"]
-             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {}))))))
+                :uri-resource-chooser-fn butlast}]
+      (is (= ["base" "path" "foo" "bar" "baz" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {:status 200})))
+      (is (= ["base" "path" "foo" "bar" "baz" "baf" "bif" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf/bif/bum?item=123"} {:status 200})))
+      (is (= ["base" "path" "200"]
+             (handler/request-based-timer-id ["base" "path"] item {:uri "/?item=123"} {:status 200}))))))
 
 (deftest request-based-timer-id-with-status
   (testing "should build path with status code"
     (let [item {:timed?                  true
-                :uri-resource-chooser-fn (partial take 2)
-                :use-status-codes?       true}]
+                :uri-resource-chooser-fn (partial take 2)}]
       (is (= ["base" "path" "foo" "bar" "200"]
              (handler/request-based-timer-id ["base" "path"] item {:uri "/foo/bar/baz/baf?item=123"} {:status 200})))
       (is (= ["base" "path" "foo" "bar" "404"]
@@ -109,8 +105,7 @@
         (is (= [{:handler                 custom-handler-fn
                  :handler-name            "tesla-handler-0"
                  :timed?                  true
-                 :uri-resource-chooser-fn identity
-                 :use-status-codes?       true}]
+                 :uri-resource-chooser-fn identity}]
                @(:registered-handlers handler))))
 
       (testing "should respond with valid response and store + update timer"

@@ -46,11 +46,11 @@
       (string/split splittable #"/")
       [])))
 
-(defn request-based-timer-id [reporting-base-path {:keys [use-status-codes?] :as item} request response]
+(defn request-based-timer-id [reporting-base-path item request response]
   (concat
     reporting-base-path
     (extract-uri-resources item request)
-    (when use-status-codes? [(str (:status response))])))
+    [(str (:status response))]))
 
 (defn- report-request-timings! [{:keys [reporting-base-path] :as self} item request response time-taken]
   (let [timer-id (request-based-timer-id reporting-base-path item request response)]
@@ -70,14 +70,12 @@
 
 (defprotocol HandlerContainer
   (register-handler [self handler])
-  (register-timed-handler [self handler] [self handler uri-resource-chooser-fn use-status-codes?])
+  (register-timed-handler [self handler] [self handler uri-resource-chooser-fn])
   (handler [self]))
 
 
 (def all-resources identity)
 (def all-but-last-resource butlast)
-(def use-status-codes true)
-(def do-not-use-status-codes false)
 
 (defrecord Handler [config]
   component/Lifecycle
@@ -100,13 +98,12 @@
                                                  :handler      handler})))
 
   (register-timed-handler [self handler]
-    (register-timed-handler self handler all-resources true))
+    (register-timed-handler self handler all-resources))
 
-  (register-timed-handler [self handler uri-resource-chooser-fn use-status-codes?]
+  (register-timed-handler [self handler uri-resource-chooser-fn]
     (swap! (:registered-handlers self) #(conj % {:timed?                  true
                                                  :handler-name            (new-handler-name self)
                                                  :uri-resource-chooser-fn uri-resource-chooser-fn
-                                                 :use-status-codes?       use-status-codes?
                                                  :handler                 handler})))
 
   (handler [self]
