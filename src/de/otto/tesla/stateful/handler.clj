@@ -10,10 +10,10 @@
 (defn- sliding-window-timer [reporting-time-window-in-min]
   (Timer. (SlidingTimeWindowReservoir. reporting-time-window-in-min TimeUnit/MINUTES)))
 
-(defn register-timer [timer mname]
+(defn- register-timer [timer mname]
   (.register ^MetricRegistry mcore/default-registry mname timer))
 
-(defn new-stored-and-registered-timer [timers reporting-time-window-in-min mname]
+(defn- new-stored-and-registered-timer [timers reporting-time-window-in-min mname]
   (let [t (sliding-window-timer reporting-time-window-in-min)]
     (register-timer t mname)
     (swap! timers assoc mname t)
@@ -36,7 +36,7 @@
 
 (def without-leading-and-trailing-slash #"/?(.*[^/])/?")
 
-(defn trimmed-uri-path [uri]
+(defn- trimmed-uri-path [uri]
   (let [path (.getPath (URI. uri))]
     (second (re-matches without-leading-and-trailing-slash path))))
 
@@ -46,7 +46,7 @@
       (string/split splittable #"/")
       [])))
 
-(defn request-based-timer-id [reporting-base-path item request response]
+(defn- request-based-timer-id [reporting-base-path item request response]
   (concat
     reporting-base-path
     (extract-uri-resources item request)
