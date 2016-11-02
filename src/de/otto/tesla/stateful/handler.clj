@@ -24,8 +24,8 @@
     (or (get @timers mname)
         (new-stored-and-registered-timer timers reporting-time-window-in-min mname))))
 
-(defn- new-handler-name [self]
-  (str "tesla-handler-" (count @(:registered-handlers self))))
+(defn- new-handler-name [registered-handlers]
+  (str "tesla-handler-" (count registered-handlers)))
 
 (defn- handler-execution-result [request {handler-fn :handler :as handler-map}]
   (when-let [response (handler-fn request)]
@@ -34,39 +34,77 @@
 (defn- first-handler-result [handlers request]
   (some (partial handler-execution-result request) handlers))
 
+(defn- report-request-timings! [timer-id self time-taken]
+  (-> (timer-for-id self timer-id)
+      (.update time-taken TimeUnit/MILLISECONDS)))
+
+(defn- time-taken [start-time]
+  (- (System/currentTimeMillis) start-time))
+
+(defn- timer-path-fn-result [timer-path-fn request response]
+  (try
+    (some->> (timer-path-fn request response)
+             (map str))
+    (catch Exception e
+      (log/error e "error executing the timer-path-fn in tesla-microservice: handler: " (.getMessage e)))))
+
+(defn- single-handler-fn [{:keys [registered-handlers] :as self}]
+  (fn [request]
+    (let [start-time (System/currentTimeMillis)]
+      (when-let [{:keys [response timer-path-fn]} (first-handler-result @registered-handlers request)]
+        (some-> timer-path-fn
+                (timer-path-fn-result request response)
+                (report-request-timings! self (time-taken start-time)))
+        response))))
+
 (def without-leading-and-trailing-slash #"/?(.*[^/])/?")
 
 (defn- trimmed-uri-path [uri]
   (let [path (.getPath (URI. uri))]
     (second (re-matches without-leading-and-trailing-slash path))))
 
-(defn- extract-uri-resources [{:keys [uri-resource-fn]} {:keys [uri]}]
+(defn- extract-uri-resources [uri-resource-fn {:keys [uri]}]
   (uri-resource-fn
     (if-let [splittable (trimmed-uri-path uri)]
       (string/split splittable #"/")
       [])))
 
-(defn- request-based-timer-id [reporting-base-path item request response]
+(defn- request-based-timer-id [reporting-base-path uri-resource-fn request response]
   (concat
     reporting-base-path
-    (extract-uri-resources item request)
+    (extract-uri-resources uri-resource-fn request)
     [(str (:status response))]))
 
-(defn- report-request-timings! [{:keys [reporting-base-path] :as self} item request response time-taken]
-  (let [timer-id (request-based-timer-id reporting-base-path item request response)]
-    (-> (timer-for-id self timer-id)
-        (.update time-taken TimeUnit/MILLISECONDS))))
+(defn- lookup-uri-resource-fn [uri-resource-fn-or-keyword]
+  (cond (keyword? uri-resource-fn-or-keyword)
+        (uri-resource-fn-or-keyword {:all-but-last-resource butlast
+                                     :all-resources         identity})
+        :default uri-resource-fn-or-keyword))
 
-(defn- time-taken [start-time]
-  (- (System/currentTimeMillis) start-time))
+(defn- default-timer-path-fn [reporting-base-path uri-resource-fn-or-keyword]
+  (fn [request response]
+    (request-based-timer-id
+      reporting-base-path
+      (lookup-uri-resource-fn uri-resource-fn-or-keyword)
+      request response)))
 
-(defn- single-handler-fn [{:keys [registered-handlers] :as self}]
-  (fn [request]
-    (let [start-time (System/currentTimeMillis)]
-      (when-let [{:keys [response timed?] :as item} (first-handler-result @registered-handlers request)]
-        (when timed?
-          (report-request-timings! self item request response (time-taken start-time)))
-        response))))
+(defn register-timed-handler [self new-handler-fn & {:keys [uri-resource-fn-or-keyword timer-path-fn]
+                                                     :or   {uri-resource-fn-or-keyword :all-resources}}]
+  (let [{:keys [registered-handlers reporting-base-path]} self
+        handler-name (new-handler-name @registered-handlers)]
+    (swap! registered-handlers
+           #(conj % {:handler-name  handler-name
+                     :timer-path-fn (or timer-path-fn
+                                        (default-timer-path-fn reporting-base-path uri-resource-fn-or-keyword))
+                     :handler       new-handler-fn}))))
+
+(defn register-handler [{:keys [registered-handlers]} new-handler-fn]
+  (let [handler-name (new-handler-name @registered-handlers)]
+    (swap! registered-handlers #(conj % {:handler-name handler-name
+                                         :handler      new-handler-fn}))))
+
+(defn handler [self]
+  (single-handler-fn self))
 
 (defrecord Handler [config]
   component/Lifecycle
@@ -81,24 +119,6 @@
   (stop [self]
     (log/info "<- stopping Handler")
     self))
-
-(defn register-handler [self new-handler-fn]
-  (swap! (:registered-handlers self) #(conj % {:timed?       false
-                                               :handler-name (new-handler-name self)
-                                               :handler      new-handler-fn})))
-
-(defn register-timed-handler [self new-handler-fn & {:keys [uri-resource-fn]
-                                                     :or   {uri-resource-fn :all-resources}}]
-  (swap! (:registered-handlers self) #(conj % {:timed?          true
-                                               :handler-name    (new-handler-name self)
-                                               :uri-resource-fn (cond (keyword? uri-resource-fn)
-                                                                      (uri-resource-fn {:all-but-last-resource butlast
-                                                                                        :all-resources         identity})
-                                                                      :default uri-resource-fn)
-                                               :handler         new-handler-fn})))
-
-(defn handler [self]
-  (single-handler-fn self))
 
 (defn new-handler []
   (map->Handler {}))
