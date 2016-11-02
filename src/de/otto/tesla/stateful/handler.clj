@@ -40,8 +40,8 @@
   (let [path (.getPath (URI. uri))]
     (second (re-matches without-leading-and-trailing-slash path))))
 
-(defn- extract-uri-resources [{:keys [uri-resource-chooser-fn]} {:keys [uri]}]
-  (uri-resource-chooser-fn
+(defn- extract-uri-resources [{:keys [uri-resource-fn]} {:keys [uri]}]
+  (uri-resource-fn
     (if-let [splittable (trimmed-uri-path uri)]
       (string/split splittable #"/")
       [])))
@@ -68,15 +68,6 @@
           (report-request-timings! self item request response (time-taken start-time)))
         response))))
 
-(defprotocol HandlerContainer
-  (register-handler [self handler])
-  (register-timed-handler [self handler] [self handler uri-resource-chooser-fn])
-  (handler [self]))
-
-
-(def all-resources identity)
-(def all-but-last-resource butlast)
-
 (defrecord Handler [config]
   component/Lifecycle
   (start [self]
@@ -89,25 +80,25 @@
 
   (stop [self]
     (log/info "<- stopping Handler")
-    self)
+    self))
 
-  HandlerContainer
-  (register-handler [self handler]
-    (swap! (:registered-handlers self) #(conj % {:timed?       false
-                                                 :handler-name (new-handler-name self)
-                                                 :handler      handler})))
+(defn register-handler [self new-handler-fn]
+  (swap! (:registered-handlers self) #(conj % {:timed?       false
+                                               :handler-name (new-handler-name self)
+                                               :handler      new-handler-fn})))
 
-  (register-timed-handler [self handler]
-    (register-timed-handler self handler all-resources))
+(defn register-timed-handler [self new-handler-fn & {:keys [uri-resource-fn]
+                                                     :or   {uri-resource-fn :all-resources}}]
+  (swap! (:registered-handlers self) #(conj % {:timed?          true
+                                               :handler-name    (new-handler-name self)
+                                               :uri-resource-fn (cond (keyword? uri-resource-fn)
+                                                                      (uri-resource-fn {:all-but-last-resource butlast
+                                                                                        :all-resources         identity})
+                                                                      :default uri-resource-fn)
+                                               :handler         new-handler-fn})))
 
-  (register-timed-handler [self handler uri-resource-chooser-fn]
-    (swap! (:registered-handlers self) #(conj % {:timed?                  true
-                                                 :handler-name            (new-handler-name self)
-                                                 :uri-resource-chooser-fn uri-resource-chooser-fn
-                                                 :handler                 handler})))
-
-  (handler [self]
-    (single-handler-fn self)))
+(defn handler [self]
+  (single-handler-fn self))
 
 (defn new-handler []
   (map->Handler {}))
