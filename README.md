@@ -77,11 +77,15 @@ This gives you the freedom to  a) not use any server at all (e.g. for embedded u
 Applications build with `tesla-microservices` can be configured via 
 `edn`-files, that have to be located in the class path.
 
+For backwards compatibility, it is also possible to load config from `properties`-files. 
+See below for noteworthy differences.
+ 
+
 ### Order of loading and merging
 
-1. A file named `default.edn` is loaded. 
-2. A file named by the ENV-variable `$CONFIG_FILE` is loaded.
-3. A file name `local.edn` is loaded.
+1. A file named `default.edn` is loaded as a resource from classpath. 
+2. A file named by the ENV-variable `$CONFIG_FILE` is loaded from filesystem.
+3. A file name `local.edn` is loaded from classpath.
 
 The configuration hash-map in those files is loaded and merged in the
 specified order. Which mean configurations for the same key is overridden
@@ -103,6 +107,14 @@ your configuration:
 
 ENV-variables are read with [environ](https://github.com/weavejester/environ). To see
 which keyword represents which ENV-var have a look in their docs. 
+
+### Cofiguring via properties files
+
+For backwards compatibility, it is also possible to load config from `properties`-files. 
+You'll have to pass `{:property-file-preferred true}` as a runtime config to the base-system.
+It is not possible to load individual environment variables when using properties config. 
+Adding `:merge-env-to-properties-config true` to the runtime config will add all system properties
+and environment variables, overiding any config from files.  
 
 ## Addons
 

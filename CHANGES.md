@@ -2,6 +2,16 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document changes and give instructions on breaking ones. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.6.0
+
+The behaviour of loading configuration changed. 
+
+* When using configuration via `properties` files, system properties and environment variables are not loaded by default any more. Use `:merge-env-to-properties-config true` in runtime config to achieve prior behaviour.
+
+ 
+
+
+
 ### 0.5.0  
 
 The scheduler is now part of the tesla-base-system.  

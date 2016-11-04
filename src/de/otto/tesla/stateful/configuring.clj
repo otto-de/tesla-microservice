@@ -31,7 +31,7 @@
   (let [defaults (load-properties "default.properties" :resource)
         config (load-properties (or (:config-file env/env) "application.properties") :file)
         local (load-properties "local.properties" :resource)]
-    (merge defaults config local env/env)))
+    (merge defaults config local)))
 
 (defn- load-edn [name & [type]]
   (when-let [resource (cond
@@ -52,7 +52,7 @@
 (defn load-and-merge [runtime-config]
   (if-not (:property-file-preferred runtime-config)
     (deep-merge (load-config-from-edn-files) runtime-config)
-    (merge (load-config-from-property-files) runtime-config)))
+    (merge (load-config-from-property-files) runtime-config (if (:merge-env-to-properties-config runtime-config) env/env {}))))
 
 ;; Load config on startup.
 (defrecord Configuring [runtime-config]
