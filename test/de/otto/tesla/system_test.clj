@@ -46,7 +46,7 @@
     (u/with-started [started (system/base-system {})]
                     (testing "should load the status-path property from edn"
                       (is (= "/custom/status/path"
-                             (:status-url (configuring/load-config-from-edn-files)))))
+                             (:status-url (configuring/load-config-from-edn-files {})))))
 
                     (testing "should point to edn-configured custom status url"
                       (let [handlers (handler/handler (:handler started))
@@ -56,7 +56,7 @@
   (u/with-started [started (system/base-system {})]
                   (testing "should fallback to default for status path"
                     (is (= "/status"
-                           (:status-url (configuring/load-config-from-edn-files)))))))
+                           (:status-url (configuring/load-config-from-edn-files {})))))))
 
 (deftest the-scheduler-in-the-base-system
   (testing "should schedule and execute task NOW"

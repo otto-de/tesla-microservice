@@ -61,12 +61,12 @@
 
 (deftest ^:unit should-read-default-properties
   (testing "should read default properties from property-files"
-    (let [loaded-properties (configuring/load-config-from-property-files)]
+    (let [loaded-properties (configuring/load-config-from-properties-files {})]
       (is (not (nil? (:server-port loaded-properties))))
       (is (not (nil? (:metering-reporter loaded-properties))))))
 
   (testing "should read default properties from edn-property-files"
-    (let [loaded-properties (configuring/load-config-from-edn-files)]
+    (let [loaded-properties (configuring/load-config-from-edn-files {})]
       (is (not (nil? (:server-port loaded-properties))))
       (is (not (nil? (:metering-reporter loaded-properties)))))))
 
@@ -97,31 +97,32 @@
                            (configuring/external-hostname (:conf started)))))))
 
 (deftest ^:unit determine-hostport-from-config-and-env-with-defined-precedence
-  (with-redefs [configuring/load-config-from-edn-files (constantly {})]
-    (testing "it prefers a explicitly configured :hostname"
+  (testing "it prefers a explicitly configured :hostname"
+    (with-redefs [configuring/server-port (constantly "configured")]
       (with-redefs [env/env {:port0 "0" :host-port "1" :server-port "2"}]
-        (u/with-started [started (test-system {:server-port "configured"})]
-                        (is (= "configured"
-                               (configuring/external-port (:conf started)))))))
+        (is (= "configured"
+               (configuring/external-port {}))))))
+
+  (with-redefs [configuring/server-port (constantly nil)]
     (testing "it falls back to env-vars and prefers $PORT0"
       (with-redefs [env/env {:port0 "0" :host-port "1" :server-port "2"}]
         (u/with-started [started (test-system {})]
                         (is (= "0"
-                               (configuring/external-port (:conf started)))))))
+                               (configuring/external-port {}))))))
     (testing "it falls back to env-vars and prefers $HOST_PORT"
       (with-redefs [env/env {:host-port "1" :server-port "2"}]
         (u/with-started [started (test-system {})]
                         (is (= "1"
-                               (configuring/external-port (:conf started)))))))
-    (testing "it falls back to env-vars and finally takes $SERVER_PORT"
-      (with-redefs [env/env {:server-port "2"}]
-        (u/with-started [started (test-system {})]
-                        (is (= "2"
-                               (configuring/external-port (:conf started)))))))))
+                               (configuring/external-port {})))))))
+  (testing "it falls back to env-vars and finally takes $SERVER_PORT"
+    (with-redefs [env/env {:server-port "2"}]
+      (u/with-started [started (test-system {})]
+                      (is (= "2"
+                             (configuring/external-port {})))))))
 
 (deftest ^:integration should-read-properties-from-file
   (spit "application.properties" "foooo=barrrr")
-  (is (= (:foooo (configuring/load-config-from-property-files))
+  (is (= (:foooo (configuring/load-config-from-properties-files {}))
          "barrrr"))
   (io/delete-file "application.properties"))
 
@@ -129,7 +130,7 @@
   (spit "application.properties" "foooo=value")
   (spit "other.properties" "foooo=other-value")
   (with-redefs-fn {#'env/env {:config-file "other.properties"}}
-    #(is (= (:foooo (configuring/load-config-from-property-files))
+    #(is (= (:foooo (configuring/load-config-from-properties-files {}))
             "other-value")))
   (io/delete-file "other.properties")
   (io/delete-file "application.properties"))
@@ -137,24 +138,24 @@
 (deftest ^:unit deep-merge-test
   (testing "simple cases"
     (is (= {:a 1 :b 2}
-           (configuring/deep-merge {:a 1} 
+           (configuring/deep-merge {:a 1}
                                    {:b 2})))
     (is (= {:a 1 :b 2}
-           (configuring/deep-merge {:a 1 :b 1} 
+           (configuring/deep-merge {:a 1 :b 1}
                                    {:b 2})))
     (is (= {:a 2 :b 2}
-           (configuring/deep-merge {:a 1 :b 1} 
+           (configuring/deep-merge {:a 1 :b 1}
                                    {:a 2 :b 2})))
     (is (= {:a 3 :b 2 :c 3}
-           (configuring/deep-merge {:a 1 :b 1} 
-                                   {:b 2} 
+           (configuring/deep-merge {:a 1 :b 1}
+                                   {:b 2}
                                    {:a 3 :c 3}))))
   (testing "nested maps"
     (is (= {:a {:b {:c 1 :d 2}}}
-           (configuring/deep-merge {:a {:b {:c 1}}} 
+           (configuring/deep-merge {:a {:b {:c 1}}}
                                    {:a {:b {:d 2}}})))
     (is (= {:a {:b {:c 2 :d 2} :f 3}}
-           (configuring/deep-merge {:a {:b {:c 1}}} 
+           (configuring/deep-merge {:a {:b {:c 1}}}
                                    {:a {:b {:c 2 :d 2}}}
                                    {:a {:f 3}}))))
   (testing "collections as values"
@@ -164,7 +165,7 @@
   (testing "reseting values"
     (is (= {:a nil}
            (configuring/deep-merge {:a 1} {:a nil}))))
-  
+
   (testing "missing things"
     (is (= {:a 1}
            (configuring/deep-merge {:a 1} {})))

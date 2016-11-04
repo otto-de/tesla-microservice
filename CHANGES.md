@@ -7,10 +7,8 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 The behaviour of loading configuration changed. 
 
 * When using configuration via `properties` files, system properties and environment variables are not loaded by default any more. Use `:merge-env-to-properties-config true` in runtime config to achieve prior behaviour.
-
- 
-
-
+* For the config-file `application.edn`/`application.properties` (name can be overriden by env-var `$CONFIG_FILE`)
+ is now with preference loaded as a resource from classpath. If the resource is not found, it is tried to load it as a file.
 
 ### 0.5.0  
 

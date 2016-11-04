@@ -83,9 +83,10 @@ See below for noteworthy differences.
 
 ### Order of loading and merging
 
-1. A file named `default.edn` is loaded as a resource from classpath. 
-2. A file named by the ENV-variable `$CONFIG_FILE` is loaded from filesystem.
-3. A file name `local.edn` is loaded from classpath.
+1. A file named `default.edn` is loaded as a resource from classpath if present. 
+2. A file either named `application.edn` or overridden by the ENV-variable `$CONFIG_FILE`
+ is loaded as a resource or, if that is not possible, from the filesystem.
+3. A file name `local.edn` is loaded from classpath if present.
 
 The configuration hash-map in those files is loaded and merged in the
 specified order. Which mean configurations for the same key is overridden

@@ -22,37 +22,45 @@
     (p/properties->map
       (p/load-from resource) false)))
 
-(defn- load-properties [name & [type]]
+(defn resolve-file [name type]
   (cond
-    (and (= :resource type) (io/resource name)) (load-properties-from-resource (io/resource name))
-    (and (= :file type) (.exists (io/file name))) (load-properties-from-resource (io/file name))))
+    (= :resource type) (io/resource name)
+    (and (= :file type) (.exists (io/file name))) (io/file name)
+    (and (= :resource-or-file type) (io/resource name)) (io/resource name)
+    (and (= :resource-or-file type) (.exists (io/file name))) (io/file name)))
 
-(defn load-config-from-property-files []
-  (let [defaults (load-properties "default.properties" :resource)
-        config (load-properties (or (:config-file env/env) "application.properties") :file)
-        local (load-properties "local.properties" :resource)]
-    (merge defaults config local)))
+(defn- load-properties [name type]
+  (when-let [resource (resolve-file name type)]
+    (load-properties-from-resource resource)))
 
-(defn- load-edn [name & [type]]
-  (when-let [resource (cond
-                        (= :resource type) (io/resource name)
-                        (and (= :file type) (.exists (io/file name))) (io/file name))]
+
+(defn- load-edn [name type]
+  (when-let [resource (resolve-file name type)]
     (-> resource
         (io/reader)
         (PushbackReader.)
         (read))))
 
-(defn load-config-from-edn-files []
-  (let [defaults (load-edn "default.edn" :resource)
-        application (load-edn (or (:config-file env/env) "application.edn") :file)
-        local (load-edn "local.edn" :resource)
-        configs (filter some? [defaults application local])]
-    (apply deep-merge configs)))
+(defn load-merge [load-fn merge-fn ending runtime-config]
+  (let [defaults (load-fn (str "default" ending) :resource)
+        application (load-fn (or (:config-file env/env) (str "application" ending)) :resource-or-file)
+        local (load-fn (str "local" ending) :resource)
+        configs (filter some? [defaults application local runtime-config])]
+    (apply merge-fn configs)))
+
+(defn load-config-from-edn-files [runtime-config]
+  (load-merge load-edn deep-merge ".edn" runtime-config))
+
+(defn load-config-from-properties-files [runtime-config]
+  (let [loaded (load-merge load-properties merge ".properties" runtime-config)]
+    (if (:merge-env-to-properties-config runtime-config)
+      (merge loaded env/env)
+      loaded)))
 
 (defn load-and-merge [runtime-config]
   (if-not (:property-file-preferred runtime-config)
-    (deep-merge (load-config-from-edn-files) runtime-config)
-    (merge (load-config-from-property-files) runtime-config (if (:merge-env-to-properties-config runtime-config) env/env {}))))
+    (load-config-from-edn-files runtime-config)
+    (load-config-from-properties-files runtime-config)))
 
 ;; Load config on startup.
 (defrecord Configuring [runtime-config]
@@ -80,7 +88,10 @@
       (:host env/env) (:host-name env/env) (:hostname env/env)
       "localhost"))
 
+(defn server-port [config]
+  (:server-port config))
+
 ;; see above
 (defn external-port [{:keys [config]}]
-  (or (:server-port config)
+  (or (server-port config)
       (:port0 env/env) (:host-port env/env) (:server-port env/env)))
