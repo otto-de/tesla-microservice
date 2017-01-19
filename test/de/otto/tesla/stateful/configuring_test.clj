@@ -92,9 +92,10 @@
                       (is (= "hostname"
                              (configuring/external-hostname (:conf started)))))))
   (testing "it eventually falls back to localhost"
-    (u/with-started [started (test-system {})]
-                    (is (= "localhost"
-                           (configuring/external-hostname (:conf started)))))))
+    (with-redefs [env/env {:host-name nil :hostname nil :host nil}]
+      (u/with-started [started (test-system {})]
+                      (is (= "localhost"
+                             (configuring/external-hostname (:conf started))))))))
 
 (deftest ^:unit determine-hostport-from-config-and-env-with-defined-precedence
   (testing "it prefers a explicitly configured :hostname"

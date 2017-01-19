@@ -27,7 +27,7 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 
 ## Examples
 
-* A growing set of example apllications can be found at [tesla-examples](https://github.com/otto-de/tesla-examples).
+* A growing set of example applications can be found at [tesla-examples](https://github.com/otto-de/tesla-examples).
 * David & Germán created an example application based, among other, on tesla-microservice. They wrote a very instructive [blog post about it](http://blog.agilityfeat.com/2015/03/clojure-walking-skeleton/)
 * Moritz created [tesla-pubsub-service](https://bitbucket.org/DerGuteMoritz/tesla-pubsub-service). It showcases how to connect components via core.async channels. Also the embedded jetty was replaced by immutant.
 

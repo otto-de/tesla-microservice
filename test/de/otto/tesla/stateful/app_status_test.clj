@@ -25,21 +25,21 @@
                     (is (not (nil? (:systemTime system-status)))))))
 
 (deftest ^:unit host-name-and-port-on-app-status
-  (testing "should add host and port from env to app-status in property-file case"
-    (with-redefs-fn {#'env/env {:host-name "foo" :server-port "1234"}}
-      #(u/with-started [system (serverless-system {:property-file-preferred true :merge-env-to-properties-config true})]
-                       (let [status (:app-status system)
-                             system-status (:system (app-status/status-response-body status))]
-                         (is (= (:hostname system-status) "foo"))
-                         (is (= (:port system-status) "1234"))
-                         (is (not (nil? (:systemTime system-status))))))))
-  (testing "should add host and port from env to app-status in edn-file case"
-    (u/with-started [system (serverless-system {})]
-                    (let [status (:app-status system)
-                          system-status (:system (app-status/status-response-body status))]
-                      (is (= (:hostname system-status) "localhost"))
-                      (is (= (:port system-status) "9991"))
-                      (is (not (nil? (:systemTime system-status))))))))
+  (with-redefs [env/env {:host-name "foo" :server-port "1234"}]
+    (testing "should add host and port from env to app-status in property-file case"
+      (u/with-started [system (serverless-system {:property-file-preferred true :merge-env-to-properties-config true})]
+                      (let [status (:app-status system)
+                            system-status (:system (app-status/status-response-body status))]
+                        (is (= (:hostname system-status) "foo"))
+                        (is (= (:port system-status) "1234"))
+                        (is (not (nil? (:systemTime system-status)))))))
+    (testing "should add host and port from env to app-status in edn-file case"
+      (u/with-started [system (serverless-system {})]
+                      (let [status (:app-status system)
+                            system-status (:system (app-status/status-response-body status))]
+                        (is (= (:hostname system-status) "foo"))
+                        (is (= (:port system-status) "9991"))
+                        (is (not (nil? (:systemTime system-status)))))))))
 
 (defrecord MockStatusSource [response]
   c/Lifecycle

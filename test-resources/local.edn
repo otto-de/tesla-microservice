@@ -1,4 +1,5 @@
 {:server-port           "9991"
+ :hostname              #ts/env [:host-name "localhost"]
  :status-url            #ts/env [:my-custom-status-url "/status"]
  :prop-without-fallback #ts/env [:prop-without-fallback]
  :metering-reporter     "console"
