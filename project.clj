@@ -38,8 +38,8 @@
              :dev     {:dependencies [[org.clojure/clojure "1.8.0"]
                                       [javax.servlet/servlet-api "2.5"]
                                       [org.slf4j/slf4j-api "1.7.22"]
-                                      [ch.qos.logback/logback-core "1.1.8"]
-                                      [ch.qos.logback/logback-classic "1.1.8"]
+                                      [ch.qos.logback/logback-core "1.1.9"]
+                                      [ch.qos.logback/logback-classic "1.1.9"]
                                       [ring-mock "0.1.5"]]
                        :plugins      [[lein-ancient "0.6.10"]
                                       [lein-release/lein-release "1.1.3"]]}}
