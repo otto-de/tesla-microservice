@@ -9,7 +9,8 @@
             [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.stateful.handler :as handler]))
+            [de.otto.tesla.stateful.handler :as handler]
+            [metrics.counters :as counters]))
 
 (defn wait! [system]
   (if-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
@@ -27,7 +28,10 @@
   (c/stop system))
 
 (defn start [system]
+  (log/info "-> Starting system.")
   (let [started (c/start system)]
+    (log/info "-> System completely started.")
+    (counters/inc! (counters/counter ["system" "startups"]))
     (doseq [sig ["INT" "TERM"]]
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))
