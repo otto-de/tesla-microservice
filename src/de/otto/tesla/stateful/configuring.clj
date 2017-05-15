@@ -42,7 +42,8 @@
         (read))))
 
 (defn load-merge [load-fn merge-fn ending runtime-config]
-  (let [defaults (load-fn (str "default" ending) :resource)
+  (let [default-cfg-name (or (:default-cfg-file-name runtime-config) "default")
+        defaults (load-fn (str default-cfg-name ending) :resource)
         application (load-fn (or (:config-file env/env) (str "application" ending)) :resource-or-file)
         local (load-fn (str "local" ending) :resource)
         configs (filter some? [defaults application local runtime-config])]
