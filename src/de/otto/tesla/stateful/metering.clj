@@ -7,12 +7,17 @@
     [metrics.counters :as counters]
     [metrics.gauges :as gauges]
     [metrics.histograms :as histograms]
+    [de.otto.tesla.util.prometheus :as prom]
     [metrics.reporters.graphite :as graphite]
     [metrics.reporters.console :as console]
     [clojure.tools.logging :as log]
-    [de.otto.tesla.stateful.configuring :as configuring])
+    [de.otto.tesla.stateful.configuring :as configuring]
+    [de.otto.tesla.stateful.handler :as handler]
+    [compojure.core :as c]
+    [clojure.data.json :as json]
+    [clojure.string :as s])
   (:import
-    (com.codahale.metrics MetricFilter Timer)
+    (com.codahale.metrics MetricFilter Timer Snapshot)
     (java.util.concurrent TimeUnit)))
 
 (defn- short-hostname [hostname]
@@ -79,15 +84,32 @@
   (counter! [self name])
   (histogram! [self name]))
 
+
+(defn metrics-response [self]
+  (let [registry (get-in self [:registry])
+        prometheus_lines_gauges (prom/gauges-to-prometheus (metrics/gauges registry))
+        prometheus_lines_hist (prom/hists-to-prometheus (metrics/histograms registry))
+        prometheus_lines_cnt (prom/counts-to-prometheus (metrics/counters registry))
+        all_lines (concat prometheus_lines_gauges prometheus_lines_hist prometheus_lines_cnt)]
+    {:status  200
+     :headers {"Content-Type" "application/json"}
+     :body    (str (s/join "\n" all_lines) "\n")}))
+
+(defn make-handler
+  [self]
+  (c/routes (c/GET "/metrics" [] (metrics-response self))))
+
 ;; Initialises a metrics-registry and a graphite reporter.
-(defrecord Metering [config]
+(defrecord Metering [config handler]
   component/Lifecycle
   (start [self]
     (log/info "-> starting metering.")
-    (let [registry metrics/default-registry]
-      (assoc self
-        :registry registry
-        :reporter (start-reporter! registry config))))
+    (let [registry metrics/default-registry
+          new-self (assoc self
+                     :registry registry
+                     :reporter (start-reporter! registry config))]
+      (handler/register-handler handler (make-handler new-self))
+      new-self))
   (stop [self]
     (log/info "<- stopping metering")
     (when-let [reporter (:reporter self)]

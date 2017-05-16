@@ -41,7 +41,7 @@
     :keep-alive (keep-alive/new-keep-alive)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :handler (c/using (handler/new-handler) [:config])
-    :metering (c/using (metering/new-metering) [:config])
+    :metering (c/using (metering/new-metering) [:config :handler])
     :health (c/using (health/new-health) [:config :handler])
     :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
     :scheduler (c/using (scheduler/new-scheduler) [:config :app-status])))

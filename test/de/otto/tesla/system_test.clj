@@ -7,9 +7,15 @@
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.tesla.stateful.configuring :as configuring]
             [environ.core :as env]
+            [metrics.counters :as counter]
+            [metrics.histograms :as hists]
+            [metrics.gauges :as gauges]
             [de.otto.tesla.util.test-utils :refer [eventually]]
             [overtone.at-at :as at]
-            [de.otto.tesla.stateful.scheduler :as scheduler]))
+            [de.otto.tesla.stateful.scheduler :as scheduler]
+            [metrics.core :as metrics]
+            [de.otto.tesla.stateful.metering :as metering]
+            [clojure.tools.logging :as log]))
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
   (testing "start then shutdown using own method"
@@ -65,6 +71,35 @@
                           {:keys [scheduler]} started]
                       (at/after 0 #(reset! work-done :work-done!) (scheduler/pool scheduler))
                       (eventually (= :work-done! @work-done))))))
+(def metric-str
+  "# TYPE default.default.test.gauge1 gauge
+default.default.test.gauge1 42
+# TYPE default.default.test.hist1 histogram
+default.default.test.hist1{quantile=0.01} 5.0
+default.default.test.hist1{quantile=0.05} 5.0
+default.default.test.hist1{quantile=0.5} 7.0
+default.default.test.hist1{quantile=0.9} 7.0
+default.default.test.hist1{quantile=0.99} 7.0
+default.default.test.hist1_sum 12
+default.default.test.hist1_count 2
+# TYPE default.default.test.counter1 counter
+default.default.test.counter1 1
+# TYPE default.default.test.counter2 counter
+default.default.test.counter2 2
+")
+
+(deftest the-metrics-in-the-base-system
+  (testing "metric stuff"
+    (u/with-started [started (system/base-system {})]
+                      (metrics/remove-all-metrics)
+                      (gauges/gauge-fn "test.gauge1" (constantly 42))
+                      (counter/inc! (counter/counter "test.counter1"))
+                      (counter/inc! (counter/counter "test.counter2") 2)
+                      (hists/update! (hists/histogram "test.hist1") 5)
+                      (hists/update! (hists/histogram "test.hist1") 7)
+                      (is (= metric-str
+                             (:body (metering/metrics-response (:metering started))))))))
+
 
 (defrecord SingleRoute [single-route]
   c/Lifecycle
