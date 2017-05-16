@@ -84,19 +84,19 @@
   (counter! [self name])
   (histogram! [self name]))
 
+(defn collect-prometheus-metrics [registry]
+  (->> [""]
+       (concat (prom/transform-counters (metrics/counters registry)))
+       (concat (prom/transform-histograms (metrics/histograms registry)))
+       (concat (prom/transform-gauges (metrics/gauges registry)))
+       (s/join "\n")))
 
 (defn metrics-response [self]
-  (let [registry (get-in self [:registry])
-        prometheus_lines_gauges (prom/gauges-to-prometheus (metrics/gauges registry))
-        prometheus_lines_hist (prom/hists-to-prometheus (metrics/histograms registry))
-        prometheus_lines_cnt (prom/counts-to-prometheus (metrics/counters registry))
-        all_lines (concat prometheus_lines_gauges prometheus_lines_hist prometheus_lines_cnt)]
-    {:status  200
-     :headers {"Content-Type" "application/json"}
-     :body    (str (s/join "\n" all_lines) "\n")}))
+  {:status  200
+   :headers {"Content-Type" "application/json"}
+   :body    (collect-prometheus-metrics (get-in self [:registry]))})
 
-(defn make-handler
-  [self]
+(defn make-handler [self]
   (c/routes (c/GET "/metrics" [] (metrics-response self))))
 
 ;; Initialises a metrics-registry and a graphite reporter.

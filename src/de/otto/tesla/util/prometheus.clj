@@ -1,45 +1,39 @@
 (ns de.otto.tesla.util.prometheus
   (:import (com.codahale.metrics Snapshot Histogram Gauge Counter)))
 
-(defn hist-to-prometheus [name ^Histogram histo-obj]
-  (let [^Snapshot snapshot (.getSnapshot histo-obj)
-        sum (reduce (fn [agg val] (+ agg val)) 0 (.getValues snapshot))]
-    [(str "# TYPE " name " histogram")
-     (str name "{quantile=0.01} " (.getValue snapshot (double 0.01)))
-     (str name "{quantile=0.05} " (.getValue snapshot (double 0.05)))
-     (str name "{quantile=0.5} " (.getMedian snapshot))
-     (str name "{quantile=0.9} " (.getValue snapshot (double 0.9)))
-     (str name "{quantile=0.99} " (.get99thPercentile snapshot))
-     (str name "_sum " sum)
-     (str name "_count " (.getCount histo-obj))]))
+(defn- type-line [name type]
+  (format "# TYPE %s %s" name type))
 
-(defn hists-to-prometheus [histos]
-  (let [hist->histvals (into {} (map (fn [[name histo-obj]] [name (hist-to-prometheus name histo-obj)])
-                                     histos))]
-    (reduce (fn [agg str-list] (concat agg str-list))
-            []
-            (vals hist->histvals))))
+(defn- histogram->text [name ^Histogram histogram]
+  (let [^Snapshot snapshot (.getSnapshot histogram)]
+    [(type-line name "histogram")
+     (format "%s{quantile=0.01} %s" name (.getValue snapshot (double 0.01)))
+     (format "%s{quantile=0.05} %s" name (.getValue snapshot (double 0.05)))
+     (format "%s{quantile=0.5} %s" name (.getMedian snapshot))
+     (format "%s{quantile=0.9} %s" name (.getValue snapshot (double 0.9)))
+     (format "%s{quantile=0.99} %s" name (.get99thPercentile snapshot))
+     (format "%s_sum %s" name (reduce (fn [agg val] (+ agg val)) 0 (.getValues snapshot)))
+     (format "%s_count %s" name (.getCount histogram))]))
 
-(defn count-to-prometheus [name ^Counter count]
-  [(format "# TYPE %s counter" name)
-   (str name " " (.getCount count))])
+(defn transform-histograms [histograms]
+  (reduce (fn [acc [name histogram]] (concat acc (histogram->text name histogram)))
+          []
+          histograms))
 
-(defn counts-to-prometheus [counts]
-  (let [name->countvals (into {} (map (fn [[name count]] [name (count-to-prometheus name count)])
-                                      counts))]
-    (reduce (fn [agg vals] (concat agg vals))
-            []
-            (vals name->countvals))))
+(defn- counter->line [name ^Counter counter]
+  [(type-line name "counter")
+   (format "%s %s" name (.getCount counter))])
 
+(defn transform-counters [counters]
+  (reduce (fn [acc [name counter]] (concat acc (counter->line name counter)))
+          []
+          counters))
 
+(defn- gauge->text [name ^Gauge gauge]
+  [(type-line name "gauge")
+   (format "%s %s" name (.getValue gauge))])
 
-(defn gauge-to-prometheus [name ^Gauge gauge]
-  [(format "# TYPE %s gauge" name)
-   (str name " " (.getValue gauge))])
-
-(defn gauges-to-prometheus [gauges]
-  (let [name->gaugevals (into {} (map (fn [[name gauge]] [name (gauge-to-prometheus name gauge)])
-                                      gauges))]
-    (reduce (fn [agg vals] (concat agg vals))
-            []
-            (vals name->gaugevals))))
+(defn transform-gauges [gauges]
+  (reduce (fn [agg [name gauge]] (concat agg (gauge->text name gauge)))
+          []
+          gauges))
