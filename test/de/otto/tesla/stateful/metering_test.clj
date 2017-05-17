@@ -5,7 +5,11 @@
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.configuring :as configuring]
             [metrics.timers :as timers]
-            [metrics.meters :as meters]))
+            [metrics.meters :as meters]
+            [metrics.histograms :as hists]
+            [metrics.counters :as counter]
+            [metrics.gauges :as gauges]
+            [metrics.core :as metrics]))
 
 (def graphite-host-prefix #'metering/graphite-host-prefix)
 (deftest ^:unit graphite-prefix-test
@@ -78,3 +82,34 @@
       (reset! timer-started 0)
       (reset! timer-stoped 0)
       (reset! meters-marked 0))))
+
+(def expected-metrics-endpoint-response
+  {:body    "# TYPE default.default.test.gauge1 gauge
+default.default.test.gauge1 42
+# TYPE default.default.test.hist1 histogram
+default.default.test.hist1{quantile=0.01} 5.0
+default.default.test.hist1{quantile=0.05} 5.0
+default.default.test.hist1{quantile=0.5} 7.0
+default.default.test.hist1{quantile=0.9} 7.0
+default.default.test.hist1{quantile=0.99} 7.0
+default.default.test.hist1_sum 12
+default.default.test.hist1_count 2
+# TYPE default.default.test.counter1 counter
+default.default.test.counter1 1
+# TYPE default.default.test.counter2 counter
+default.default.test.counter2 2
+"
+   :headers {"Content-Type" "application/json"}
+   :status  200})
+
+(deftest metrics-endpoint-test
+  (testing "Should output all aggregated metrics in a prometheus readable representation"
+    (u/with-started [started (system/base-system {})]
+                    (metrics/remove-all-metrics)
+                    (gauges/gauge-fn "test.gauge1" (constantly 42))
+                    (counter/inc! (counter/counter "test.counter1"))
+                    (counter/inc! (counter/counter "test.counter2") 2)
+                    (hists/update! (hists/histogram "test.hist1") 5)
+                    (hists/update! (hists/histogram "test.hist1") 7)
+                    (is (= expected-metrics-endpoint-response
+                           (metering/metrics-response (:metering started)))))))

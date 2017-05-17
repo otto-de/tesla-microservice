@@ -6,15 +6,15 @@
 (defn- type-line [name type]
   (format "# TYPE %s %s" name type))
 
-(defn counter->text [name ^Counter counter]
+(defn counter->text [[name ^Counter counter]]
   [(type-line name "counter")
    (format "%s %s" name (.getCount counter))])
 
-(defn gauge->text [name ^Gauge gauge]
+(defn gauge->text [[name ^Gauge gauge]]
   [(type-line name "gauge")
    (format "%s %s" name (.getValue gauge))])
 
-(defn histogram->text [name ^Histogram histogram]
+(defn histogram->text [[name ^Histogram histogram]]
   (let [^Snapshot snapshot (.getSnapshot histogram)]
     [(type-line name "histogram")
      (format "%s{quantile=0.01} %s" name (.getValue snapshot (double 0.01)))
@@ -26,9 +26,7 @@
      (format "%s_count %s" name (.getCount histogram))]))
 
 (defn transform-metrics [metrics transform-fn]
-  (reduce (fn [agg [name metric]] (concat agg (transform-fn name metric)))
-          []
-          metrics))
+  (mapcat transform-fn metrics))
 
 (defn collect-metrics [registry]
   (->> [""]

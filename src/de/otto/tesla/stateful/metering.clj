@@ -13,11 +13,9 @@
     [clojure.tools.logging :as log]
     [de.otto.tesla.stateful.configuring :as configuring]
     [de.otto.tesla.stateful.handler :as handler]
-    [compojure.core :as c]
-    [clojure.data.json :as json]
-    [clojure.string :as s])
+    [compojure.core :as c])
   (:import
-    (com.codahale.metrics MetricFilter Timer Snapshot)
+    (com.codahale.metrics MetricFilter Timer)
     (java.util.concurrent TimeUnit)))
 
 (defn- short-hostname [hostname]
@@ -88,7 +86,7 @@
 (defn metrics-response [self]
   {:status  200
    :headers {"Content-Type" "application/json"}
-   :body    (prom/collect-metrics (get-in self [:registry]))})
+   :body    (prom/collect-metrics (:registry self))})
 
 (defn make-handler [self]
   (c/routes (c/GET "/metrics" [] (metrics-response self))))
