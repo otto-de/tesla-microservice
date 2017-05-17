@@ -6,6 +6,22 @@
             [metrics.counters :as counter]
             [metrics.gauges :as gauges]))
 
+(deftest collect-empty-metrics-test
+  (testing "Should transform nothing if the metrics are empty"
+    (is (= []
+           (prom/transform-metrics [] prom/histogram->text))))
+
+  (testing "Should collect nothing if the metrics are empty"
+    (metrics/remove-all-metrics)
+    (is (= ""
+           (prom/collect-metrics metrics/default-registry)))))
+
+(deftest collect-some-metrics-test
+  (testing "Should collect metrics into a single string representation"
+    (with-redefs [prom/transform-metrics (constantly ["foobar"])]
+      (is (= "foobar\nfoobar\nfoobar\n"
+             (prom/collect-metrics metrics/default-registry))))))
+
 (deftest histograms-transformation-test
   (testing "Should transform two histograms into their string representation"
     (metrics/remove-all-metrics)
@@ -27,7 +43,7 @@
             "default.default.foobar.hist2{quantile=0.99} 7.0"
             "default.default.foobar.hist2_sum 7"
             "default.default.foobar.hist2_count 1"]
-           (prom/transform-histograms (metrics/histograms metrics/default-registry))))))
+           (prom/transform-metrics (metrics/histograms metrics/default-registry) prom/histogram->text)))))
 
 (deftest counters-transformation-test
   (testing "Should transform two counters into their string representation"
@@ -38,7 +54,7 @@
             "default.default.foobar.counter1 1"
             "# TYPE default.default.foobar.counter2 counter"
             "default.default.foobar.counter2 3"]
-           (prom/transform-counters (metrics/counters metrics/default-registry))))))
+           (prom/transform-metrics (metrics/counters metrics/default-registry) prom/counter->text)))))
 
 (deftest gauges-transformation-test
   (testing "Should transform two gauges into their string representation"
@@ -49,4 +65,4 @@
             "default.default.foobar.gauge1 42"
             "# TYPE default.default.foobar.gauge2 gauge"
             "default.default.foobar.gauge2 1337"]
-           (prom/transform-gauges (metrics/gauges metrics/default-registry))))))
+           (prom/transform-metrics (metrics/gauges metrics/default-registry) prom/gauge->text)))))

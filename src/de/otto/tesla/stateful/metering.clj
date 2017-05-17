@@ -84,17 +84,11 @@
   (counter! [self name])
   (histogram! [self name]))
 
-(defn collect-prometheus-metrics [registry]
-  (->> [""]
-       (concat (prom/transform-counters (metrics/counters registry)))
-       (concat (prom/transform-histograms (metrics/histograms registry)))
-       (concat (prom/transform-gauges (metrics/gauges registry)))
-       (s/join "\n")))
 
 (defn metrics-response [self]
   {:status  200
    :headers {"Content-Type" "application/json"}
-   :body    (collect-prometheus-metrics (get-in self [:registry]))})
+   :body    (prom/collect-metrics (get-in self [:registry]))})
 
 (defn make-handler [self]
   (c/routes (c/GET "/metrics" [] (metrics-response self))))
