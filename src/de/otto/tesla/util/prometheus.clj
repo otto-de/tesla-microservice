@@ -26,11 +26,11 @@
         ^Snapshot snapshot (.getSnapshot histogram)]
     (str
       (type-line pn "summary")
-      (format "%s{quantile=0.01} %s\n" pn (.getValue snapshot (double 0.01)))
-      (format "%s{quantile=0.05} %s\n" pn (.getValue snapshot (double 0.05)))
-      (format "%s{quantile=0.5} %s\n" pn (.getMedian snapshot))
-      (format "%s{quantile=0.9} %s\n" pn (.getValue snapshot (double 0.9)))
-      (format "%s{quantile=0.99} %s\n" pn (.get99thPercentile snapshot))
+      (format "%s{quantile=\"0.01\"} %s\n" pn (.getValue snapshot (double 0.01)))
+      (format "%s{quantile=\"0.05\"} %s\n" pn (.getValue snapshot (double 0.05)))
+      (format "%s{quantile=\"0.5\"} %s\n" pn (.getMedian snapshot))
+      (format "%s{quantile=\"0.9\"} %s\n" pn (.getValue snapshot (double 0.9)))
+      (format "%s{quantile=\"0.99\"} %s\n" pn (.get99thPercentile snapshot))
       (format "%s_sum %s\n" pn (reduce (fn [agg val] (+ agg val)) 0 (.getValues snapshot)))
       (format "%s_count %s\n" pn (.getCount histogram)))))
 

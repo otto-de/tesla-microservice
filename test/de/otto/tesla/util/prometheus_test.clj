@@ -21,11 +21,11 @@
       (is (= (str "# TYPE counter1 counter\n"
                   "counter1 0\n"
                   "# TYPE hist1 summary\n"
-                  "hist1{quantile=0.01} 0.0\n"
-                  "hist1{quantile=0.05} 0.0\n"
-                  "hist1{quantile=0.5} 0.0\n"
-                  "hist1{quantile=0.9} 0.0\n"
-                  "hist1{quantile=0.99} 0.0\n"
+                  "hist1{quantile=\"0.01\"} 0.0\n"
+                  "hist1{quantile=\"0.05\"} 0.0\n"
+                  "hist1{quantile=\"0.5\"} 0.0\n"
+                  "hist1{quantile=\"0.9\"} 0.0\n"
+                  "hist1{quantile=\"0.99\"} 0.0\n"
                   "hist1_sum 0\n"
                   "hist1_count 0\n"
                   "# TYPE gauge1 gauge\n"
@@ -37,11 +37,11 @@
     (metrics/remove-all-metrics)
     (let [h (hists/update! (hists/histogram "foobar.hist1") 5)]
       (is (= (str "# TYPE hist1 summary\n"
-                  "hist1{quantile=0.01} 5.0\n"
-                  "hist1{quantile=0.05} 5.0\n"
-                  "hist1{quantile=0.5} 5.0\n"
-                  "hist1{quantile=0.9} 5.0\n"
-                  "hist1{quantile=0.99} 5.0\n"
+                  "hist1{quantile=\"0.01\"} 5.0\n"
+                  "hist1{quantile=\"0.05\"} 5.0\n"
+                  "hist1{quantile=\"0.5\"} 5.0\n"
+                  "hist1{quantile=\"0.9\"} 5.0\n"
+                  "hist1{quantile=\"0.99\"} 5.0\n"
                   "hist1_sum 5\n"
                   "hist1_count 1\n")
              (prom/histogram->text ["hist1" h]))))))
