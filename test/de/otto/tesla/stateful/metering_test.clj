@@ -84,23 +84,22 @@
       (reset! meters-marked 0))))
 
 (def expected-metrics-endpoint-response
-  {:body    "# TYPE default.default.test.gauge1 gauge
-default.default.test.gauge1 42
-# TYPE default.default.test.hist1 histogram
-default.default.test.hist1{quantile=0.01} 5.0
-default.default.test.hist1{quantile=0.05} 5.0
-default.default.test.hist1{quantile=0.5} 7.0
-default.default.test.hist1{quantile=0.9} 7.0
-default.default.test.hist1{quantile=0.99} 7.0
-default.default.test.hist1_sum 12
-default.default.test.hist1_count 2
-# TYPE default.default.test.counter1 counter
-default.default.test.counter1 1
-# TYPE default.default.test.counter2 counter
-default.default.test.counter2 2
-"
-   :headers {"Content-Type" "application/json"}
-   :status  200})
+  {:body (str "# TYPE default_default_test_counter1 counter\n"
+              "default_default_test_counter1 1\n"
+              "# TYPE default_default_test_counter2 counter\n"
+              "default_default_test_counter2 2\n"
+              "# TYPE default_default_test_hist1 summary\n"
+              "default_default_test_hist1{quantile=0.01} 5.0\n"
+              "default_default_test_hist1{quantile=0.05} 5.0\n"
+              "default_default_test_hist1{quantile=0.5} 7.0\n"
+              "default_default_test_hist1{quantile=0.9} 7.0\n"
+              "default_default_test_hist1{quantile=0.99} 7.0\n"
+              "default_default_test_hist1_sum 12\n"
+              "default_default_test_hist1_count 2\n"
+              "# TYPE default_default_test_gauge1 gauge\n"
+              "default_default_test_gauge1 42\n")
+         :headers {"Content-Type" "text/plain"}
+         :status 200})
 
 (deftest metrics-endpoint-test
   (testing "Should output all aggregated metrics in a prometheus readable representation"

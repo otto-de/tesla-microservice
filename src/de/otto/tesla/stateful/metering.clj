@@ -85,7 +85,7 @@
 
 (defn metrics-response [self]
   {:status  200
-   :headers {"Content-Type" "application/json"}
+   :headers {"Content-Type" "text/plain"}
    :body    (prom/collect-metrics (:registry self))})
 
 (defn make-handler [self]
