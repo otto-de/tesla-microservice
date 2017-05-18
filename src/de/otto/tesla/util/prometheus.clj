@@ -1,7 +1,7 @@
 (ns de.otto.tesla.util.prometheus
   (:require [metrics.core :as metrics]
             [clojure.string :as s])
-  (:import (com.codahale.metrics Snapshot Histogram Gauge Counter)))
+  (:import (com.codahale.metrics Snapshot Histogram Gauge Counter Meter Timer)))
 
 (defn prometheus-name [name]
   (-> name
@@ -11,17 +11,17 @@
 (defn- type-line [name type]
   (format "# TYPE %s %s\n" name type))
 
-(defn counter->text [[name ^Counter counter]]
+(defn counter->text [[name counter]]
   (let [pn (prometheus-name name)]
     (format "%s%s %s\n" (type-line pn "counter") pn (.getCount counter))))
 
-(defn gauge->text [[name ^Gauge gauge]]
+(defn gauge->text [[name gauge]]
   (let [pn (prometheus-name name)
         v (.getValue gauge)]
     (when (number? v)
       (format "%s%s %s\n" (type-line pn "gauge") pn v))))
 
-(defn histogram->text [[name ^Histogram histogram]]
+(defn histogram->text [[name histogram]]
   (let [pn (prometheus-name name)
         ^Snapshot snapshot (.getSnapshot histogram)]
     (str
@@ -34,7 +34,14 @@
       (format "%s_sum %s\n" pn (reduce (fn [agg val] (+ agg val)) 0 (.getValues snapshot)))
       (format "%s_count %s\n" pn (.getCount histogram)))))
 
+(defn timer->text [[name timer]]
+  (str
+    (counter->text [(str name "_cnt") timer])
+    (histogram->text [(str name "_hist") timer])))
+
 (defn collect-metrics [registry]
   (s/join (concat (map counter->text (metrics/counters registry))
+                  (map counter->text (metrics/meters registry))
+                  (map timer->text (metrics/timers registry))
                   (map histogram->text (metrics/histograms registry))
                   (keep gauge->text (metrics/gauges registry)))))

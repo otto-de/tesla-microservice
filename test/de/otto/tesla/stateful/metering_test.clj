@@ -9,7 +9,8 @@
             [metrics.histograms :as hists]
             [metrics.counters :as counter]
             [metrics.gauges :as gauges]
-            [metrics.core :as metrics]))
+            [metrics.core :as metrics]
+            [metrics.timers :as timer]))
 
 (def graphite-host-prefix #'metering/graphite-host-prefix)
 (deftest ^:unit graphite-prefix-test
@@ -88,6 +89,18 @@
               "default_default_test_counter1 1\n"
               "# TYPE default_default_test_counter2 counter\n"
               "default_default_test_counter2 2\n"
+              "# TYPE default_default_meter1 counter\n"
+              "default_default_meter1 1\n"
+              "# TYPE default_default_timer1_cnt counter\n"
+              "default_default_timer1_cnt 0\n"
+              "# TYPE default_default_timer1_hist summary\n"
+              "default_default_timer1_hist{quantile=\"0.01\"} 0.0\n"
+              "default_default_timer1_hist{quantile=\"0.05\"} 0.0\n"
+              "default_default_timer1_hist{quantile=\"0.5\"} 0.0\n"
+              "default_default_timer1_hist{quantile=\"0.9\"} 0.0\n"
+              "default_default_timer1_hist{quantile=\"0.99\"} 0.0\n"
+              "default_default_timer1_hist_sum 0\n"
+              "default_default_timer1_hist_count 0\n"
               "# TYPE default_default_test_hist1 summary\n"
               "default_default_test_hist1{quantile=\"0.01\"} 5.0\n"
               "default_default_test_hist1{quantile=\"0.05\"} 5.0\n"
@@ -97,7 +110,8 @@
               "default_default_test_hist1_sum 12\n"
               "default_default_test_hist1_count 2\n"
               "# TYPE default_default_test_gauge1 gauge\n"
-              "default_default_test_gauge1 42\n")
+              "default_default_test_gauge1 42\n"
+              "")
          :headers {"Content-Type" "text/plain"}
          :status 200})
 
@@ -110,5 +124,7 @@
                     (counter/inc! (counter/counter "test.counter2") 2)
                     (hists/update! (hists/histogram "test.hist1") 5)
                     (hists/update! (hists/histogram "test.hist1") 7)
+                    (timer/timer "timer1")
+                    (meters/mark! (meters/meter "meter1"))
                     (is (= expected-metrics-endpoint-response
                            (metering/metrics-response (:metering started)))))))

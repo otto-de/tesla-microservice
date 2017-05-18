@@ -4,6 +4,8 @@
             [metrics.histograms :as hists]
             [metrics.core :as metrics]
             [metrics.counters :as counter]
+            [metrics.meters :as meters]
+            [metrics.timers :as timer]
             [metrics.gauges :as gauges]))
 
 (deftest collect-empty-metrics-test
@@ -33,7 +35,7 @@
              (prom/collect-metrics metrics/default-registry))))))
 
 (deftest histograms-transformation-test
-  (testing "Should transform two histograms into their string representation"
+  (testing "Should transform a histogram into their string representation"
     (metrics/remove-all-metrics)
     (let [h (hists/update! (hists/histogram "foobar.hist1") 5)]
       (is (= (str "# TYPE hist1 summary\n"
@@ -47,15 +49,39 @@
              (prom/histogram->text ["hist1" h]))))))
 
 (deftest counters-transformation-test
-  (testing "Should transform two counters into their string representation"
+  (testing "Should transform a counter into their string representation"
     (metrics/remove-all-metrics)
     (let [c (counter/inc! (counter/counter "foobar.counter2") 3)]
       (is (= (str "# TYPE counter2 counter\n"
                   "counter2 3\n")
              (prom/counter->text ["counter2" c]))))))
 
+(deftest meters-transformation-test
+  (testing "Should transform a meter into a string representation and map it to a prometheus counter"
+    (metrics/remove-all-metrics)
+    (let [m (meters/mark! (meters/meter "meter1"))]
+      (is (= (str "# TYPE meter1 counter\n"
+                  "meter1 1\n")
+             (prom/counter->text ["meter1" m]))))))
+
+(deftest timers-transformation-test
+  (testing "Should transform a timer into a prometheus counter as well as in a prometheus summary"
+    (metrics/remove-all-metrics)
+    (let [t (timer/timer "timer1")]
+      (is (= (str "# TYPE timer1_cnt counter\n"
+                  "timer1_cnt 0\n"
+                  "# TYPE timer1_hist summary\n"
+                  "timer1_hist{quantile=\"0.01\"} 0.0\n"
+                  "timer1_hist{quantile=\"0.05\"} 0.0\n"
+                  "timer1_hist{quantile=\"0.5\"} 0.0\n"
+                  "timer1_hist{quantile=\"0.9\"} 0.0\n"
+                  "timer1_hist{quantile=\"0.99\"} 0.0\n"
+                  "timer1_hist_sum 0\n"
+                  "timer1_hist_count 0\n")
+             (prom/timer->text ["timer1" t]))))))
+
 (deftest gauges-transformation-test
-  (testing "Should transform two gauges into their string representation"
+  (testing "Should transform a gauge into a string representation"
     (metrics/remove-all-metrics)
     (let [g1 (gauges/gauge-fn "foobar.gauge1" (constantly 42))
           g-invalid (gauges/gauge-fn "foobar.gauge1" (constantly "No number"))]
