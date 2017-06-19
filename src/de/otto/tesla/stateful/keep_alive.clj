@@ -16,7 +16,7 @@
   (exit-keep-alive))
 
 (defn start-keep-alive-thread [cd-latch]
-  (doto (Thread. ^Runnable (partial wait-for-count-down-latch cd-latch))
+  (doto (Thread. ^Runnable (partial wait-for-count-down-latch cd-latch) "tesla-ms-keep-alive")
     (.start)))
 
 (defrecord KeepAlive [cd-latch]
