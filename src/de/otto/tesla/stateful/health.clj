@@ -9,7 +9,7 @@
                        :headers {"Content-Type" "text/plain"}
                        :body    "HEALTHY"})
 ;; http response for an unhealthy system
-(def unhealthy-response {:status  503
+(def unhealthy-response {:status  423
                          :headers {"Content-Type" "text/plain"}
                          :body    "UNHEALTHY"})
 

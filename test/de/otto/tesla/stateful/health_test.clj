@@ -26,7 +26,7 @@
                           response (handlers (mock/request :get "/health"))]
                       (are [key value] (= value (get response key))
                                        :body "UNHEALTHY"
-                                       :status 503)))))
+                                       :status 423)))))
 
 (deftest ^:integration should-serve-health-under-configured-url
   (testing "use the default url"
