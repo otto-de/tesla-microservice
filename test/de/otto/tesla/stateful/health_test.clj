@@ -4,7 +4,8 @@
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.handler :as handler]
-            [ring.mock.request :as mock]))
+            [ring.mock.request :as mock]
+            [metrics.gauges :as gauge]))
 
 (defn- serverless-system [runtime-config]
   (dissoc
@@ -18,7 +19,8 @@
                           response (handlers (mock/request :get "/health"))]
                       (are [key value] (= value (get response key))
                                        :body "HEALTHY"
-                                       :status 200)))
+                                       :status 200)
+                      (is (= 1 (-> (gauge/gauge ["health"]) (.getValue))))))
 
                   (testing "when locked, it is unhealthy"
                     (let [handlers (handler/handler (:handler started))
@@ -26,7 +28,8 @@
                           response (handlers (mock/request :get "/health"))]
                       (are [key value] (= value (get response key))
                                        :body "UNHEALTHY"
-                                       :status 423)))))
+                                       :status 423)
+                      (is (= 0 (-> (gauge/gauge ["health"]) (.getValue))))))))
 
 (deftest ^:integration should-serve-health-under-configured-url
   (testing "use the default url"

@@ -2,7 +2,9 @@
   (:require [com.stuartsierra.component :as component]
             [compojure.core :as c]
             [clojure.tools.logging :as log]
-            [de.otto.tesla.stateful.handler :as handler]))
+            [de.otto.tesla.stateful.handler :as handler]
+            [metrics.gauges :as gauge]
+            ))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -32,6 +34,7 @@
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
       (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
+      (gauge/gauge-fn ["health"] #(if @(:locked new-self) 0 1))
       new-self))
 
   (stop [self]
