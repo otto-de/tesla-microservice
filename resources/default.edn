@@ -6,6 +6,9 @@
  :metering-reporter        "console"
  :console-interval-seconds "100"
 
+
+ :metric {:console {:interval-in-s 120}}
+
  ; activate graphite like this:
  ;:metering-reporter "graphite"
  ;:graphite-host "localhost"

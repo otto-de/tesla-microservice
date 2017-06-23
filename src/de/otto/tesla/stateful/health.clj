@@ -4,7 +4,8 @@
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.handler :as handler]
             [metrics.gauges :as gauge]
-            ))
+            [de.otto.tesla.metrics.core :as metrics]
+            [iapetos.core :as prom]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -26,6 +27,7 @@
     (c/routes (c/GET health-path [] (health-response self)))))
 
 (defn lock-application [self]
+  (metrics/with-default-registry (prom/set :health/locked 0))
   (reset! (:locked self) true))
 
 (defrecord Health [config handler]
@@ -34,7 +36,7 @@
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
       (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
-      (gauge/gauge-fn ["health"] #(if @(:locked new-self) 0 1))
+      (metrics/register+execute :health/locked (prom/gauge {}) (prom/set {} 1))
       new-self))
 
   (stop [self]

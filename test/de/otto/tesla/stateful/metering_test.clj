@@ -12,37 +12,6 @@
             [metrics.core :as metrics]
             [metrics.timers :as timer]))
 
-(def graphite-host-prefix #'metering/graphite-host-prefix)
-(deftest ^:unit graphite-prefix-test
-  (testing "returns prefix for testhost"
-    (with-redefs [configuring/external-hostname (constantly "testhost.example.com")]
-      (is (= "a-prefix.testhost.example.com"
-             (graphite-host-prefix {:config {:graphite-prefix "a-prefix"}})))
-      (is (= "a-prefix.testhost"
-             (graphite-host-prefix {:config {:graphite-shorten-hostname? true
-                                             :graphite-prefix            "a-prefix"}}))))))
-
-(deftest ^:unit the-metrics-lib-accepts-a-vector-for-building-the-name
-  (is (= (metrics.core/metric-name ["some.name.foo.bar"])
-         "some.name.foo.bar"))
-  (is (= (metrics.core/metric-name ["some" "name" "foo" "bar"])
-         "some.name.foo.bar")))
-
-(deftest ^:unit metrics-registry-should-contain-correct-names
-  (u/with-started [started (dissoc (system/base-system {}) :server)]
-                  (let [metering (:metering started)]
-                    (metering/timer! metering "some.name.timer.bar")
-                    (metering/gauge! metering #() "some.name.gauge.bar")
-                    (metering/counter! metering "some.name.counter.bar")
-                    (metering/histogram! metering "some.name.histogram.bar")
-                    (timers/timer ["direct.usage.timer"])
-                    (let [names (.getNames (:registry metering))]
-                      (is (true? (contains? names "some.name.timer.bar")))
-                      (is (true? (contains? names "some.name.gauge.bar")))
-                      (is (true? (contains? names "some.name.counter.bar")))
-                      (is (true? (contains? names "some.name.histogram.bar")))
-                      (is (true? (contains? names "direct.usage.timer")))))))
-
 (def short-hostname #'metering/short-hostname)
 (deftest short-hostname-test
   (testing "it only returns the important part of a full-qualified hostname"
@@ -51,7 +20,7 @@
     (is (= "mesos-slave-dev-399946"
            (short-hostname "mesos-slave-dev-399946.lhotse.ov.otto.de")))))
 
-(deftest metered-execution-test
+#_(deftest metered-execution-test
   (let [timer-started (atom 0)
         timer-stoped (atom 0)
         meters-marked (atom 0)]
@@ -83,48 +52,3 @@
       (reset! timer-started 0)
       (reset! timer-stoped 0)
       (reset! meters-marked 0))))
-
-(def expected-metrics-endpoint-response
-  {:body (str "# TYPE default_default_test_counter1 counter\n"
-              "default_default_test_counter1 1\n"
-              "# TYPE default_default_test_counter2 counter\n"
-              "default_default_test_counter2 2\n"
-              "# TYPE default_default_meter1 counter\n"
-              "default_default_meter1 1\n"
-              "# TYPE default_default_timer1_cnt counter\n"
-              "default_default_timer1_cnt 0\n"
-              "# TYPE default_default_timer1_hist summary\n"
-              "default_default_timer1_hist{quantile=\"0.01\"} 0.0\n"
-              "default_default_timer1_hist{quantile=\"0.05\"} 0.0\n"
-              "default_default_timer1_hist{quantile=\"0.5\"} 0.0\n"
-              "default_default_timer1_hist{quantile=\"0.9\"} 0.0\n"
-              "default_default_timer1_hist{quantile=\"0.99\"} 0.0\n"
-              "default_default_timer1_hist_sum 0\n"
-              "default_default_timer1_hist_count 0\n"
-              "# TYPE default_default_test_hist1 summary\n"
-              "default_default_test_hist1{quantile=\"0.01\"} 5.0\n"
-              "default_default_test_hist1{quantile=\"0.05\"} 5.0\n"
-              "default_default_test_hist1{quantile=\"0.5\"} 7.0\n"
-              "default_default_test_hist1{quantile=\"0.9\"} 7.0\n"
-              "default_default_test_hist1{quantile=\"0.99\"} 7.0\n"
-              "default_default_test_hist1_sum 12\n"
-              "default_default_test_hist1_count 2\n"
-              "# TYPE default_default_test_gauge1 gauge\n"
-              "default_default_test_gauge1 42\n"
-              "")
-         :headers {"Content-Type" "text/plain"}
-         :status 200})
-
-(deftest metrics-endpoint-test
-  (testing "Should output all aggregated metrics in a prometheus readable representation"
-    (u/with-started [started (system/base-system {})]
-                    (metrics/remove-all-metrics)
-                    (gauges/gauge-fn "test.gauge1" (constantly 42))
-                    (counter/inc! (counter/counter "test.counter1"))
-                    (counter/inc! (counter/counter "test.counter2") 2)
-                    (hists/update! (hists/histogram "test.hist1") 5)
-                    (hists/update! (hists/histogram "test.hist1") 7)
-                    (timer/timer "timer1")
-                    (meters/mark! (meters/meter "meter1"))
-                    (is (= expected-metrics-endpoint-response
-                           (metering/metrics-response (:metering started)))))))

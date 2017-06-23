@@ -2,6 +2,8 @@
   (:require [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.app-status :as app-status]
             [de.otto.tesla.stateful.health :as health]
+            [de.otto.tesla.metrics.core :as metrics]
+            [iapetos.core :as prom]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.stateful.keep-alive :as keep-alive]
@@ -31,7 +33,7 @@
   (log/info "-> Starting system.")
   (let [started (c/start system)]
     (log/info "-> System completely started.")
-    (counters/inc! (counters/counter ["system" "startups"]))
+    (metrics/register+execute :system-startups (prom/counter {}) (prom/inc {}))
     (doseq [sig ["INT" "TERM"]]
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))
@@ -41,7 +43,7 @@
     :keep-alive (keep-alive/new-keep-alive)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :handler (c/using (handler/new-handler) [:config])
-    :metering (c/using (metering/new-metering) [:config :handler])
+    :metering (c/using (metering/new-metering) [:config :handler :scheduler])
     :health (c/using (health/new-health) [:config :handler])
-    :app-status (c/using (app-status/new-app-status) [:config :handler :metering])
+    :app-status (c/using (app-status/new-app-status) [:config :handler])
     :scheduler (c/using (scheduler/new-scheduler) [:config :app-status])))
