@@ -7,7 +7,8 @@
     [de.otto.tesla.metrics.console :as metrics-console]
     [de.otto.tesla.metrics.graphite :as metrics-graphite]
     [de.otto.tesla.metrics.prometheus :as metrics-prometheus]
-    [de.otto.tesla.stateful.handler :as handler]))
+    [de.otto.tesla.stateful.handler :as handler]
+    [iapetos.core :as p]))
 
 (defn- short-hostname [hostname]
   (re-find #"[^.]*" hostname))
@@ -34,21 +35,17 @@
   (log/info "Register metrics prometheus endpoint")
   (handler/register-handler handler (make-handler prometheus-config)))
 
-#_(defn metered-execution [component-name fn & fn-params]
-    (let [timing (timers/start (timers/timer [component-name "time"]))
-          exception-meter (meters/meter [component-name "exception"])
-          messages-meter (meters/meter [component-name "messages" "processed"])]
-      (try
-        (let [return-value (apply fn fn-params)]
-          (meters/mark! messages-meter)
-          return-value)
-        (catch Exception e
-          (meters/mark! exception-meter)
-          (log/error e (str "Exception in " component-name))
-          (throw e))
-        (finally
-          (timers/stop timing)))))
-
+(defn monitor-transducer [metric-name fn & fn-params]
+  (let [counter-name (keyword (str metric-name "/counter"))]
+    (metrics/register (p/counter counter-name {:labels [:error]}))
+    (try
+      (let [return-value (apply fn fn-params)]
+        (metrics/register+execute counter-name (p/counter :labels [:error]) (p/inc {:error false}))
+        return-value)
+      (catch Exception e
+        (metrics/inc counter-name {:error true})
+        (log/error e (str "Exception in " metric-name))
+        (throw e)))))
 
 
 ;; Initialises a metrics-registry and a graphite reporter.
