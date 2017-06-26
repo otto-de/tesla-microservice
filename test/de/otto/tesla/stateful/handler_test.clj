@@ -1,7 +1,9 @@
 (ns de.otto.tesla.stateful.handler-test
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.handler :as handler]
-            [com.stuartsierra.component :as c])
+            [com.stuartsierra.component :as c]
+            [ring.util.response :as resp]
+            [de.otto.tesla.metrics.core :as metrics])
   (:import (com.codahale.metrics Timer)))
 
 (def ping->pong-route (fn [{:keys [uri]}] (when (= uri "/ping") {:body   :pong
@@ -87,7 +89,6 @@
           (handler/register-timed-handler handler ping->pong-route)
           (is (= {:body :pong :status 200} ((handler/handler handler) {:uri "/ping"})))
           (is (= ["serving" "requests"] @reportings))))))
-
   (testing "should use configured reporting base-path"
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
@@ -96,6 +97,25 @@
           (handler/register-timed-handler handler ping->pong-route)
           (is (= {:body :pong :status 200} ((handler/handler handler) {:uri "/ping"})))
           (is (= ["foo" "bar" "baz"] @reportings)))))))
+
+
+(deftest instrument-calls-test
+  (testing "calls get counted and measured"
+    (metrics/clear-default-registry!)
+    (let [handler (-> (handler/->Handler {}) (c/start))
+          dimensions {:rc 200 :method :get :path "/"}]
+      (handler/register-handler handler (fn [& _] (resp/response {})))
+      ((handler/handler handler) (ring.mock.request/request :get "/"))
+      (is (= 1.0 (.get ((metrics/snapshot) :http/calls-total dimensions))))
+      (is (= (repeat 5 1.0) (seq (.-buckets (.get ((metrics/snapshot) :http/duration-in-s dimensions))))))))
+
+  (testing "exceptions get caught and transformed to a 500"
+    (metrics/clear-default-registry!)
+    (let [handler (-> (handler/->Handler {}) (c/start))
+          dimensions {:rc 500 :method :get :path "/"}]
+      (handler/register-handler handler (fn [& _] (throw (IllegalStateException.))))
+      ((handler/handler handler) (ring.mock.request/request :get "/"))
+      (is (= 1.0 (.get ((metrics/snapshot) :http/calls-total dimensions)))))))
 
 
 (deftest storing-timers

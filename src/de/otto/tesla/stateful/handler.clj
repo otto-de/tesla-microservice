@@ -2,7 +2,11 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [metrics.core :as mcore])
+            [de.otto.tesla.metrics.core :as metrics]
+            [iapetos.core :as p]
+            [metrics.core :as mcore]
+            [clj-time.core :as time]
+            [compojure.core :as c])
   (:import (java.util.concurrent TimeUnit)
            (java.net URI)
            (com.codahale.metrics MetricRegistry SlidingTimeWindowReservoir Timer)))
@@ -88,6 +92,26 @@
       (lookup-uri-resource-fn uri-resource-fn-or-keyword)
       request response)))
 
+
+(defn measure-http-calls [f]
+  (fn [request]
+    (let [now (System/currentTimeMillis)
+          response (f request)
+          after (System/currentTimeMillis)
+          labels-map {:rc (:status response) :path (:uri request) :method (:request-method request)}]
+      (metrics/inc :http/calls-total labels-map)
+      (metrics/observe :http/duration-in-s labels-map (/ (- after now) 1000.0))
+      response)))
+
+(defn exceptions-to-500 [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        (log/error e "Will return 500 to client because of this error.")
+        {:status 500
+         :body   (.getMessage e)}))))
+
 (defn register-timed-handler [self new-handler-fn & {:keys [uri-resource-fn-or-keyword timer-path-fn]
                                                      :or   {uri-resource-fn-or-keyword :all-resources}}]
   (let [{:keys [registered-handlers reporting-base-path]} self
@@ -99,9 +123,10 @@
                      :handler       new-handler-fn}))))
 
 (defn register-handler [{:keys [registered-handlers]} new-handler-fn]
-  (let [handler-name (new-handler-name @registered-handlers)]
+  (let [handler-name (new-handler-name @registered-handlers)
+        extended-route-handler (measure-http-calls (exceptions-to-500 new-handler-fn))]
     (swap! registered-handlers #(conj % {:handler-name handler-name
-                                         :handler      new-handler-fn}))))
+                                         :handler      extended-route-handler}))))
 
 (defn handler [self]
   (single-handler-fn self))
@@ -110,6 +135,9 @@
   component/Lifecycle
   (start [self]
     (log/info "-> starting Handler")
+    (let [http-labels [:path :method :rc]]
+      (metrics/register (p/counter :http/calls-total {:labels http-labels})
+                        (p/histogram :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]})))
     (assoc self
       :reporting-base-path (get-in config [:config :handler :reporting-base-path] ["serving" "requests"])
       :reporting-time-window-in-min (get-in config [:config :handler :reporting-time-window-in-min] 1)
