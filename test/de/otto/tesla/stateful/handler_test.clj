@@ -1,8 +1,11 @@
 (ns de.otto.tesla.stateful.handler-test
   (:require [clojure.test :refer :all]
             [de.otto.tesla.stateful.handler :as handler]
-            [com.stuartsierra.component :as c]
+            [com.stuartsierra.component :as component]
+            [compojure.core :as compojure]
             [ring.util.response :as resp]
+            [iapetos.registry :as ir]
+            [ring.mock.request :as ring-mock]
             [de.otto.tesla.metrics.core :as metrics])
   (:import (com.codahale.metrics Timer)))
 
@@ -15,7 +18,7 @@
 
 (deftest registering-handlers
   (testing "should register a handler and return a single handling-function"
-    (let [handler (-> (handler/new-handler) (c/start))]
+    (let [handler (-> (handler/new-handler) (component/start))]
       (handler/register-handler handler (fn [r] (when (= r :ping) :pong)))
       (handler/register-handler handler (fn [r] (when (= r :pong) :ping)))
       (is (= ["tesla-handler-0" "tesla-handler-1"] (map :handler-name @(:registered-handlers handler))))
@@ -27,7 +30,7 @@
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
                     handler/report-request-timings! (fn [timer-id _ time-taken] (swap! reportings conj [timer-id time-taken]))]
-        (let [handler (-> (handler/new-handler) (c/start))]
+        (let [handler (-> (handler/new-handler) (component/start))]
           (handler/register-timed-handler handler ping->pong-route)
           (handler/register-timed-handler handler pong->ping-route)
           (is (= ["tesla-handler-0" "tesla-handler-1"]
@@ -85,7 +88,7 @@
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
                     handler/report-request-timings! (fn [_ self _] (reset! reportings (:reporting-base-path self)))]
-        (let [handler (-> (handler/->Handler {}) (c/start))]
+        (let [handler (-> (handler/->Handler {}) (component/start))]
           (handler/register-timed-handler handler ping->pong-route)
           (is (= {:body :pong :status 200} ((handler/handler handler) {:uri "/ping"})))
           (is (= ["serving" "requests"] @reportings))))))
@@ -93,33 +96,42 @@
     (let [reportings (atom [])]
       (with-redefs [handler/time-taken (constantly 100)
                     handler/report-request-timings! (fn [_ self _] (reset! reportings (:reporting-base-path self)))]
-        (let [handler (-> (handler/->Handler {:config {:handler {:reporting-base-path ["foo" "bar" "baz"]}}}) (c/start))]
+        (let [handler (-> (handler/->Handler {:config {:handler {:reporting-base-path ["foo" "bar" "baz"]}}}) (component/start))]
           (handler/register-timed-handler handler ping->pong-route)
           (is (= {:body :pong :status 200} ((handler/handler handler) {:uri "/ping"})))
           (is (= ["foo" "bar" "baz"] @reportings)))))))
 
+(defn current-value [name dimensions]
+  (.get ((metrics/snapshot) name dimensions)))
+
 
 (deftest instrument-calls-test
-  (testing "calls get counted and measured"
+  (testing "calls get counted and timed"
     (metrics/clear-default-registry!)
-    (let [handler (-> (handler/->Handler {}) (c/start))
+    (let [handler (-> (handler/->Handler {}) (component/start))
           dimensions {:rc 200 :method :get :path "/"}]
-      (handler/register-handler handler (fn [& _] (resp/response {})))
-      ((handler/handler handler) (ring.mock.request/request :get "/"))
-      (is (= 1.0 (.get ((metrics/snapshot) :http/calls-total dimensions))))
-      (is (= (repeat 5 1.0) (seq (.-buckets (.get ((metrics/snapshot) :http/duration-in-s dimensions))))))))
-
+      (handler/register-handler handler (compojure/GET "/" [] (fn [& _] (resp/response ""))))
+      ((handler/handler handler) (ring-mock/request :get "/"))
+      (is (= 1.0 (current-value :http/calls-total dimensions)))
+      (is (= (repeat 5 1.0) (-> (current-value :http/duration-in-s dimensions) (.-buckets) (seq))))))
   (testing "exceptions get caught and transformed to a 500"
     (metrics/clear-default-registry!)
-    (let [handler (-> (handler/->Handler {}) (c/start))
+    (let [handler (-> (handler/->Handler {}) (component/start))
           dimensions {:rc 500 :method :get :path "/"}]
-      (handler/register-handler handler (fn [& _] (throw (IllegalStateException.))))
-      ((handler/handler handler) (ring.mock.request/request :get "/"))
-      (is (= 1.0 (.get ((metrics/snapshot) :http/calls-total dimensions)))))))
+      (handler/register-handler handler (compojure/GET "/" [] (fn [& _] (throw (IllegalStateException.)))))
+      ((handler/handler handler) (ring-mock/request :get "/"))
+      (is (= 1.0 (current-value :http/calls-total dimensions)))))
+  (testing "if a handler does not match there is no instrumentation"
+    (metrics/clear-default-registry!)
+    (let [handler (-> (handler/->Handler {}) (component/start))
+          dimensions {:rc 200 :method :get :path "/"}]
+      (handler/register-handler handler (compojure/GET "/non/matching" [] (resp/response "")))
+      ((handler/handler handler) (ring-mock/request :get "/"))
+      (is (= 0.0 (current-value :http/calls-total dimensions))))))
 
 
 (deftest storing-timers
-  (let [handler (-> (handler/->Handler {}) (c/start))
+  (let [handler (-> (handler/->Handler {}) (component/start))
         timer-updates (atom [])
         mock-timer (proxy [Timer] [] (update [v _] (swap! timer-updates conj v)))]
     (with-redefs [handler/register-timer (constantly nil)
@@ -152,7 +164,7 @@
       (is (= :mock-timer (timer-for-id {:timers timers} ["1" "2" "3" "4" "5"]))))))
 
 (deftest storing-timers-for-custom-timer-path-fn
-  (let [handler (-> (handler/->Handler {}) (c/start))
+  (let [handler (-> (handler/->Handler {}) (component/start))
         timer-updates (atom [])
         mock-timer (proxy [Timer] [] (update [v _] (swap! timer-updates conj v)))
         custom-timer-path-fn (fn [request response]

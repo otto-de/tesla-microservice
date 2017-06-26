@@ -4,9 +4,7 @@
             [clojure.string :as string]
             [de.otto.tesla.metrics.core :as metrics]
             [iapetos.core :as p]
-            [metrics.core :as mcore]
-            [clj-time.core :as time]
-            [compojure.core :as c])
+            [metrics.core :as mcore])
   (:import (java.util.concurrent TimeUnit)
            (java.net URI)
            (com.codahale.metrics MetricRegistry SlidingTimeWindowReservoir Timer)))
@@ -99,9 +97,10 @@
           response (f request)
           after (System/currentTimeMillis)
           labels-map {:rc (:status response) :path (:uri request) :method (:request-method request)}]
-      (metrics/inc :http/calls-total labels-map)
-      (metrics/observe :http/duration-in-s labels-map (/ (- after now) 1000.0))
-      response)))
+      (when response
+        (metrics/inc :http/calls-total labels-map)
+        (metrics/observe :http/duration-in-s labels-map (/ (- after now) 1000.0))
+        response))))
 
 (defn exceptions-to-500 [handler]
   (fn [request]
