@@ -37,6 +37,9 @@
 (defmacro set [& opts]
   `(with-default-registry (p/set ~@opts)))
 
+(defmacro observe [& opts]
+  `(with-default-registry (p/observe ~@opts)))
+
 (defmacro register+execute [name m op]
   `(do
      (when-not ((snapshot) ~name)
