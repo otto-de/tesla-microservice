@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.app-status :as app-status]
             [de.otto.tesla.stateful.health :as health]
-            [de.otto.tesla.metrics.core :as metrics]
+            [de.otto.tesla.metrics.prometheus.core :as metrics]
             [iapetos.core :as prom]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.tesla.stateful.metering :as metering]

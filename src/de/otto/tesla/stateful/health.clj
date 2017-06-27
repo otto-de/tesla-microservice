@@ -4,7 +4,7 @@
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.handler :as handler]
             [metrics.gauges :as gauge]
-            [de.otto.tesla.metrics.core :as metrics]
+            [de.otto.tesla.metrics.prometheus.core :as metrics]
             [iapetos.core :as prom]))
 
 ;; http response for a healthy system

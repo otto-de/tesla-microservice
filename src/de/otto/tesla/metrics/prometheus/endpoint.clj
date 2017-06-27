@@ -1,9 +1,9 @@
-(ns de.otto.tesla.metrics.prometheus
+(ns de.otto.tesla.metrics.prometheus.endpoint
   (:require [de.otto.tesla.stateful.handler :as handler]
             [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]
             [compojure.core :as c]
-            [de.otto.tesla.metrics.core :as metrics]))
+            [de.otto.tesla.metrics.prometheus.core :as metrics]))
 
 (defn metrics-response []
   {:status  200

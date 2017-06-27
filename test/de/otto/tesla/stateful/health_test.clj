@@ -6,7 +6,7 @@
             [de.otto.tesla.stateful.handler :as handler]
             [ring.mock.request :as mock]
             [metrics.gauges :as gauge]
-            [de.otto.tesla.metrics.core :as metrics]))
+            [de.otto.tesla.metrics.prometheus.core :as metrics]))
 
 (defn- serverless-system [runtime-config]
   (dissoc

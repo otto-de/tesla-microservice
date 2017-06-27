@@ -12,7 +12,7 @@
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]
             [iapetos.core :as prom]
-            [de.otto.tesla.metrics.core :as metrics]))
+            [de.otto.tesla.metrics.prometheus.core :as metrics]))
 
 (defn keyword-to-status [kw]
   (str/upper-case (name kw)))

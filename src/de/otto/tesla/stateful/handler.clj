@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [de.otto.tesla.metrics.core :as metrics]
+            [de.otto.tesla.metrics.prometheus.core :as metrics]
             [iapetos.core :as p]
             [metrics.core :as mcore])
   (:import (java.util.concurrent TimeUnit)

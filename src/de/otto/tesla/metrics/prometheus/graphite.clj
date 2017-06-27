@@ -1,7 +1,7 @@
-(ns de.otto.tesla.metrics.graphite
+(ns de.otto.tesla.metrics.prometheus.graphite
   (:require [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.scheduler :as sched]
-            [de.otto.tesla.metrics.core :as metrics]
+            [de.otto.tesla.metrics.prometheus.core :as metrics]
             [overtone.at-at :as at]
             [clojure.tools.logging :as log]
             [environ.core :as env]

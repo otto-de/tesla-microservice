@@ -1,8 +1,8 @@
-(ns de.otto.tesla.metrics.console
+(ns de.otto.tesla.metrics.prometheus.console
   (:require [clojure.tools.logging :as log]
             [overtone.at-at :as at]
             [de.otto.tesla.stateful.scheduler :as sched]
-            [de.otto.tesla.metrics.core :as metrics]))
+            [de.otto.tesla.metrics.prometheus.core :as metrics]))
 
 (defn write-to-console [console-config]
   (log/info "Metrics Reporting:\n"  (metrics/text-format)))

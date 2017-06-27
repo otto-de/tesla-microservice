@@ -1,6 +1,6 @@
-(ns de.otto.tesla.metrics.core-test
+(ns de.otto.tesla.metrics.prometheus.core-test
   (:require [clojure.test :refer :all]
-            [de.otto.tesla.metrics.core :as metrics]
+            [de.otto.tesla.metrics.prometheus.core :as metrics]
             [iapetos.core :as p]
             [clojure.tools.logging :as log]
             [clojure.string :as str])

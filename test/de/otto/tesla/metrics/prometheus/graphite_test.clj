@@ -1,8 +1,8 @@
-(ns de.otto.tesla.metrics.graphite-test
+(ns de.otto.tesla.metrics.prometheus.graphite-test
   (:require
     [clojure.test :refer :all]
-    [de.otto.tesla.metrics.graphite :as graphite]
-    [de.otto.tesla.metrics.core :as metrics]
+    [de.otto.tesla.metrics.prometheus.graphite :as graphite]
+    [de.otto.tesla.metrics.prometheus.core :as metrics]
     [iapetos.core :as p]
     [clojure.string :as cs]))
 

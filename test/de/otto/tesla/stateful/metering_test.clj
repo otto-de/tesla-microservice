@@ -4,7 +4,7 @@
             [de.otto.tesla.util.test-utils :as u]
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.configuring :as configuring]
-            [de.otto.tesla.metrics.core :as metrics]
+            [de.otto.tesla.metrics.prometheus.core :as metrics]
             [iapetos.core :as p]))
 
 (def short-hostname #'metering/short-hostname)

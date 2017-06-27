@@ -3,10 +3,10 @@
     [compojure.core :as c]
     [com.stuartsierra.component :as component]
     [clojure.tools.logging :as log]
-    [de.otto.tesla.metrics.core :as metrics]
-    [de.otto.tesla.metrics.console :as metrics-console]
-    [de.otto.tesla.metrics.graphite :as metrics-graphite]
-    [de.otto.tesla.metrics.prometheus :as metrics-prometheus]
+    [de.otto.tesla.metrics.prometheus.core :as prom]
+    [de.otto.tesla.metrics.prometheus.console :as prom-console]
+    [de.otto.tesla.metrics.prometheus.graphite :as prom-graphite]
+    [de.otto.tesla.metrics.prometheus.endpoint :as prom-endpoint]
     [de.otto.tesla.stateful.handler :as handler]
     [iapetos.core :as p]))
 
@@ -15,14 +15,14 @@
 
 (defn- start-reporter! [handler scheduler [reporter-type reporter-config]]
   (case reporter-type
-    :console (metrics-console/start! reporter-config scheduler)
-    :graphite (metrics-graphite/start! reporter-config scheduler)
-    :prometheus (metrics-prometheus/register-endpoint! reporter-config handler)))
+    :console (prom-console/start! reporter-config scheduler)
+    :graphite (prom-graphite/start! reporter-config scheduler)
+    :prometheus (prom-endpoint/register-endpoint! reporter-config handler)))
 
 (defn metrics-response []
   {:status  200
    :headers {"Content-Type" "text/plain"}
-   :body    (metrics/text-format)})
+   :body    (prom/text-format)})
 
 (defn- start-reporters! [config handler scheduler]
   (let [available-reporters (get-in config [:config :metrics])]
@@ -37,13 +37,13 @@
 
 (defn monitor-transducer [metric-name fn & fn-params]
   (let [counter-name (keyword (str metric-name "/counter"))]
-    (metrics/register (p/counter counter-name {:labels [:error]}))
+    (prom/register (p/counter counter-name {:labels [:error]}))
     (try
       (let [return-value (apply fn fn-params)]
-        (metrics/register+execute counter-name (p/counter :labels [:error]) (p/inc {:error false}))
+        (prom/register+execute counter-name (p/counter :labels [:error]) (p/inc {:error false}))
         return-value)
       (catch Exception e
-        (metrics/inc counter-name {:error true})
+        (prom/inc counter-name {:error true})
         (log/error e (str "Exception in " metric-name))
         (throw e)))))
 

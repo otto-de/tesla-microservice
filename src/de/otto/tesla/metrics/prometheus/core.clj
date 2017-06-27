@@ -1,4 +1,4 @@
-(ns de.otto.tesla.metrics.core
+(ns de.otto.tesla.metrics.prometheus.core
   (:require [iapetos.core :as p]
             [iapetos.export :as e]
             [clojure.tools.logging :as log])
