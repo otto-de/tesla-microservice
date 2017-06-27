@@ -7,17 +7,17 @@
     [de.otto.tesla.metrics.prometheus.console :as prom-console]
     [de.otto.tesla.metrics.prometheus.graphite :as prom-graphite]
     [de.otto.tesla.metrics.prometheus.endpoint :as prom-endpoint]
+    [de.otto.tesla.metrics.graphite-dropwizard :as metrics-graphite-dropwizard]
     [de.otto.tesla.stateful.handler :as handler]
+    [metrics.core :as dw]
     [iapetos.core :as p]))
-
-(defn- short-hostname [hostname]
-  (re-find #"[^.]*" hostname))
 
 (defn- start-reporter! [handler scheduler [reporter-type reporter-config]]
   (case reporter-type
     :console (prom-console/start! reporter-config scheduler)
     :graphite (prom-graphite/start! reporter-config scheduler)
-    :prometheus (prom-endpoint/register-endpoint! reporter-config handler)))
+    :prometheus (prom-endpoint/register-endpoint! reporter-config handler)
+    :graphite-deprecated (metrics-graphite-dropwizard/start! dw/default-registry reporter-config)))
 
 
 (defn- start-reporters! [config handler scheduler]
@@ -46,7 +46,7 @@
 
   (stop [self]
     (log/info "<- stopping metering")
-    ; TODO How to stop metrics prometheus/graphite)
+    ; TODO How to stop metrics graphite)
     self))
 
 (defn new-metering [] (map->Metering {}))

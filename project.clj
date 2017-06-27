@@ -9,6 +9,7 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [de.otto/status "0.1.0"]
                  [iapetos "0.1.6"]
+                 [metrics-clojure "2.8.0"]
                  [beckon "0.1.1"]
                  [clj-time "0.13.0"]
                  [clojurewerkz/propertied "1.2.0"]

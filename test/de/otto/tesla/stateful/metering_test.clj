@@ -7,14 +7,6 @@
             [de.otto.tesla.metrics.prometheus.core :as metrics]
             [iapetos.core :as p]))
 
-(def short-hostname #'metering/short-hostname)
-(deftest short-hostname-test
-  (testing "it only returns the important part of a full-qualified hostname"
-    (is (= ""
-           (short-hostname "")))
-    (is (= "mesos-slave-dev-399946"
-           (short-hostname "mesos-slave-dev-399946.lhotse.ov.otto.de")))))
-
 (deftest metered-execution-test
   (metrics/clear-default-registry!)
   (testing "it increments the call counter"
