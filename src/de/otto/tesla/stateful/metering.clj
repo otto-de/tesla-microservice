@@ -19,21 +19,10 @@
     :graphite (prom-graphite/start! reporter-config scheduler)
     :prometheus (prom-endpoint/register-endpoint! reporter-config handler)))
 
-(defn metrics-response []
-  {:status  200
-   :headers {"Content-Type" "text/plain"}
-   :body    (prom/text-format)})
 
 (defn- start-reporters! [config handler scheduler]
   (let [available-reporters (get-in config [:config :metrics])]
     (run! (partial start-reporter! handler scheduler) available-reporters)))
-
-(defn make-handler [{metrics-path :metrics-path}]
-  (c/routes (c/GET metrics-path [] (metrics-response))))
-
-(defn register-endpoint! [prometheus-config handler]
-  (log/info "Register metrics prometheus endpoint")
-  (handler/register-handler handler (make-handler prometheus-config)))
 
 (defn monitor-transducer [metric-name fn & fn-params]
   (let [counter-name (keyword (str metric-name "/counter"))]
