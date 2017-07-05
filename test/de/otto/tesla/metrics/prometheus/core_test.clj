@@ -103,3 +103,9 @@
         (metrics/set :gauge2 {:a "a"} 5)
         (is (= [:gauge2 {:a "a"} 5]
                @called-with))))))
+
+(deftest get-from-default-registry-test
+  (testing "it returns a metric with a specific label"
+    (metrics/register (p/counter :counter1) {:labels [:a]})
+    (is (= ((metrics/snapshot) :counter1)
+           (metrics/get-from-default-registry :counter1 {:a "a"})))))

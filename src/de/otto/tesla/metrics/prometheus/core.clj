@@ -46,8 +46,11 @@
        (register (~(first m) ~name ~@(rest m))))
      (~(first op) (snapshot) ~name ~@(rest op))))
 
-(defn get-from-default-registry [name]
-  ((snapshot) name))
+(defn get-from-default-registry
+  ([name]
+   (get-from-default-registry name {}))
+  ([name labels]
+   ((snapshot) name labels)))
 
 (defn text-format []
   (e/text-format (snapshot)))
