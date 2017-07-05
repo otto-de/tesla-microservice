@@ -15,7 +15,7 @@
   (.clear (.raw (snapshot)))                         ; for unknown reasons there is still state left in the underlying CollectorRegistry
   (reset! default-registry (p/collector-registry)))
 
-(defn register [& ms]
+(defn register! [& ms]
   (try
     (swap! default-registry (fn [r] (apply p/register r ms)))
     (catch IllegalArgumentException e
@@ -28,22 +28,22 @@
 ;(defn get-metric-value [name]
 ;  (.get ^Collector ((snapshot)) name))
 
-(defmacro inc [& opts]
+(defmacro inc! [& opts]
   `(with-default-registry (p/inc ~@opts)))
 
-(defmacro dec [& opts]
+(defmacro dec! [& opts]
   `(with-default-registry (p/dec ~@opts)))
 
-(defmacro set [& opts]
+(defmacro set! [& opts]
   `(with-default-registry (p/set ~@opts)))
 
-(defmacro observe [& opts]
+(defmacro observe! [& opts]
   `(with-default-registry (p/observe ~@opts)))
 
-(defmacro register+execute [name m op]
+(defmacro register+execute! [name m op]
   `(do
      (when-not ((snapshot) ~name)
-       (register (~(first m) ~name ~@(rest m))))
+       (register! (~(first m) ~name ~@(rest m))))
      (~(first op) (snapshot) ~name ~@(rest op))))
 
 (defn get-from-default-registry

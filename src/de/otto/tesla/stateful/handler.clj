@@ -98,8 +98,8 @@
           after (System/currentTimeMillis)
           labels-map {:rc (:status response) :path (:uri request) :method (:request-method request)}]
       (when response
-        (metrics/inc :http/calls-total labels-map)
-        (metrics/observe :http/duration-in-s labels-map (/ (- after now) 1000.0))
+        (metrics/inc! :http/calls-total labels-map)
+        (metrics/observe! :http/duration-in-s labels-map (/ (- after now) 1000.0))
         response))))
 
 (defn exceptions-to-500 [handler]
@@ -135,8 +135,8 @@
   (start [self]
     (log/info "-> starting Handler")
     (let [http-labels [:path :method :rc]]
-      (metrics/register (p/counter :http/calls-total {:labels http-labels})
-                        (p/histogram :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]})))
+      (metrics/register! (p/counter :http/calls-total {:labels http-labels})
+                         (p/histogram :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]})))
     (assoc self
       :reporting-base-path (get-in config [:config :handler :reporting-base-path] ["serving" "requests"])
       :reporting-time-window-in-min (get-in config [:config :handler :reporting-time-window-in-min] 1)

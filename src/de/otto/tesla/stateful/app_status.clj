@@ -79,8 +79,8 @@
     (let [new-self (assoc self
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (metrics/register (prom/summary :app-status/timer {:quantiles {0.5 0.1
-                                                                      0.99 0.01
+      (metrics/register! (prom/summary :app-status/timer {:quantiles {0.5   0.1
+                                                                      0.99  0.01
                                                                       0.999 0.001}}))
       (handlers/register-handler handler (make-handler new-self))
       new-self))

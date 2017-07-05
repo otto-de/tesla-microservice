@@ -62,7 +62,7 @@
     (.close c)
     (catch IOException e
       (log/error e "Could not close " c ".")
-      (metrics/register+execute :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))))
+      (metrics/register+execute! :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))))
 
 (defn- push-to-graphite [{:keys [^String host port] :as graphite-config}]
   (let [prefix (prefix graphite-config (hostname))
@@ -74,7 +74,7 @@
       (write-metrics! write-fn prefix (metrics/snapshot))
       (catch Exception e
         (log/error e "Error while reporting to Graphite.")
-        (metrics/register+execute :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))
+        (metrics/register+execute! :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))
       (finally
         (close writer)
         (close s)))))

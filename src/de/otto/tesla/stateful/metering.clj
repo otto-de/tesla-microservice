@@ -26,13 +26,13 @@
 
 (defn monitor-transducer [metric-name fn & fn-params]
   (let [counter-name (keyword (str metric-name "/counter"))]
-    (prom/register (p/counter counter-name {:labels [:error]}))
+    (prom/register! (p/counter counter-name {:labels [:error]}))
     (try
       (let [return-value (apply fn fn-params)]
-        (prom/register+execute counter-name (p/counter :labels [:error]) (p/inc {:error false}))
+        (prom/register+execute! counter-name (p/counter :labels [:error]) (p/inc {:error false}))
         return-value)
       (catch Exception e
-        (prom/inc counter-name {:error true})
+        (prom/inc! counter-name {:error true})
         (log/error e (str "Exception in " metric-name))
         (throw e)))))
 

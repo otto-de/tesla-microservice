@@ -33,7 +33,7 @@
   (log/info "-> Starting system.")
   (let [started (c/start system)]
     (log/info "-> System completely started.")
-    (metrics/register+execute :system-startups (prom/counter {}) (prom/inc {}))
+    (metrics/register+execute! :system-startups (prom/counter {}) (prom/inc {}))
     (doseq [sig ["INT" "TERM"]]
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))

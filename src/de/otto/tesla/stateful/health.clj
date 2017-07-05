@@ -36,7 +36,7 @@
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
       (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
-      (metrics/register+execute :health/locked (prom/gauge {}) (prom/set {} 1))
+      (metrics/register+execute! :health/locked (prom/gauge {}) (prom/set {} 1))
       new-self))
 
   (stop [self]
