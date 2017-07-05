@@ -24,6 +24,22 @@
           (is (= (first warning) :warn))
           (is (str/includes? (second warning) "app_requests")))))))
 
+(deftest register-test
+  (testing "it registers a metric under a name"
+    (metrics/register! (p/counter :app/requests))
+    (is ((metrics/snapshot) :app/requests)))
+
+  (testing "it warns if the metric is already registered"
+    (metrics/clear-default-registry!)
+    (let [logged (atom [])]
+      (with-redefs [log/log* (fn [_ level _ message] (swap! logged conj [level message]))]
+        (metrics/register! (p/counter :app_requests))
+        (metrics/register! (p/counter :app_requests))
+        (let [warning (first @logged)]
+          (is (= 1 (count @logged)))
+          (is (= (first warning) :warn))
+          (is (str/includes? (second warning) "app_requests")))))))
+
 (deftest with-default-registry-test
   (testing "it uses the default registry for lookup of metrics"
     (metrics/register! (p/counter :app/requests))
@@ -109,3 +125,37 @@
     (metrics/register! (p/counter :counter1) {:labels [:a]})
     (is (= ((metrics/snapshot) :counter1)
            (metrics/get-from-default-registry :counter1 {:a "a"})))))
+
+(deftest compojure-path->url-path-test
+  (testing "it removes params from path"
+    (is (= "/path1/path2"
+           (#'metrics/compojure-path->url-path "/path1/path2/:id")))
+    (is (= "/path1/path2"
+           (#'metrics/compojure-path->url-path "/path1/:id/path2")))))
+
+(deftest timing-middleware-test
+  (let [response (constantly {:status 200})
+        route (metrics/timing-middleware response)
+        get-request {:compojure/route [:get "/path1/path2/:id"]}
+        get2-request {:compojure/route [:get "dummy"]}
+        post-request {:compojure/route [:post "/path1/path2/:id"]}]
+    (testing "it returns the response of the response fn"
+      (is (= (response)
+             ((metrics/timing-middleware response) get2-request))))
+
+    (testing "it returns nil if the response fn returns nil"
+      (is (= nil
+             ((metrics/timing-middleware (constantly nil)) get2-request))))
+
+    (testing "it creates metrics for a given wrapped get-route"
+      (route get-request)
+      (is (= 1.0
+             (.get ((metrics/snapshot) :http/calls-total {:rc 200 :method :get :path "/path1/path2"}))))
+      (is (> (.sum (.get ((metrics/snapshot) :http/duration-in-s {:rc 200 :method :get :path "/path1/path2"})))
+             0)))
+    (testing "it creates metrics for a given wrapped post-route"
+      (route post-request)
+      (is (= 1.0
+             (.get ((metrics/snapshot) :http/calls-total {:rc 200 :method :post :path "/path1/path2"}))))
+      (is (> (.sum (.get ((metrics/snapshot) :http/duration-in-s {:rc 200 :method :post :path "/path1/path2"})))
+             0)))))
