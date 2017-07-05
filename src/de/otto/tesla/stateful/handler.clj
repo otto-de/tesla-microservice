@@ -123,7 +123,7 @@
 
 (defn register-handler [{:keys [registered-handlers]} new-handler-fn]
   (let [handler-name (new-handler-name @registered-handlers)
-        extended-route-handler (measure-http-calls (exceptions-to-500 new-handler-fn))]
+        extended-route-handler (exceptions-to-500 new-handler-fn)]
     (swap! registered-handlers #(conj % {:handler-name handler-name
                                          :handler      extended-route-handler}))))
 

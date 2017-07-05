@@ -101,35 +101,6 @@
           (is (= {:body :pong :status 200} ((handler/handler handler) {:uri "/ping"})))
           (is (= ["foo" "bar" "baz"] @reportings)))))))
 
-(defn current-value [name dimensions]
-  (.get ((metrics/snapshot) name dimensions)))
-
-
-(deftest instrument-calls-test
-  (testing "calls get counted and timed"
-    (metrics/clear-default-registry!)
-    (let [handler (-> (handler/->Handler {}) (component/start))
-          dimensions {:rc 200 :method :get :path "/"}]
-      (handler/register-handler handler (compojure/GET "/" [] (fn [& _] (resp/response ""))))
-      ((handler/handler handler) (ring-mock/request :get "/"))
-      (is (= 1.0 (current-value :http/calls-total dimensions)))
-      (is (= (repeat 5 1.0) (-> (current-value :http/duration-in-s dimensions) (.-buckets) (seq))))))
-  (testing "exceptions get caught and transformed to a 500"
-    (metrics/clear-default-registry!)
-    (let [handler (-> (handler/->Handler {}) (component/start))
-          dimensions {:rc 500 :method :get :path "/"}]
-      (handler/register-handler handler (compojure/GET "/" [] (fn [& _] (throw (IllegalStateException.)))))
-      ((handler/handler handler) (ring-mock/request :get "/"))
-      (is (= 1.0 (current-value :http/calls-total dimensions)))))
-  (testing "if a handler does not match there is no instrumentation"
-    (metrics/clear-default-registry!)
-    (let [handler (-> (handler/->Handler {}) (component/start))
-          dimensions {:rc 200 :method :get :path "/"}]
-      (handler/register-handler handler (compojure/GET "/non/matching" [] (resp/response "")))
-      ((handler/handler handler) (ring-mock/request :get "/"))
-      (is (= 0.0 (current-value :http/calls-total dimensions))))))
-
-
 (deftest storing-timers
   (let [handler (-> (handler/->Handler {}) (component/start))
         timer-updates (atom [])
