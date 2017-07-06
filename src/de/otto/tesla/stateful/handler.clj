@@ -90,18 +90,6 @@
       (lookup-uri-resource-fn uri-resource-fn-or-keyword)
       request response)))
 
-
-(defn measure-http-calls [f]
-  (fn [request]
-    (let [now (System/currentTimeMillis)
-          response (f request)
-          after (System/currentTimeMillis)
-          labels-map {:rc (:status response) :path (:uri request) :method (:request-method request)}]
-      (when response
-        (metrics/inc! :http/calls-total labels-map)
-        (metrics/observe! :http/duration-in-s labels-map (/ (- after now) 1000.0))
-        response))))
-
 (defn exceptions-to-500 [handler]
   (fn [request]
     (try
