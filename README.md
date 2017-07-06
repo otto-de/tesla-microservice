@@ -115,7 +115,24 @@ For backwards compatibility, it is also possible to load config from `properties
 You'll have to pass `{:property-file-preferred true}` as a runtime config to the base-system.
 It is not possible to load individual environment variables when using properties config. 
 Adding `:merge-env-to-properties-config true` to the runtime config will add all system properties
-and environment variables, overiding any config from files.  
+and environment variables, overiding any config from files.
+
+### Reporters
+Applications utilizing Tesla-Microservice can use [iapetos prometheus client](https://github.com/xsc/iapetos) for monitoring.
+Metrics are send by reporters which can be configured using the `:metrics` keyword.
+Each configured reporter will start at system startup automatically.
+
+See example configuration below for all supported reporters.
+
+```clojure
+:metrics {:graphite            {:host             "localhost"
+                                :port             "2003"
+                                :prefix           "my.prefix"
+                                :interval-in-s    60
+                                :include-hostname :first-part}
+          :prometheus          {:metrics-path "/metrics"}}
+```
+
 
 ## Addons
 
