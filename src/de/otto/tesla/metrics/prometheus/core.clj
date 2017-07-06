@@ -74,6 +74,7 @@
     (quiet-register! (p/histogram :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]}))
     (quiet-register! (p/counter :http/calls-total {:labels http-labels})))
   (fn [request]
+    (assert (:compojure/route request) "Couldn't get route out of request. Is middleware applied AFTER compojure route matcher?")
     (if-let [response (handler request)]
       (let [[method path] (:compojure/route request)
             labels {:path   (compojure-path->url-path path)
