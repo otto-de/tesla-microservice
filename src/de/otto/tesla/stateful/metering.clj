@@ -17,7 +17,7 @@
     :console (prom-console/start! reporter-config scheduler)
     :graphite (prom-graphite/start! reporter-config scheduler)
     :prometheus (prom-endpoint/register-endpoint! reporter-config handler)
-    :graphite-deprecated (metrics-graphite-dropwizard/start! dw/default-registry reporter-config)))
+    :graphite-dropwizard (metrics-graphite-dropwizard/start! dw/default-registry reporter-config)))
 
 
 (defn- start-reporters! [config handler scheduler]
