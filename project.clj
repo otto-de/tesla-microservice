@@ -6,20 +6,20 @@
   :scm {:name "git"
         :url  "https://github.com/otto-de/tesla-microservice"}
   :dependencies [[org.clojure/data.json "0.2.6"]
-                 [org.clojure/tools.logging "0.3.1"]
+                 [org.clojure/tools.logging "0.4.0"]
                  [de.otto/status "0.1.0"]
                  [iapetos "0.1.6"]
-                 [metrics-clojure "2.8.0"]
+                 [metrics-clojure "2.9.0"]
                  [beckon "0.1.1"]
                  [clj-time "0.13.0"]
-                 [clojurewerkz/propertied "1.2.0"]
+                 [clojurewerkz/propertied "1.3.0"]
                  [com.stuartsierra/component "0.3.2"]
-                 [compojure "1.5.2"]
+                 [compojure "1.6.0"]
                  [environ "1.1.0"]
-                 [metrics-clojure "2.8.0"]
-                 [metrics-clojure-graphite "2.8.0"]
+                 [metrics-clojure "2.9.0"]
+                 [metrics-clojure-graphite "2.9.0"]
                  [overtone/at-at "1.2.0"]
-                 [ring/ring-core "1.5.1"]]
+                 [ring/ring-core "1.6.1"]]
 
   :exclusions [org.clojure/clojure
                org.slf4j/slf4j-nop
@@ -37,9 +37,9 @@
   :profiles {:uberjar {:aot :all}
              :dev     {:dependencies [[org.clojure/clojure "1.8.0"]
                                       [javax.servlet/servlet-api "2.5"]
-                                      [org.slf4j/slf4j-api "1.7.22"]
-                                      [ch.qos.logback/logback-core "1.1.9"]
-                                      [ch.qos.logback/logback-classic "1.1.9"]
+                                      [org.slf4j/slf4j-api "1.7.25"]
+                                      [ch.qos.logback/logback-core "1.2.3"]
+                                      [ch.qos.logback/logback-classic "1.2.3"]
                                       [ring-mock "0.1.5"]]
                        :plugins      [[lein-ancient "0.6.10"]
                                       [lein-release/lein-release "1.0.9"]]}}
