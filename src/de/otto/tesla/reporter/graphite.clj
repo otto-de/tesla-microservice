@@ -1,7 +1,7 @@
-(ns de.otto.tesla.metrics.prometheus.graphite
+(ns de.otto.tesla.reporter.graphite
   (:require [com.stuartsierra.component :as c]
             [de.otto.tesla.stateful.scheduler :as sched]
-            [de.otto.tesla.metrics.prometheus.core :as metrics]
+            [de.otto.goo.goo :as goo]
             [overtone.at-at :as at]
             [clojure.tools.logging :as log]
             [environ.core :as env]
@@ -62,7 +62,7 @@
     (.close c)
     (catch IOException e
       (log/error e "Could not close " c ".")
-      (metrics/register+execute! :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))))
+      (goo/register+execute! :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))))
 
 (defn- push-to-graphite [{:keys [^String host port] :as graphite-config}]
   (let [prefix (prefix graphite-config (hostname))
@@ -71,10 +71,10 @@
         write-fn #(.write writer ^String %)]
     (try
       (log/infof "Reporting to Graphite %s:%s with %s as prefix" host port prefix)
-      (write-metrics! write-fn prefix (metrics/snapshot))
+      (write-metrics! write-fn prefix (goo/snapshot))
       (catch Exception e
         (log/error e "Error while reporting to Graphite.")
-        (metrics/register+execute! :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))
+        (goo/register+execute! :metrics/error {:labels [:type]} (p/inc {:type "graphite"})))
       (finally
         (close writer)
         (close s)))))

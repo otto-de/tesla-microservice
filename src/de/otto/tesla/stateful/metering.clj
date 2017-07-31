@@ -3,11 +3,11 @@
     [compojure.core :as c]
     [com.stuartsierra.component :as component]
     [clojure.tools.logging :as log]
-    [de.otto.tesla.metrics.prometheus.core :as prom]
-    [de.otto.tesla.metrics.prometheus.console :as prom-console]
-    [de.otto.tesla.metrics.prometheus.graphite :as prom-graphite]
-    [de.otto.tesla.metrics.prometheus.endpoint :as prom-endpoint]
-    [de.otto.tesla.metrics.graphite-dropwizard :as metrics-graphite-dropwizard]
+    [de.otto.goo.goo :as goo]
+    [de.otto.tesla.reporter.console :as prom-console]
+    [de.otto.tesla.reporter.graphite :as prom-graphite]
+    [de.otto.tesla.reporter.prometheus :as prom-endpoint]
+    [de.otto.tesla.reporter.graphite-dropwizard :as metrics-graphite-dropwizard]
     [de.otto.tesla.stateful.handler :as handler]
     [metrics.core :as dw]
     [iapetos.core :as p]))
@@ -26,13 +26,13 @@
 
 (defn monitor-transducer [metric-name fn & fn-params]
   (let [counter-name (keyword (str metric-name "/counter"))]
-    (prom/register! (p/counter counter-name {:labels [:error]}))
+    (goo/register! (p/counter counter-name {:labels [:error]}))
     (try
       (let [return-value (apply fn fn-params)]
-        (prom/register+execute! counter-name (p/counter :labels [:error]) (p/inc {:error false}))
+        (goo/register+execute! counter-name (p/counter :labels [:error]) (p/inc {:error false}))
         return-value)
       (catch Exception e
-        (prom/inc! counter-name {:error true})
+        (goo/inc! counter-name {:error true})
         (log/error e (str "Exception in " metric-name))
         (throw e)))))
 

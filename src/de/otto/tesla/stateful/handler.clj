@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [de.otto.tesla.metrics.prometheus.core :as metrics]
+            [de.otto.goo.goo :as goo]
             [iapetos.core :as p]
             [metrics.core :as mcore])
   (:import (java.util.concurrent TimeUnit)
@@ -123,7 +123,7 @@
   (start [self]
     (log/info "-> starting Handler")
     (let [http-labels [:path :method :rc]]
-      (metrics/register! (p/counter :http/calls-total {:labels http-labels})
+      (goo/register! (p/counter :http/calls-total {:labels http-labels})
                          (p/histogram :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]})))
     (assoc self
       :reporting-base-path (get-in config [:config :handler :reporting-base-path] ["serving" "requests"])

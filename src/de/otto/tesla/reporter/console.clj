@@ -1,11 +1,11 @@
-(ns de.otto.tesla.metrics.prometheus.console
+(ns de.otto.tesla.reporter.console
   (:require [clojure.tools.logging :as log]
             [overtone.at-at :as at]
             [de.otto.tesla.stateful.scheduler :as sched]
-            [de.otto.tesla.metrics.prometheus.core :as metrics]))
+            [de.otto.goo.goo :as goo]))
 
 (defn write-to-console [console-config]
-  (log/info "Metrics Reporting:\n"  (metrics/text-format)))
+  (log/info "Metrics Reporting:\n"  (goo/text-format)))
 
 (defn start! [console-config scheduler]
   (let [interval-in-ms (* 1000 (:interval-in-s console-config))]

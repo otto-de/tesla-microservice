@@ -12,7 +12,7 @@
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]
             [iapetos.core :as prom]
-            [de.otto.tesla.metrics.prometheus.core :as metrics]))
+            [de.otto.goo.goo :as goo]))
 
 (defn keyword-to-status [kw]
   (str/upper-case (name kw)))
@@ -58,7 +58,7 @@
 ;; http://spec.otto.de/media_types/application_vnd_otto_monitoring_status_json.html .
 ;; Right now it applies only partially.
 (defn status-response [self]
-  (prom/with-duration (metrics/get-from-default-registry :app-status/timer)
+  (prom/with-duration (goo/get-from-default-registry :app-status/timer)
                       {:status  200
                        :headers {"Content-Type" "application/json"}
                        :body    (json/write-str (status-response-body self))}))
@@ -79,7 +79,7 @@
     (let [new-self (assoc self
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (metrics/register! (prom/summary :app-status/timer {:quantiles {0.5   0.1
+      (goo/register! (prom/summary :app-status/timer {:quantiles {0.5   0.1
                                                                       0.99  0.01
                                                                       0.999 0.001}}))
       (handlers/register-handler handler (make-handler new-self))

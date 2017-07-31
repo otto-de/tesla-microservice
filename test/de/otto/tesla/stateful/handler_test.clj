@@ -6,7 +6,7 @@
             [ring.util.response :as resp]
             [iapetos.registry :as ir]
             [ring.mock.request :as ring-mock]
-            [de.otto.tesla.metrics.prometheus.core :as metrics])
+            [de.otto.goo.goo :as goo])
   (:import (com.codahale.metrics Timer)))
 
 (def ping->pong-route (fn [{:keys [uri]}] (when (= uri "/ping") {:body   :pong

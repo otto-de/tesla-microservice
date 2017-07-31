@@ -4,7 +4,7 @@
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.handler :as handler]
             [metrics.gauges :as gauge]
-            [de.otto.tesla.metrics.prometheus.core :as metrics]
+            [de.otto.goo.goo :as goo]
             [iapetos.core :as prom]))
 
 ;; http response for a healthy system
@@ -27,7 +27,7 @@
     (c/routes (c/GET health-path [] (health-response self)))))
 
 (defn lock-application [self]
-  (metrics/with-default-registry (prom/set :health/locked 0))
+  (goo/with-default-registry (prom/set :health/locked 0))
   (reset! (:locked self) true))
 
 (defrecord Health [config handler]
@@ -36,7 +36,7 @@
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
       (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
-      (metrics/register+execute! :health/locked (prom/gauge {}) (prom/set {} 1))
+      (goo/register+execute! :health/locked (prom/gauge {}) (prom/set {} 1))
       new-self))
 
   (stop [self]

@@ -1,4 +1,4 @@
-(ns de.otto.tesla.metrics.graphite-dropwizard
+(ns de.otto.tesla.reporter.graphite-dropwizard
   (:require [de.otto.tesla.stateful.configuring :as configuring]
             [clojure.tools.logging :as log]
             [metrics.reporters.graphite :as graphite])
