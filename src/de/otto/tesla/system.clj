@@ -3,7 +3,6 @@
             [de.otto.tesla.stateful.app-status :as app-status]
             [de.otto.tesla.stateful.health :as health]
             [de.otto.goo.goo :as goo]
-            [iapetos.core :as prom]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.stateful.keep-alive :as keep-alive]
@@ -33,7 +32,8 @@
   (log/info "-> Starting system.")
   (let [started (c/start system)]
     (log/info "-> System completely started.")
-    (goo/register+execute! :system-startups (prom/counter {}) (prom/inc {}))
+    (goo/register-counter! :system-startups {:description "Counts startups."})
+    (goo/inc! :system-startups)
     (doseq [sig ["INT" "TERM"]]
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))

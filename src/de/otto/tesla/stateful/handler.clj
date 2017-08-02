@@ -3,7 +3,6 @@
             [clojure.tools.logging :as log]
             [clojure.string :as string]
             [de.otto.goo.goo :as goo]
-            [iapetos.core :as p]
             [metrics.core :as mcore])
   (:import (java.util.concurrent TimeUnit)
            (java.net URI)
@@ -123,8 +122,8 @@
   (start [self]
     (log/info "-> starting Handler")
     (let [http-labels [:path :method :rc]]
-      (goo/register! (p/counter :http/calls-total {:labels http-labels})
-                         (p/histogram :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]})))
+      (goo/register-counter! :http/calls-total {:labels http-labels})
+      (goo/register-histogram! :http/duration-in-s {:labels http-labels :buckets [0.05 0.1 0.15 0.2]}))
     (assoc self
       :reporting-base-path (get-in config [:config :handler :reporting-base-path] ["serving" "requests"])
       :reporting-time-window-in-min (get-in config [:config :handler :reporting-time-window-in-min] 1)

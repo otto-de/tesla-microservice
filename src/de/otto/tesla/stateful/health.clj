@@ -3,9 +3,7 @@
             [compojure.core :as c]
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.handler :as handler]
-            [metrics.gauges :as gauge]
-            [de.otto.goo.goo :as goo]
-            [iapetos.core :as prom]))
+            [de.otto.goo.goo :as goo]))
 
 ;; http response for a healthy system
 (def healthy-response {:status  200
@@ -33,7 +31,7 @@
       (path-filter self)))
 
 (defn lock-application [self]
-  (goo/with-default-registry (prom/set :health/locked 0))
+  (goo/update! :health/locked 0)
   (reset! (:locked self) true))
 
 (defrecord Health [config handler]
@@ -41,8 +39,8 @@
   (start [self]
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
-      (handler/register-handler handler (make-handler new-self))
-      (goo/register+execute! :health/locked (prom/gauge {}) (prom/set {} 1))
+      (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
+      (goo/register-gauge! :health/locked {} 1)
       new-self))
 
   (stop [self]

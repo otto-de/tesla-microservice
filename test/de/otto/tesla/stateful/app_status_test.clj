@@ -9,7 +9,8 @@
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.handler :as handler]
             [ring.mock.request :as mock]
-            [de.otto.status :as s]))
+            [de.otto.status :as s]
+            [de.otto.goo.goo :as goo]))
 
 (defn- serverless-system [runtime-config]
   (dissoc
@@ -101,7 +102,14 @@
     (u/with-started [started (serverless-system {:status-url "/my-status"})]
                     (let [handlers (handler/handler (:handler started))]
                       (is (= (handlers (mock/request :get "/status"))
-                             nil))))))
+                             nil)))))
+  (testing "response should be metered"
+    (goo/clear-default-registry!)
+    (u/with-started [started (serverless-system {})]
+                    (let [handlers (handler/handler (:handler started))]
+                      (handlers (mock/request :get "/status"))
+                      (is (= 1.0
+                             (first (.-buckets (.get ((goo/snapshot) :http/duration_in_s {:path "/status" :method :get :rc 200}))))))))))
 
 (deftest should-add-version-properties-to-status
   (testing "it should add the version properties"

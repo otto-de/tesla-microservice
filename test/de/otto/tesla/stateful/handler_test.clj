@@ -4,7 +4,6 @@
             [com.stuartsierra.component :as component]
             [compojure.core :as compojure]
             [ring.util.response :as resp]
-            [iapetos.registry :as ir]
             [ring.mock.request :as ring-mock]
             [de.otto.goo.goo :as goo])
   (:import (com.codahale.metrics Timer)))

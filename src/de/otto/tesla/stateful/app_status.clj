@@ -11,7 +11,6 @@
             [de.otto.tesla.util.sanitize :as san]
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]
-            [iapetos.core :as prom]
             [de.otto.goo.goo :as goo]))
 
 (defn keyword-to-status [kw]
@@ -53,15 +52,13 @@
       (update-in [:application :statusDetails] status-details-to-json)
       (update-in [:application :status] keyword-to-status)))
 
-
 ;; This should apply to the specification at
 ;; http://spec.otto.de/media_types/application_vnd_otto_monitoring_status_json.html .
 ;; Right now it applies only partially.
 (defn status-response [self _]
-  (prom/with-duration (goo/get-from-default-registry :app-status/timer)
-                      {:status  200
-                       :headers {"Content-Type" "application/json"}
-                       :body    (json/write-str (status-response-body self))}))
+  {:status  200
+   :headers {"Content-Type" "application/json"}
+   :body    (json/write-str (status-response-body self))})
 
 (defn register-status-fun [self fun]
   (swap! (:status-functions self) #(conj % fun)))
@@ -84,9 +81,6 @@
     (let [new-self (assoc self
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (goo/register! (prom/summary :app-status/timer {:quantiles {0.5   0.1
-                                                                      0.99  0.01
-                                                                      0.999 0.001}}))
       (handlers/register-handler handler (make-handler new-self))
       new-self))
 

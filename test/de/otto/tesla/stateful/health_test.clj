@@ -5,7 +5,6 @@
             [de.otto.tesla.system :as system]
             [de.otto.tesla.stateful.handler :as handler]
             [ring.mock.request :as mock]
-            [metrics.gauges :as gauge]
             [de.otto.goo.goo :as goo]))
 
 (defn- serverless-system [runtime-config]
