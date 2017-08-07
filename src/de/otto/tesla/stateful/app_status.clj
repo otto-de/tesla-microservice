@@ -57,7 +57,7 @@
 ;; This should apply to the specification at
 ;; http://spec.otto.de/media_types/application_vnd_otto_monitoring_status_json.html .
 ;; Right now it applies only partially.
-(defn status-response [self]
+(defn status-response [self _]
   (prom/with-duration (goo/get-from-default-registry :app-status/timer)
                       {:status  200
                        :headers {"Content-Type" "application/json"}
@@ -66,10 +66,15 @@
 (defn register-status-fun [self fun]
   (swap! (:status-functions self) #(conj % fun)))
 
+(defn path-filter [self handler]
+  (let [status-path (get-in self [:config :config :status-url] "/status")]
+    (c/GET status-path request (handler request))))
+
 (defn make-handler
   [self]
-  (let [status-path (get-in self [:config :config :status-url] "/status")]
-    (c/routes (c/GET status-path [] (status-response self)))))
+  (->> (partial status-response self)
+      goo/timing-middleware
+      (path-filter self)))
 
 
 (defrecord ApplicationStatus [config handler]

@@ -16,15 +16,21 @@
                          :headers {"Content-Type" "text/plain"}
                          :body    "UNHEALTHY"})
 
-(defn health-response [self]
+(defn health-response [self _]
   (if @(:locked self)
     unhealthy-response
     healthy-response))
 
+(defn path-filter [self handler]
+  (let [health-path (get-in self [:config :config :health-url] "/health")]
+    (c/GET health-path request (handler request)))
+  )
+
 (defn make-handler
   [self]
-  (let [health-path (get-in self [:config :config :health-url] "/health")]
-    (c/routes (c/GET health-path [] (health-response self)))))
+  (->> (partial health-response self)
+      goo/timing-middleware
+      (path-filter self)))
 
 (defn lock-application [self]
   (goo/with-default-registry (prom/set :health/locked 0))
@@ -35,7 +41,7 @@
   (start [self]
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
-      (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
+      (handler/register-handler handler (make-handler new-self))
       (goo/register+execute! :health/locked (prom/gauge {}) (prom/set {} 1))
       new-self))
 

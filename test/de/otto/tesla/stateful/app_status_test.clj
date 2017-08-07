@@ -58,7 +58,7 @@
   (u/with-started [started (mock-status-system {:mock {:status  :ok
                                                        :message "nevermind"}})]
                   (let [status (:app-status started)
-                        page (app-status/status-response status)
+                        page (app-status/status-response status {})
                         _ (log/info page)
                         application-body (get (json/read-str (:body page)) "application")]
                     (testing "it shows OK as application status"
@@ -79,7 +79,7 @@
   (u/with-started [started (mock-status-system {:mock {:status  :warning
                                                        :message "nevermind"}})]
                   (let [status (:app-status started)
-                        page (app-status/status-response status)
+                        page (app-status/status-response status {})
                         applicationStatus (get (get (json/read-str (:body page)) "application") "status")]
                     (is (= applicationStatus "WARNING")))))
 
