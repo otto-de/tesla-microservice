@@ -40,7 +40,8 @@
     (log/info "-> Starting healthcheck.")
     (let [new-self (assoc self :locked (atom false))]
       (handler/register-handler handler (make-handler new-self)) ;; TODO: use config directly
-      (goo/register-gauge! :health/locked {} 1)
+      (goo/register-gauge! :health/locked {})
+      (goo/update! :health/locked 1)
       new-self))
 
   (stop [self]

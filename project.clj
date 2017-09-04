@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.logging "0.4.0"]
                  [de.otto/status "0.1.3"]
-                 [de.otto/goo "0.3.4"]
+                 [de.otto/goo "1.1.0"]
                  [metrics-clojure "2.9.0"]
                  [beckon "0.1.1"]
                  [clj-time "0.14.0"]

@@ -33,7 +33,7 @@
   (testing "report registry with a counter and a gauge and labels"
     (goo/clear-default-registry!)
     (goo/register-counter! :ns/cnt {:labels [:my-label]})
-    (goo/register-gauge! :ns/gauge {} 0)
+    (goo/register-gauge! :ns/gauge {})
     (goo/inc! :ns/cnt {:my-label 1})
     (goo/inc! :ns/gauge)
     (is (= (set ["ns_gauge 1.0 1111"
