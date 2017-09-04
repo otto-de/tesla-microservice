@@ -67,8 +67,9 @@
 
   (testing "should read default properties from edn-property-files"
     (let [loaded-properties (configuring/load-config-from-edn-files {})]
-      (is (not (nil? (:server-port loaded-properties))))
-      (is (not (nil? (:metering-reporter loaded-properties)))))))
+      (is (= "9991"
+             (:server-port loaded-properties)))
+      (is (nil? (:metering-reporter loaded-properties))))))
 
 (deftest ^:unit determine-hostname-from-config-and-env-with-defined-precedence
   (testing "it prefers a explicitly configured :host-name"
