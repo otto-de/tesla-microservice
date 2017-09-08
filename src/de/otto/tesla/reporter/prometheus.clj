@@ -5,14 +5,20 @@
             [compojure.core :as c]
             [de.otto.goo.goo :as goo]))
 
-(defn metrics-response []
+(defn- metrics-response [_]
   {:status  200
    :headers {"Content-Type" "text/plain"}
    :body    (goo/text-format)})
 
-(defn make-handler [{metrics-path :metrics-path}]
-  (c/routes (c/GET metrics-path [] (metrics-response))))
 
+(defn- path-filter [{metrics-path :metrics-path} handler]
+  (c/GET metrics-path request (handler request)))
+
+(defn- make-handler
+  [prometheus-config]
+  (->> metrics-response
+       goo/timing-middleware
+       (path-filter prometheus-config)))
 
 (defn register-endpoint! [prometheus-config handler]
   (log/info "Register metrics prometheus endpoint")
