@@ -8,10 +8,10 @@
   :dependencies [[org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.logging "0.4.0"]
                  [de.otto/status "0.1.3"]
-                 [de.otto/goo "1.2.1"]
+                 [de.otto/goo "1.2.2"]
                  [metrics-clojure "2.10.0"]
                  [beckon "0.1.1"]
-                 [clj-time "0.14.0"]
+                 [clj-time "0.14.2"]
                  [clojurewerkz/propertied "1.3.0"]
                  [com.stuartsierra/component "0.3.2"]
                  [compojure "1.6.0"]
@@ -19,7 +19,7 @@
                  [metrics-clojure "2.10.0"]
                  [metrics-clojure-graphite "2.10.0"]
                  [overtone/at-at "1.2.0"]
-                 [ring/ring-core "1.6.2"]]
+                 [ring/ring-core "1.6.3"]]
 
   :exclusions [org.clojure/clojure
                org.slf4j/slf4j-nop
@@ -41,6 +41,5 @@
                                       [ch.qos.logback/logback-core "1.2.3"]
                                       [ch.qos.logback/logback-classic "1.2.3"]
                                       [ring-mock "0.1.5"]]
-                       :plugins      [[lein-ancient "0.6.10"]
-                                      [lein-release/lein-release "1.0.9"]]}}
+                       :plugins      [[lein-release/lein-release "1.0.9"]]}}
   :test-paths ["test" "test-resources" "test-utils"])
