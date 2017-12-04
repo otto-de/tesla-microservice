@@ -11,7 +11,8 @@
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
             [de.otto.tesla.stateful.handler :as handler]
-            [metrics.counters :as counters]))
+            [metrics.counters :as counters])
+  (:import (clojure.lang ExceptionInfo)))
 
 (defn wait! [system]
   (if-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
@@ -28,9 +29,24 @@
   (log/info "<- Stopping system.")
   (c/stop system))
 
+(defn- exit [code]
+  (System/exit code))
+
+(defn- boot [system]
+  (try
+    (c/start system)
+    (catch ExceptionInfo e
+      (log/error (c/ex-without-components e) "Going to shut down because of this error.")
+      (try
+        (-> e (ex-data) :system (c/stop))
+        (log/info "System stopped.")
+        (catch Exception ex
+          (log/error ex "Error on stopping the system."))
+        (finally (exit 1))))))
+
 (defn start [system]
   (log/info "-> Starting system.")
-  (let [started (c/start system)]
+  (let [started (boot system)]
     (log/info "-> System completely started.")
     (goo/register-counter! :system-startups {:description "Counts startups."})
     (goo/inc! :system-startups)

@@ -47,7 +47,8 @@
 
   (stop [self]
     (log/info "<- Stop Scheduler")
-    (ot/stop-and-reset-pool! (:pool self))
+    (when-let [pool (:pool self)]
+      (ot/stop-and-reset-pool! pool))
     self)
 
   SchedulerPool

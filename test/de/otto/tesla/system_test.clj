@@ -20,20 +20,54 @@
 (deftest ^:unit should-start-base-system-and-shut-it-down
   (testing "start then shutdown using own method"
     (let [started (system/start (system/base-system {}))
-          _ (system/stop started)]
+          _       (system/stop started)]
       (is (= "look ma, no exceptions" "look ma, no exceptions"))))
 
   (testing "start then shutdown using method from library"
     (let [started (system/start (system/base-system {}))
-          _ (c/stop started)]
+          _       (c/stop started)]
       (is (= "look ma, no exceptions" "look ma, no exceptions")))))
+
+(defrecord BombOnStartup []
+  c/Lifecycle
+  (start [self]
+    (throw (Exception. "boom!")))
+  (stop [self]
+    self))
+
+(defn new-bomb-on-startup []
+  (map->BombOnStartup {}))
+
+(deftest ^:unit should-shutdown-on-error-while-starting
+  (let [exploding-system (assoc (system/base-system {}) :bomb (c/using (new-bomb-on-startup) [:health]))
+        system-exit-calls (atom [])]
+    (with-redefs [system/exit #(swap! system-exit-calls conj %)]
+      (system/start exploding-system)
+      (is (= [1] @system-exit-calls)))))
+
+(defrecord BombEverytime []
+  c/Lifecycle
+  (start [self]
+    (throw (Exception. "boom!")))
+  (stop [self]
+    (throw (Exception. "boom!"))))
+
+(defn new-bomb-on-everytime []
+  (map->BombEverytime {}))
+
+(deftest should-exit-jvm-if-stopping-system-fails
+  (let [exploding-system (assoc (system/base-system {}) :bomb (c/using (new-bomb-on-everytime) [:health]))
+        system-exit-calls (atom [])]
+    (with-redefs [system/exit #(swap! system-exit-calls conj %)]
+      (system/start exploding-system)
+      (is (= [1] @system-exit-calls)))))
 
 (deftest should-lock-application-on-shutdown
   (testing "the lock is set"
     (u/with-started
       [started (system/base-system {:wait-ms-on-stop 10})]
       (let [healthcomp (:health started)
-            _ (system/stop started)]
+            _          (system/stop started)]
         (is (= @(:locked healthcomp) true)))))
 
   (testing "it waits on stop"
@@ -42,7 +76,7 @@
       (let [has-waited (atom false)]
         (with-redefs [system/wait! (fn [_] (reset! has-waited true))]
           (let [healthcomp (:health started)
-                _ (system/stop started)]
+                _          (system/stop started)]
             (is (= @(:locked healthcomp) true))
             (is (= @has-waited true))))))))
 
