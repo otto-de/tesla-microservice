@@ -21,32 +21,36 @@
       (Thread/sleep (Integer. wait-time))
       (catch Exception e (log/error e)))))
 
-(defn stop [system]
-  (beckon/reinit-all!)
-  (log/info "<- System will be stopped. Setting lock.")
-  (health/lock-application (:health system))
-  (wait! system)
-  (log/info "<- Stopping system.")
-  (c/stop system))
-
 (defn- exit [code]
   (System/exit code))
 
-(defn- boot [system]
+(defn- try-stop [system]
+  (try
+    (c/stop system)
+    (log/info "System stopped.")
+    (catch Exception ex
+      (log/error ex "Error on stopping the system."))
+    (finally (exit 1))))
+
+(defn stop [system]
+  (beckon/reinit-all!)
+  (when-let [health (:health system)]
+    (log/info "<- System will be stopped. Setting lock.")
+    (health/lock-application health)
+    (wait! system))
+  (log/info "<- Stopping system.")
+  (try-stop system))
+
+(defn- try-start [system]
   (try
     (c/start system)
     (catch ExceptionInfo e
       (log/error (c/ex-without-components e) "Going to shut down because of this error.")
-      (try
-        (-> e (ex-data) :system (c/stop))
-        (log/info "System stopped.")
-        (catch Exception ex
-          (log/error ex "Error on stopping the system."))
-        (finally (exit 1))))))
+      (-> e (ex-data) :system (try-stop)))))
 
 (defn start [system]
   (log/info "-> Starting system.")
-  (let [started (boot system)]
+  (let [started (try-start system)]
     (log/info "-> System completely started.")
     (goo/register-counter! :system-startups {:description "Counts startups."})
     (goo/inc! :system-startups)

@@ -18,15 +18,16 @@
             [clojure.tools.logging :as log]))
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
-  (testing "start then shutdown using own method"
-    (let [started (system/start (system/base-system {}))
-          _       (system/stop started)]
-      (is (= "look ma, no exceptions" "look ma, no exceptions"))))
+  (with-redefs [system/exit #(println "System exit would be called with code " %)]
+    (testing "start then shutdown using own method"
+      (let [started (system/start (system/base-system {}))
+            _       (system/stop started)]
+        (is (= "look ma, no exceptions" "look ma, no exceptions"))))
 
-  (testing "start then shutdown using method from library"
-    (let [started (system/start (system/base-system {}))
-          _       (c/stop started)]
-      (is (= "look ma, no exceptions" "look ma, no exceptions")))))
+    (testing "start then shutdown using method from library"
+      (let [started (system/start (system/base-system {}))
+            _       (c/stop started)]
+        (is (= "look ma, no exceptions" "look ma, no exceptions"))))))
 
 (defrecord BombOnStartup []
   c/Lifecycle
@@ -62,19 +63,38 @@
       (system/start exploding-system)
       (is (= [1] @system-exit-calls)))))
 
+(defrecord BombOnShutdown []
+  c/Lifecycle
+  (start [self]
+    self)
+  (stop [self]
+    (throw (Exception. "boom!"))))
+
+(defn new-bomb-on-shutdown []
+  (map->BombOnShutdown {}))
+
+(deftest ^:unit should-shutdown-on-error-while-starting
+  (let [exploding-system-on-stop (assoc (system/base-system {}) :bomb (c/using (new-bomb-on-shutdown) [:health]))
+        system-exit-calls (atom [])]
+    (with-redefs [system/exit #(swap! system-exit-calls conj %)]
+      (system/stop (system/start exploding-system-on-stop))
+      (is (= [1] @system-exit-calls)))))
+
 (deftest should-lock-application-on-shutdown
   (testing "the lock is set"
     (u/with-started
       [started (system/base-system {:wait-ms-on-stop 10})]
-      (let [healthcomp (:health started)
-            _          (system/stop started)]
+      (let [healthcomp (:health started)]
+        (with-redefs [system/exit #(println "System exit would be called with code " %)]
+          (system/stop started))
         (is (= @(:locked healthcomp) true)))))
 
   (testing "it waits on stop"
     (u/with-started
       [started (system/base-system {:wait-seconds-on-stop 1})]
       (let [has-waited (atom false)]
-        (with-redefs [system/wait! (fn [_] (reset! has-waited true))]
+        (with-redefs [system/wait! (fn [_] (reset! has-waited true))
+                      system/exit #(println "System exit would be called with code " %)]
           (let [healthcomp (:health started)
                 _          (system/stop started)]
             (is (= @(:locked healthcomp) true))
