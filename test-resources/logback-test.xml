@@ -12,9 +12,8 @@
     </appender>
 
 
-    <root level="${log_level:-info}">
+    <root level="${log_level:-error}">
         <appender-ref ref="consoleAppender"/>
-        <appender-ref ref="jsonAppender"/>
     </root>
 
 </configuration>
