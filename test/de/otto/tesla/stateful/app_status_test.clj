@@ -108,7 +108,7 @@
     (u/with-started [started (serverless-system {})]
                     (let [handlers (handler/handler (:handler started))]
                       (handlers (mock/request :get "/status"))
-                      (is (= 1.0
+                      (u/eventually (= 1.0
                              (first (.-buckets (.get ((goo/snapshot) :http/duration_in_s {:path "/status" :method :get :rc 200}))))))))))
 
 (deftest should-add-version-properties-to-status
