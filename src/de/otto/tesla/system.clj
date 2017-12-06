@@ -29,8 +29,8 @@
     (c/stop system)
     (log/info "System stopped.")
     (catch Exception ex
-      (log/error ex "Error on stopping the system."))
-    (finally (exit 1))))
+      (log/error ex "Error on stopping the system.")
+      (exit 1))))
 
 (defn stop [system]
   (beckon/reinit-all!)
