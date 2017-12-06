@@ -17,5 +17,6 @@
                                              (reset! state :exited))]
         (is (= :not-started @state))
         (u/with-started [_ (kalive/new-keep-alive)]
-                        (eventually (= :entered @state)))
+                        (Thread/sleep 100)                  ;stay in started state for some time
+                        (is (= :entered @state)))
         (eventually (= :exited @state))))))
