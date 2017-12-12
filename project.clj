@@ -35,7 +35,7 @@
                    :unit        :unit
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
-             :dev     {:dependencies [[org.clojure/clojure "1.8.0"]
+             :dev     {:dependencies [[org.clojure/clojure "1.9.0"]
                                       [org.slf4j/slf4j-api "1.7.25"]
                                       [ch.qos.logback/logback-core "1.2.3"]
                                       [ch.qos.logback/logback-classic "1.2.3"]
