@@ -19,7 +19,8 @@
                  [metrics-clojure "2.10.0"]
                  [metrics-clojure-graphite "2.10.0"]
                  [overtone/at-at "1.2.0"]
-                 [ring/ring-core "1.6.3"]]
+                 [ring/ring-core "1.6.3"]
+                 [ring-basic-authentication "1.0.5"]]
 
   :exclusions [org.clojure/clojure
                org.slf4j/slf4j-nop

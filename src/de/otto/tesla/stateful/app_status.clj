@@ -8,6 +8,7 @@
             [environ.core :as env]
             [de.otto.tesla.stateful.handler :as handlers]
             [de.otto.status :as s]
+            [ring.middleware.basic-authentication :as ba]
             [de.otto.tesla.util.sanitize :as san]
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]
@@ -67,26 +68,36 @@
   (let [status-path (get-in self [:config :config :status-url] "/status")]
     (c/GET status-path request (handler request))))
 
-(defn make-handler
-  [self]
+(defn make-handler [self]
   (->> (partial status-response self)
-      goo/timing-middleware
-      (path-filter self)))
+       goo/timing-middleware
+       (path-filter self)))
 
+(defn make-authenticated-handler [{:keys [authenticate-fn] :as self}]
+  (->> (partial status-response self)
+       goo/timing-middleware
+       (#(ba/wrap-basic-authentication % (partial authenticate-fn self)))
+       (path-filter self)))
 
-(defrecord ApplicationStatus [config handler]
+(defrecord ApplicationStatus [config handler authenticate-fn]
   component/Lifecycle
   (start [self]
     (log/info "-> starting Application Status")
     (let [new-self (assoc self
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (handlers/register-handler handler (make-handler new-self))
+      (handlers/register-handler handler
+                                 (if authenticate-fn
+                                   (make-authenticated-handler new-self)
+                                   (make-handler new-self)))
       new-self))
 
   (stop [self]
     (log/info "<- stopping Application Status")
     self))
 
-(defn new-app-status []
-  (map->ApplicationStatus {}))
+(defn new-app-status
+  ([]
+   (map->ApplicationStatus {}))
+  ([authenticate-fn]
+   (map->ApplicationStatus {:authenticate-fn authenticate-fn})))
