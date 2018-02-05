@@ -3,7 +3,8 @@
             [clojure.tools.logging :as log]
             [clojure.string :as string]
             [de.otto.goo.goo :as goo]
-            [metrics.core :as mcore])
+            [metrics.core :as mcore]
+            [ring.middleware.basic-authentication :as ba])
   (:import (java.util.concurrent TimeUnit)
            (java.net URI)
            (com.codahale.metrics MetricRegistry SlidingTimeWindowReservoir Timer)))
@@ -113,6 +114,12 @@
         extended-route-handler (exceptions-to-500 new-handler-fn)]
     (swap! registered-handlers #(conj % {:handler-name handler-name
                                          :handler      extended-route-handler}))))
+
+(defn register-response-fn [response-fn path-filter & {authenticate-fn :authenticate-fn :or {authenticate-fn nil}}]
+  (let [base-handler (goo/timing-middleware response-fn)]
+    (if authenticate-fn
+      (path-filter (#(ba/wrap-basic-authentication base-handler (partial authenticate-fn))))
+      (path-filter base-handler))))
 
 (defn handler [self]
   (single-handler-fn self))

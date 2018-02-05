@@ -19,7 +19,7 @@
 
 (deftest ^:unit should-have-system-status-for-runtime-config
   (u/with-started [system (serverless-system {:host-name "bar" :server-port "0123"})]
-                  (let [status        (:app-status system)
+                  (let [status (:app-status system)
                         system-status (:system (app-status/status-response-body status))]
                     (is (= (:hostname system-status) "bar"))
                     (is (= (:port system-status) "0123"))
@@ -29,14 +29,14 @@
   (with-redefs [env/env {:host-name "foo" :server-port "1234"}]
     (testing "should add host and port from env to app-status in property-file case"
       (u/with-started [system (serverless-system {:property-file-preferred true :merge-env-to-properties-config true})]
-                      (let [status        (:app-status system)
+                      (let [status (:app-status system)
                             system-status (:system (app-status/status-response-body status))]
                         (is (= (:hostname system-status) "foo"))
                         (is (= (:port system-status) "1234"))
                         (is (not (nil? (:systemTime system-status)))))))
     (testing "should add host and port from env to app-status in edn-file case"
       (u/with-started [system (serverless-system {})]
-                      (let [status        (:app-status system)
+                      (let [status (:app-status system)
                             system-status (:system (app-status/status-response-body status))]
                         (is (= (:hostname system-status) "foo"))
                         (is (= (:port system-status) "9991"))
@@ -58,9 +58,9 @@
 (deftest ^:unit should-show-applicationstatus
   (u/with-started [started (mock-status-system {:mock {:status  :ok
                                                        :message "nevermind"}})]
-                  (let [status           (:app-status started)
-                        page             (app-status/status-response status {})
-                        _                (log/info page)
+                  (let [status (:app-status started)
+                        page (app-status/status-response status {})
+                        _ (log/info page)
                         application-body (get (json/read-str (:body page)) "application")]
                     (testing "it shows OK as application status"
                       (is (= (get application-body "status")
@@ -79,8 +79,8 @@
 (deftest ^:unit should-show-warning-as-application-status
   (u/with-started [started (mock-status-system {:mock {:status  :warning
                                                        :message "nevermind"}})]
-                  (let [status            (:app-status started)
-                        page              (app-status/status-response status {})
+                  (let [status (:app-status started)
+                        page (app-status/status-response status {})
                         applicationStatus (get (get (json/read-str (:body page)) "application") "status")]
                     (is (= applicationStatus "WARNING")))))
 
@@ -109,13 +109,13 @@
                     (let [handlers (handler/handler (:handler started))]
                       (handlers (mock/request :get "/status"))
                       (u/eventually (= 1.0
-                             (last (.-buckets (.get ((goo/snapshot) :http/duration_in_s {:path "/status" :method :get :rc 200}))))))))))
+                                       (last (.-buckets (.get ((goo/snapshot) :http/duration_in_s {:path "/status" :method :get :rc 200}))))))))))
 
 (deftest should-add-version-properties-to-status
   (testing "it should add the version properties"
     (u/with-started [started (serverless-system {})]
-                    (let [handlers   (handler/handler (:handler started))
-                          request    (mock/request :get "/status")
+                    (let [handlers (handler/handler (:handler started))
+                          request (mock/request :get "/status")
                           status-map (json/read-json (:body (handlers request)))]
                       (is (= (get-in status-map [:application :version]) "test.version"))
                       (is (= (get-in status-map [:application :git]) "test.githash"))))))
@@ -132,3 +132,16 @@
   (testing "it should use strict stategy if something else is configured"
     (let [config {:status-aggregation "unknown"}]
       (is (= (app-status/aggregation-strategy config) s/strict-strategy)))))
+
+(defn start-authenticated-system [user password]
+  (let [auth-fn (fn [usr pw] (and (= user usr) (= password pw)))
+        system (assoc (serverless-system {}) :app-status (c/using (app-status/new-app-status auth-fn) [:config :handler]))
+        started-system (c/start-system system)]
+    (handler/handler (:handler started-system))))
+
+(deftest authentication
+  (let [handlers (start-authenticated-system "some-user" "some-password")]
+    (testing "it should allow access if authentication succeeds"
+      (is (= 200 (:status (handlers (mock/header (mock/request :get "/status") "authorization" "Basic c29tZS11c2VyOnNvbWUtcGFzc3dvcmQ="))))))
+    (testing "it should deny access if authentication fails"
+      (is (= 401 (:status (handlers (mock/header (mock/request :get "/status") "authorization" "Basic c29tZS11c2VyOnNvbWUtcGEzc3dvcmQ="))))))))
