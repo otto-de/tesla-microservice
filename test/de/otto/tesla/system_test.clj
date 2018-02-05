@@ -18,18 +18,12 @@
             [clojure.tools.logging :as log]))
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
-  (with-redefs [system/exit #(println "System exit would be called with code " %)]
-    (testing "start then shutdown using own method"
-      (let [system-exit-calls (atom [])
-            started (system/start (system/base-system {}))]
-        (with-redefs [system/exit #(swap! system-exit-calls conj %)]
-          (system/stop started)
-          (is (= [] @system-exit-calls)))))
-
-    (testing "start then shutdown using method from library"
-      (let [started (system/start (system/base-system {}))
-            _       (c/stop started)]
-        (is (= "look ma, no exceptions" "look ma, no exceptions"))))))
+  (testing "start then shutdown using own method"
+    (let [system-exit-calls (atom [])
+          started (system/start (system/base-system {}))]
+      (with-redefs [system/exit #(swap! system-exit-calls conj %)]
+        (system/stop started)
+        (is (= [0] @system-exit-calls))))))
 
 (defrecord BombOnStartup []
   c/Lifecycle
@@ -98,7 +92,7 @@
         (with-redefs [system/wait! (fn [_] (reset! has-waited true))
                       system/exit #(println "System exit would be called with code " %)]
           (let [healthcomp (:health started)
-                _          (system/stop started)]
+                _ (system/stop started)]
             (is (= @(:locked healthcomp) true))
             (is (= @has-waited true))))))))
 

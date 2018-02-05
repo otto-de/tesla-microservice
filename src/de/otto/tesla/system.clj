@@ -24,10 +24,11 @@
 (defn- exit [code]
   (System/exit code))
 
-(defn- try-stop [system]
+(defn- try-stop [system exit-code]
   (try
     (c/stop system)
     (log/info "System stopped.")
+    (exit exit-code)
     (catch Exception ex
       (log/error ex "Error on stopping the system.")
       (exit 1))))
@@ -39,14 +40,14 @@
     (health/lock-application health)
     (wait! system))
   (log/info "<- Stopping system.")
-  (try-stop system))
+  (try-stop system 0))
 
 (defn- try-start [system]
   (try
     (c/start system)
     (catch ExceptionInfo e
       (log/error (c/ex-without-components e) "Going to shut down because of this error.")
-      (-> e (ex-data) :system (try-stop)))))
+      (-> e (ex-data) :system (try-stop 1)))))
 
 (defn start [system]
   (log/info "-> Starting system.")
