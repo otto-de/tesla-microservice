@@ -118,7 +118,7 @@
 (defn register-response-fn [response-fn path-filter & {authenticate-fn :authenticate-fn :or {authenticate-fn nil}}]
   (let [base-handler (goo/timing-middleware response-fn)]
     (if authenticate-fn
-      (path-filter (#(ba/wrap-basic-authentication base-handler (partial authenticate-fn))))
+      (path-filter (#(ba/wrap-basic-authentication base-handler authenticate-fn)))
       (path-filter base-handler))))
 
 (defn handler [self]
