@@ -35,7 +35,7 @@
   (let [config {:metrics {:prometheus {:metrics-path metrics-path}}}
         user "some-user"
         password "some-password"
-        auth-fn (fn [usr pw] (and (= user usr) (= password pw)))
+        auth-fn (fn [{:keys [metrics]} usr pw] (and (= metrics (:metrics config)) (= user usr) (= password pw)))
         system-handler (handlers config auth-fn)]
     (testing "it should allow access if authentication succeeds"
       (is (= 200 (rc-status-request system-handler user password))))

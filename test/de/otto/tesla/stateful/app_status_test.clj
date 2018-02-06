@@ -134,8 +134,9 @@
       (is (= (app-status/aggregation-strategy config) s/strict-strategy)))))
 
 (defn start-authenticated-system [user password]
-  (let [auth-fn (fn [usr pw] (and (= user usr) (= password pw)))
-        system (assoc (serverless-system {}) :app-status (c/using (app-status/new-app-status auth-fn) [:config :handler]))
+  (let [config {}
+        auth-fn (fn [_config usr pw] (and (= user usr) (= password pw)))
+        system (assoc (serverless-system config) :app-status (c/using (app-status/new-app-status auth-fn) [:config :handler]))
         started-system (c/start-system system)]
     (handler/handler (:handler started-system))))
 

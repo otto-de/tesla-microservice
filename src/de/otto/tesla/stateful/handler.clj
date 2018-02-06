@@ -115,15 +115,15 @@
     (swap! registered-handlers #(conj % {:handler-name handler-name
                                          :handler      extended-route-handler}))))
 
-(defn- wrap-auth [handler authenticate-fn]
+(defn- wrap-auth [handler-fn authenticate-fn config]
   (if authenticate-fn
-    (#(ba/wrap-basic-authentication handler authenticate-fn))
-    handler))
+    (#(ba/wrap-basic-authentication handler-fn (partial authenticate-fn config)))
+    handler-fn))
 
-(defn- wrap-instrumentation [handler instrumentation?]
+(defn- wrap-instrumentation [handler-fn instrumentation?]
   (if instrumentation?
-    (goo/timing-middleware handler)
-    handler))
+    (goo/timing-middleware handler-fn)
+    handler-fn))
 
 (defn register-response-fn [self response-fn path-filter
                             & {authenticate-fn  :authenticate-fn
@@ -132,7 +132,7 @@
                                                  instrumentation? true}}]
   (-> response-fn
       (wrap-instrumentation instrumentation?)
-      (wrap-auth authenticate-fn)
+      (wrap-auth authenticate-fn (get-in self [:config :config]))
       (path-filter)
       (#(register-handler self %))))
 
