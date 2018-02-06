@@ -68,9 +68,6 @@
   (let [status-path (get-in self [:config :config :status-url] "/status")]
     (c/GET status-path request (handler request))))
 
-(defn make-handler [{:keys [authenticate-fn] :as self}]
-  (handlers/register-response-fn (partial status-response self) (partial path-filter self) :authenticate-fn authenticate-fn))
-
 (defrecord ApplicationStatus [config handler authenticate-fn]
   component/Lifecycle
   (start [self]
@@ -78,7 +75,10 @@
     (let [new-self (assoc self
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (handlers/register-handler handler (make-handler new-self))
+      (handlers/register-response-fn handler
+                                     (partial status-response new-self)
+                                     (partial path-filter new-self)
+                                     :authenticate-fn authenticate-fn)
       new-self))
 
   (stop [self]

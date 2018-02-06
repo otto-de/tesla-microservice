@@ -14,12 +14,6 @@
 (defn- path-filter [metrics-path handler]
   (c/GET metrics-path request (handler request)))
 
-(defn- make-handler
-  [prometheus-config authenticate-fn]
-  (handlers/register-response-fn metrics-response
-                                 (partial path-filter prometheus-config)
-                                 :authenticate-fn authenticate-fn))
-
-(defn register-endpoint! [{metrics-path :metrics-path} handler authenticate-fn]
+(defn register-endpoint! [{metrics-path :metrics-path :as config} handler authenticate-fn]
   (log/info "Register metrics prometheus endpoint")
-  (handler/register-handler handler (make-handler metrics-path authenticate-fn)))
+  (handlers/register-response-fn handler metrics-response (partial path-filter metrics-path) :authenticate-fn authenticate-fn))

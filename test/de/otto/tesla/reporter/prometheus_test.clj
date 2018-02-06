@@ -9,11 +9,12 @@
 
 (defn- start-authenticated-system [runtime-config user password]
   (let [auth-fn (fn [usr pw] (and (= user usr) (= password pw)))
-        system (dissoc (assoc (system/base-system runtime-config) :metering (c/using (metering/new-metering auth-fn) [:config :handler])) :server)
+        metering-with-auth (c/using (metering/new-metering auth-fn) [:config :handler])
+        system (-> (system/base-system runtime-config)
+                   (dissoc :server)
+                   (assoc :metering metering-with-auth))
         started-system (c/start-system system)]
-    (handler/handler (:handler started-system)))
-
-  )
+    (handler/handler (:handler started-system))))
 
 (deftest authentication
   (let [metrics-path "/metrics"
