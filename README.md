@@ -133,6 +133,26 @@ See example configuration below for all supported reporters.
           :prometheus          {:metrics-path "/metrics"}}
 ```
 
+## Securing internal info endpoints
+The Tesla-Microservice comes with endpoints that hold information about the internal state of your application.
+Those endpoints can be the app-status or even metrics (Prometheus, see above).
+To secure those endpoints you can register the app-status or metrics component in the main system map with an
+authentication function.
+
+E.g.:
+
+```clojure
+(defn authenticated? [config user password]
+  (and (= user (:username config))              ; get username from config map -> config map looks like this {:username "username" :password "password"}
+       (= password (:password config))))        ; get password from config map
+
+(defn example-system [runtime-config]
+  (-> (de.otto.tesla.system/base-system runtime-config)
+      (assoc
+        :app-status (com.stuartsierra.component/using (de.otto.tesla.stateful.app-status/new-app-status authenticated?) [:config ...])
+        :metering (com.stuartsierra.component/using (de.otto.tesla.stateful.metering/new-metering authenticated?) [:config ...]))
+      ...)) 
+```
 
 ## Addons
 
