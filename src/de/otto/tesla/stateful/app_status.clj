@@ -79,6 +79,8 @@
                                      (partial status-response new-self)
                                      (partial path-filter new-self)
                                      :authenticate-fn authenticate-fn)
+      (goo/register-gauge! :build/info {:labels [:version :revision] :description "Constant '1' value labeled by version and revision of the service."})
+      (goo/inc! :build/info {:version (-> config :version :version) :revision (-> config :version :commit)})
       new-self))
 
   (stop [self]
