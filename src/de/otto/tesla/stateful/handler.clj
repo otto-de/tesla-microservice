@@ -4,7 +4,8 @@
             [clojure.string :as string]
             [de.otto.goo.goo :as goo]
             [metrics.core :as mcore]
-            [ring.middleware.basic-authentication :as ba])
+            [ring.middleware.basic-authentication :as ba]
+            [ring.middleware.reload :refer [wrap-reload]])
   (:import (java.util.concurrent TimeUnit)
            (java.net URI)
            (com.codahale.metrics MetricRegistry SlidingTimeWindowReservoir Timer)))
@@ -136,8 +137,10 @@
       (path-filter)
       (#(register-handler self %))))
 
-(defn handler [self]
-  (single-handler-fn self))
+(defn handler [{:keys [config] :as self}]
+  (if (get-in config [:config :handler :hot-reload?])
+    (wrap-reload (single-handler-fn self))
+    (single-handler-fn self)))
 
 (defrecord Handler [config]
   component/Lifecycle

@@ -23,6 +23,7 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 * Deliver a json status report.
 * Report to graphite using the metrics library.
 * Manage handlers using ring.
+* Optional auto-hot-reloading of changed source files
 * Shutdown gracefully. If necessary delayed, so load-balancers have time to notice.
 
 ## Examples
@@ -109,7 +110,7 @@ your configuration:
 ENV-variables are read with [environ](https://github.com/weavejester/environ). To see
 which keyword represents which ENV-var have a look in their docs. 
 
-### Cofiguring via properties files
+### Configuring via properties files
 
 For backwards compatibility, it is also possible to load config from `properties`-files. 
 You'll have to pass `{:property-file-preferred true}` as a runtime config to the base-system.
@@ -132,6 +133,20 @@ See example configuration below for all supported reporters.
                                 :include-hostname :first-part}
           :prometheus          {:metrics-path "/metrics"}}
 ```
+
+## Automatic hot-reloading of changed source files
+
+Restarting the whole system after a small change can be cumbersome.
+A _tesla-microservice_ can detect changes to your source files and 
+load them into a running server. Add this to your config, to check
+for changes on each request to your system: 
+
+```edn
+{:handler {:hot-reload? true}}
+```
+
+_Note_: This should only be enabled in development mode. 
+Use your `local.edn` to enable this feature safely.
 
 ## Securing internal info endpoints
 The Tesla-Microservice comes with endpoints that hold information about the internal state of your application.
