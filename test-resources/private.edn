@@ -1,0 +1,4 @@
+; this is checked in for testing reasons.
+; In your projects you should add 'private.edn' to .gitignore.
+
+{:very :private}

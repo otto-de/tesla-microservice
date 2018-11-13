@@ -35,6 +35,11 @@
                     (is (= (:foo-prop edn-conf) nil))
                     (is (= (get-in edn-conf [:foo :edn]) "baz")))))
 
+(deftest ^:unit should-read-property-from-private-edn-file
+  (u/with-started [started (test-system {})]
+                  (let [conf (get-in started [:conf :config])]
+                    (is (= (:very conf) :private)))))
+
 (deftest ^:unit should-read-property-from-custom-edn-file
   (with-redefs [env/env {:config-file "./test-resources/test.edn"}]
     (u/with-started [started (test-system {})]

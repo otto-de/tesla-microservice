@@ -46,7 +46,8 @@
         defaults (load-fn (str default-cfg-name ending) :resource)
         application (load-fn (or (:config-file env/env) (str "application" ending)) :resource-or-file)
         local (load-fn (str "local" ending) :resource)
-        configs (filter some? [defaults application local runtime-config])]
+        private (load-fn (str "private" ending) :resource)
+        configs (filter some? [defaults application local private runtime-config])]
     (apply merge-fn configs)))
 
 (defn load-config-from-edn-files [runtime-config]

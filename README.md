@@ -147,6 +147,7 @@ for changes on each request to your system:
 
 _Note_: This should only be enabled in development mode. 
 Use your `local.edn` to enable this feature safely.
+You can add a `private.edn` as well for personal configurations. This file should be added to your `.gitignore`.
 
 ## Securing internal info endpoints
 The Tesla-Microservice comes with endpoints that hold information about the internal state of your application.

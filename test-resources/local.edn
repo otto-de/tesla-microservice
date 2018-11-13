@@ -3,4 +3,5 @@
  :status-url            #ts/env [:my-custom-status-url "/status"]
  :prop-without-fallback #ts/env [:prop-without-fallback]
  :metric                {:console {:interval-in-s 120}}
- :foo                   {:edn "baz"}}
+ :foo                   {:edn "baz"}
+ :very                  :local}
