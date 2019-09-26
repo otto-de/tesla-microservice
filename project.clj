@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.13.1-SNAPSHOT"
+(defproject de.otto/tesla-microservice "0.13.1"
   :description "basic microservice."
   :url "https://github.com/otto-de/tesla-microservice"
   :license {:name "Apache License 2.0"
@@ -6,21 +6,21 @@
   :scm {:name "git"
         :url  "https://github.com/otto-de/tesla-microservice"}
   :dependencies [[org.clojure/data.json "0.2.6"]
-                 [org.clojure/tools.logging "0.4.1"]
+                 [org.clojure/tools.logging "0.5.0"]
                  [de.otto/status "0.1.3"]
-                 [de.otto/goo "1.2.10"]
+                 [de.otto/goo "1.2.11"]
                  [metrics-clojure "2.10.0"]
                  [beckon "0.1.1"]
-                 [clj-time "0.14.4"]
+                 [clj-time "0.15.2"]
                  [clojurewerkz/propertied "1.3.0"]
-                 [com.stuartsierra/component "0.3.2"]
+                 [com.stuartsierra/component "0.4.0"]
                  [compojure "1.6.1"]
                  [environ "1.1.0"]
                  [metrics-clojure "2.10.0"]
                  [metrics-clojure-graphite "2.10.0"]
                  [overtone/at-at "1.2.0"]
-                 [ring/ring-core "1.6.3"]
-                 [ring/ring-devel "1.6.3"]
+                 [ring/ring-core "1.7.1"]
+                 [ring/ring-devel "1.7.1"]
                  [ring-basic-authentication "1.0.5"]]
 
   :exclusions [org.clojure/clojure
@@ -37,8 +37,8 @@
                    :unit        :unit
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
-             :dev     {:dependencies [[org.clojure/clojure "1.9.0"]
-                                      [org.slf4j/slf4j-api "1.7.25"]
+             :dev     {:dependencies [[org.clojure/clojure "1.10.1"]
+                                      [org.slf4j/slf4j-api "1.7.28"]
                                       [ch.qos.logback/logback-core "1.2.3"]
                                       [ch.qos.logback/logback-classic "1.2.3"]
                                       [ring-mock "0.1.5"]]
