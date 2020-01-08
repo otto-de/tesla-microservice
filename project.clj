@@ -5,10 +5,10 @@
             :url  "http://www.apache.org/license/LICENSE-2.0.html"}
   :scm {:name "git"
         :url  "https://github.com/otto-de/tesla-microservice"}
-  :dependencies [[org.clojure/data.json "0.2.6"]
+  :dependencies [[org.clojure/data.json "0.2.7"]
                  [org.clojure/tools.logging "0.5.0"]
                  [de.otto/status "0.1.3"]
-                 [de.otto/goo "1.2.11"]
+                 [de.otto/goo "1.2.12"]
                  [metrics-clojure "2.10.0"]
                  [beckon "0.1.1"]
                  [clj-time "0.15.2"]
@@ -19,8 +19,8 @@
                  [metrics-clojure "2.10.0"]
                  [metrics-clojure-graphite "2.10.0"]
                  [overtone/at-at "1.2.0"]
-                 [ring/ring-core "1.7.1"]
-                 [ring/ring-devel "1.7.1"]
+                 [ring/ring-core "1.8.0"]
+                 [ring/ring-devel "1.8.0"]
                  [ring-basic-authentication "1.0.5"]]
 
   :exclusions [org.clojure/clojure
@@ -38,7 +38,7 @@
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
              :dev     {:dependencies [[org.clojure/clojure "1.10.1"]
-                                      [org.slf4j/slf4j-api "1.7.28"]
+                                      [org.slf4j/slf4j-api "1.7.30"]
                                       [ch.qos.logback/logback-core "1.2.3"]
                                       [ch.qos.logback/logback-classic "1.2.3"]
                                       [ring-mock "0.1.5"]]
