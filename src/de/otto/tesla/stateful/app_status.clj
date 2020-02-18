@@ -68,7 +68,7 @@
   (let [status-path (get-in self [:config :config :status-url] "/status")]
     (c/GET status-path request (handler request))))
 
-(defrecord ApplicationStatus [config handler authenticate-fn]
+(defrecord ApplicationStatus [config handler authenticate-type authenticate-fn]
   component/Lifecycle
   (start [self]
     (log/info "-> starting Application Status")
@@ -78,6 +78,7 @@
       (handlers/register-response-fn handler
                                      (partial status-response new-self)
                                      (partial path-filter new-self)
+                                     :authenticate-type authenticate-type
                                      :authenticate-fn authenticate-fn)
       (goo/register-gauge! :build/info {:labels [:version :revision] :description "Constant '1' value labeled by version and revision of the service."})
       (goo/inc! :build/info {:version (-> config :version :version) :revision (-> config :version :commit)})
@@ -91,4 +92,7 @@
   ([]
    (map->ApplicationStatus {}))
   ([authenticate-fn]
-   (map->ApplicationStatus {:authenticate-fn authenticate-fn})))
+   (map->ApplicationStatus {:authenticate-fn authenticate-fn}))
+  ([authenticate-type authenticate-fn]
+   (map->ApplicationStatus {:authenticate-type authenticate-type
+                            :authenticate-fn authenticate-fn})))

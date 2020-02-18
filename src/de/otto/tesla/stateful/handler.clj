@@ -111,15 +111,24 @@
                      :handler       new-handler-fn}))))
 
 (defn register-handler [{:keys [registered-handlers]} new-handler-fn]
-  (let [handler-name (new-handler-name @registered-handlers)
+  (let [handler-name           (new-handler-name @registered-handlers)
         extended-route-handler (exceptions-to-500 new-handler-fn)]
     (swap! registered-handlers #(conj % {:handler-name handler-name
                                          :handler      extended-route-handler}))))
 
-(defn- wrap-auth [handler-fn authenticate-fn config]
-  (if authenticate-fn
-    (#(ba/wrap-basic-authentication handler-fn (partial authenticate-fn config)))
-    handler-fn))
+(defn req-wants-basic-auth [request]
+  (some? (some->> (:headers request)
+                  (clojure.walk/keywordize-keys)
+                  (:authorization)
+                  (re-find #"^Basic (.*)$")
+                  (last))))
+
+(defn- wrap-auth [handler-fn authenticate-type authenticate-fn config]
+  (fn [request]
+    (cond (nil? authenticate-fn) handler-fn
+          (not= :keycloak authenticate-type) (#(ba/wrap-basic-authentication handler-fn (partial authenticate-fn config)))
+          (and (= :keycloak authenticate-type) (req-wants-basic-auth request)) (#(ba/wrap-basic-authentication handler-fn (partial authenticate-fn config)))
+          :else handler-fn)))
 
 (defn- wrap-instrumentation [handler-fn instrumentation?]
   (if instrumentation?
@@ -127,13 +136,15 @@
     handler-fn))
 
 (defn register-response-fn [self response-fn path-filter
-                            & {authenticate-fn  :authenticate-fn
-                               instrumentation? :instrumentation?
-                               :or              {authenticate-fn  nil
-                                                 instrumentation? true}}]
+                            & {authenticate-type :authenticate-type
+                               authenticate-fn   :authenticate-fn
+                               instrumentation?  :instrumentation?
+                               :or               {authenticate-fn   nil
+                                                  instrumentation?  true
+                                                  authenticate-type :keycloak}}]
   (-> response-fn
       (wrap-instrumentation instrumentation?)
-      (wrap-auth authenticate-fn (get-in self [:config :config]))
+      (wrap-auth authenticate-type authenticate-fn (get-in self [:config :config]))
       (path-filter)
       (#(register-handler self %))))
 
