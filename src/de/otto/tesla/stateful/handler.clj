@@ -141,7 +141,7 @@
                                instrumentation?  :instrumentation?
                                :or               {authenticate-fn   nil
                                                   instrumentation?  true
-                                                  authenticate-type :keycloak}}]
+                                                  authenticate-type nil}}]
   (-> response-fn
       (wrap-instrumentation instrumentation?)
       (wrap-auth authenticate-type authenticate-fn (get-in self [:config :config]))
