@@ -10,8 +10,7 @@
             [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.stateful.handler :as handler]
-            [metrics.counters :as counters])
+            [de.otto.tesla.stateful.handler :as handler])
   (:import (clojure.lang ExceptionInfo)))
 
 (defn wait! [system]

@@ -7,15 +7,9 @@
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.tesla.stateful.configuring :as configuring]
             [environ.core :as env]
-            [metrics.counters :as counter]
-            [metrics.histograms :as hists]
-            [metrics.gauges :as gauges]
             [de.otto.tesla.util.test-utils :refer [eventually]]
             [overtone.at-at :as at]
-            [de.otto.tesla.stateful.scheduler :as scheduler]
-            [metrics.core :as metrics]
-            [de.otto.tesla.stateful.metering :as metering]
-            [clojure.tools.logging :as log]))
+            [de.otto.tesla.stateful.scheduler :as scheduler]))
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
   (testing "start then shutdown using own method"

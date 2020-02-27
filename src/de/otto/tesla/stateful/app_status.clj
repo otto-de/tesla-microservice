@@ -10,7 +10,6 @@
             [de.otto.status :as s]
             [ring.middleware.basic-authentication :as ba]
             [de.otto.tesla.util.sanitize :as san]
-            [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.goo.goo :as goo]
             [de.otto.tesla.middleware.auth :as auth]))
