@@ -2,6 +2,12 @@
 
 _tesla-microservice_ is used for a number of different services now. Still it is a work in progress. This section will document changes and give instructions on breaking ones. Likely you will find corresponding changes in [tesla-examples](https://github.com/otto-de/tesla-examples).
 
+### 0.14.0
+This release cleans up remnants of past eperiments and unused functionality. This leads to breaking changes. 
+
+- Remove ```register-timed-handler``` from ```handler``` namespace. Use ```goo/timing-middleware``` instead.
+
+
 ### 0.11.0
 Utilize the iapetos library as main metrics library. Tesla-Microservice is now able to report to graphite as well as prometheus.
 For configuration of graphite and prometheus reporters please see the updated README.
