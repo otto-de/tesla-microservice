@@ -8,7 +8,7 @@
     (let [handler (-> (handler/new-handler) (component/start))]
       (handler/register-handler handler (fn [r] (when (= r :ping) :pong)))
       (handler/register-handler handler (fn [r] (when (= r :pong) :ping)))
-      (is (= ["tesla-handler-0" "tesla-handler-1"] (map :handler-name @(:registered-handlers handler))))
+      (is (= 2  (count @(:registered-handlers handler))))
       (is (= :pong ((handler/handler handler) :ping)))
       (is (= :ping ((handler/handler handler) :pong))))))
 

@@ -14,32 +14,30 @@
   (mock/header request "authorization" (str "Basic " (to-base64 (str user ":" password)))))
 
 (defn system [runtime-config auth-fn]
-  (if auth-fn
-    (dissoc (assoc (system/base-system runtime-config) :metering (c/using (metering/new-metering auth-fn) [:config :handler])) :server)
-    (system/base-system runtime-config)))
+  (-> (system/base-system runtime-config)
+      (assoc :metering (c/using (metering/new-metering auth-fn) [:config :handler]))
+      (dissoc :server)))
 
 (defn- handlers [runtime-config & [auth-fn]]
-  (let [system (system runtime-config auth-fn)
+  (let [system         (system runtime-config auth-fn)
         started-system (c/start-system system)]
     (handler/handler (:handler started-system))))
 
-(def metrics-path "/metrics")
-
-(defn- rc-status-request [system-handler user password]
-  (-> (mock/request :get metrics-path)
+(defn- rc-metrics-request [system-handler user password]
+  (-> (mock/request :get "/metrics")
       (auth-header user password)
       (system-handler)
       :status))
 
 (deftest authentication
-  (let [config {:metrics {:prometheus {:metrics-path metrics-path}}}
-        user "some-user"
-        password "some-password"
-        auth-fn (fn [{:keys [metrics]} usr pw] (and (= metrics (:metrics config)) (= user usr) (= password pw)))
+  (let [config         {:metrics {:prometheus {:metrics-path "/metrics"}}}
+        auth-fn        (fn [{:keys [metrics]} usr pw]
+                         (and
+                           (= "some-user" usr) (= "some-password" pw)))
         system-handler (handlers config auth-fn)]
     (testing "it should allow access if authentication succeeds"
-      (is (= 200 (rc-status-request system-handler user password))))
+      (is (= 200 (rc-metrics-request system-handler "some-user" "some-password"))))
     (testing "it should deny access if authentication fails"
-      (is (= 401 (rc-status-request system-handler user "wrong password"))))))
+      (is (= 401 (rc-metrics-request system-handler "some-user" "wrong password"))))))
 
 

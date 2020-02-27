@@ -12,7 +12,8 @@
             [de.otto.tesla.util.sanitize :as san]
             [metrics.timers :as timers]
             [de.otto.tesla.stateful.configuring :as configuring]
-            [de.otto.goo.goo :as goo]))
+            [de.otto.goo.goo :as goo]
+            [de.otto.tesla.middleware.auth :as auth]))
 
 (defn keyword-to-status [kw]
   (str/upper-case (name kw)))
@@ -68,6 +69,12 @@
   (let [status-path (get-in self [:config :config :status-url] "/status")]
     (c/GET status-path request (handler request))))
 
+(defn mk-handler [authenticate-type authenticate-fn self]
+  ((->> (partial status-response self)
+        (goo/timing-middleware)
+        (auth/wrap-auth authenticate-type authenticate-fn (get-in self [:config :config]))
+        (partial path-filter self))))
+
 (defrecord ApplicationStatus [config handler authenticate-type authenticate-fn]
   component/Lifecycle
   (start [self]
@@ -75,11 +82,8 @@
     (let [new-self (assoc self
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
-      (handlers/register-response-fn handler
-                                     (partial status-response new-self)
-                                     (partial path-filter new-self)
-                                     :authenticate-type authenticate-type
-                                     :authenticate-fn authenticate-fn)
+
+      (handlers/register-handler handler (mk-handler authenticate-type authenticate-fn new-self))
       (goo/register-gauge! :build/info {:labels [:version :revision] :description "Constant '1' value labeled by version and revision of the service."})
       (goo/inc! :build/info {:version (-> config :version :version) :revision (-> config :version :commit)})
       new-self))
