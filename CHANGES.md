@@ -6,9 +6,11 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 This release cleans up remnants of past eperiments and unused functionality. This leads to breaking changes. 
 
 - Remove ```register-timed-handler``` from ```handler``` namespace. Use ```goo/timing-middleware``` instead.
-- Remove ```register-response-fn``` from handler namespace. This was only used internally.
+- Remove ```register-response-fn``` from ```handler``` namespace. This was only used internally.
 - Move internally used middlewares to separate namespaces.
-- Remove support for reporting via graphite. Only support prometheus reporting via goo and iapetos for the moment.
+- Remove support for reporting via graphite from ```metering``` namespace. Only support prometheus reporting via goo and iapetos for the moment.
+- Remove ```SchedulerPool``` protocol from ```scheduler``` namespace. Use ```(:pool scheduler)``` instead of ```(SchedulerPool/pool scheduler)```
+           
 
 
 ### 0.11.0

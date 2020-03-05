@@ -21,22 +21,22 @@
   (testing "Function gets called every 20 ms"
     (u/with-started [system (serverless-system {:scheduler {:cpu-count 1}})]
                     (let [scheduler (:scheduler system)
-                          calls (atom 0)]
-                      (at/every 20 #(swap! calls inc) (schedule/pool scheduler))
+                          calls     (atom 0)]
+                      (at/every 20 #(swap! calls inc) (:pool scheduler))
                       (eventually (= @calls 3)))))
 
   (testing "Function gets called every 20 ms with initial delay"
     (u/with-started [system (serverless-system {:scheduler {:cpu-count 1}})]
                     (let [scheduler (:scheduler system)
-                          calls (atom 0)]
-                      (at/every 20 #(swap! calls inc) (schedule/pool scheduler) :initial-delay 20)
+                          calls     (atom 0)]
+                      (at/every 20 #(swap! calls inc) (:pool scheduler) :initial-delay 20)
                       (eventually (= @calls 2)))))
 
   (testing "Function gets called every 20 ms AFTER the function last returned"
     (u/with-started [system (serverless-system {:scheduler {:cpu-count 1}})]
                     (let [scheduler (:scheduler system)
-                          calls (atom 0)]
-                      (at/interspaced 20 #((Thread/sleep 10) (swap! calls inc)) (schedule/pool scheduler))
+                          calls     (atom 0)]
+                      (at/interspaced 20 #((Thread/sleep 10) (swap! calls inc)) (:pool scheduler))
                       (eventually (= @calls 1))))))
 
 (defn assert-map-args! [args-assert-val]
@@ -48,16 +48,16 @@
                               :stop-delayed?  false
                               :stop-periodic? true}}]
       (with-redefs [at/stop-and-reset-pool! (constantly nil)
-                    at/mk-pool (assert-map-args! {:cpu-count      2
-                                                  :stop-delayed?  false
-                                                  :stop-periodic? true})]
+                    at/mk-pool              (assert-map-args! {:cpu-count      2
+                                                               :stop-delayed?  false
+                                                               :stop-periodic? true})]
         (u/with-started [system (serverless-system config)]
                         (is ())))))
 
   (testing "should pass nothing to pool if nothing is specified"
     (let [config {:some-other :property}]
       (with-redefs [at/stop-and-reset-pool! (constantly nil)
-                    at/mk-pool (assert-map-args! {:cpu-count 0})]
+                    at/mk-pool              (assert-map-args! {:cpu-count 0})]
         (u/with-started [system (serverless-system config)]
                         (is ()))))))
 
@@ -68,8 +68,8 @@
                     (let [{:keys [scheduler handler]} system
                           handler-fn (handler/handler handler)]
                       (testing "should register and return status-details in app-status"
-                        (at/every 20 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 1")
-                        (at/interspaced 20 #(Thread/sleep 10) (schedule/pool scheduler) :desc "Job 2")
+                        (at/every 20 #(Thread/sleep 10) (:pool scheduler) :desc "Job 1")
+                        (at/interspaced 20 #(Thread/sleep 10) (:pool scheduler) :desc "Job 2")
                         (eventually (= {:poolInfo      {:active    0
                                                         :poolSize  2
                                                         :queueSize 2}
@@ -94,11 +94,11 @@
   (testing "should startup pool with core-pool-size of 0 if nothing else is configured"
     (u/with-started [system (serverless-system {})]
                     (let [{:keys [scheduler]} system
-                          ^ScheduledThreadPoolExecutor thread-pool (:thread-pool @(:pool-atom (scheduler/pool scheduler)))]
+                          ^ScheduledThreadPoolExecutor thread-pool (:thread-pool @(:pool-atom (:pool scheduler)))]
                       (is (= 0 (.getCorePoolSize thread-pool))))))
 
   (testing "should startup pool with configured core-pool-size"
     (u/with-started [system (serverless-system {:scheduler {:cpu-count 2}})]
                     (let [{:keys [scheduler]} system
-                          ^ScheduledThreadPoolExecutor thread-pool (:thread-pool @(:pool-atom (scheduler/pool scheduler)))]
+                          ^ScheduledThreadPoolExecutor thread-pool (:thread-pool @(:pool-atom (:pool scheduler)))]
                       (is (= 2 (.getCorePoolSize thread-pool)))))))

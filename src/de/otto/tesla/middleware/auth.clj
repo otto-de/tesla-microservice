@@ -8,7 +8,7 @@
                   (re-find #"^Basic (.*)$")
                   (last))))
 
-(defn wrap-auth [authenticate-type authenticate-fn config handler-fn ]
+(defn wrap-auth [authenticate-type authenticate-fn config handler-fn]
   (fn [request]
     (cond (nil? authenticate-fn) handler-fn
           (not= :keycloak authenticate-type) (#(ba/wrap-basic-authentication handler-fn (partial authenticate-fn config)))

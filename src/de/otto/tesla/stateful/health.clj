@@ -5,11 +5,11 @@
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.goo.goo :as goo]))
 
-;; http response for a healthy system
+
 (def healthy-response {:status  200
                        :headers {"Content-Type" "text/plain"}
                        :body    "HEALTHY"})
-;; http response for an unhealthy system
+
 (def unhealthy-response {:status  423
                          :headers {"Content-Type" "text/plain"}
                          :body    "UNHEALTHY"})
@@ -21,14 +21,13 @@
 
 (defn path-filter [self handler]
   (let [health-path (get-in self [:config :config :health-url] "/health")]
-    (c/GET health-path request (handler request)))
-  )
+    (c/GET health-path request (handler request))))
 
 (defn make-handler
   [self]
   (->> (partial health-response self)
-      goo/timing-middleware
-      (path-filter self)))
+       goo/timing-middleware
+       (path-filter self)))
 
 (defn lock-application [self]
   (goo/update! :health/locked 0)

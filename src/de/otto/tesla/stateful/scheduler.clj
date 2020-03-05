@@ -34,9 +34,6 @@
                :poolInfo      (pool-details pool)
                :scheduledJobs (into {} (map job-details (ot/scheduled-jobs pool)))}})
 
-(defprotocol SchedulerPool
-  (pool [self]))
-
 (defrecord Scheduler [config app-status]
   c/Lifecycle
   (start [self]
@@ -49,11 +46,7 @@
     (log/info "<- Stop Scheduler")
     (when-let [pool (:pool self)]
       (ot/stop-and-reset-pool! pool))
-    self)
-
-  SchedulerPool
-  (pool [self]
-    (:pool self)))
+    self))
 
 (defn new-scheduler []
   (map->Scheduler {}))

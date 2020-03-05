@@ -113,5 +113,5 @@
     (u/with-started [started (system/base-system {})]
                     (let [work-done (atom :no-work-done)
                           {:keys [scheduler]} started]
-                      (at/after 0 #(reset! work-done :work-done!) (scheduler/pool scheduler))
+                      (at/after 0 #(reset! work-done :work-done!) (:pool scheduler))
                       (eventually (= :work-done! @work-done))))))

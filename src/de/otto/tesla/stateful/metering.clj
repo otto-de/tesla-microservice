@@ -15,7 +15,7 @@
 (defn start-console-reporter [console-config scheduler]
   (let [interval-in-ms (* 1000 (:interval-in-s console-config))]
     (log/info "Starting metrics console reporter")
-    (at/every interval-in-ms write-to-console (sched/pool scheduler) :desc "Console-Reporter")))
+    (at/every interval-in-ms write-to-console (:pool scheduler) :desc "Console-Reporter")))
 
 (defn metrics-response [_]
   (fn [_request] {:status  200
