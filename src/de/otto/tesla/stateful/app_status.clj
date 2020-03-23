@@ -1,4 +1,6 @@
 (ns de.otto.tesla.stateful.app-status
+  "This component renders a status page consisting of instance- and configuration-info
+   as well as dynamic status of other components"
   (:require [com.stuartsierra.component :as component]
             [compojure.core :as c]
             [clojure.data.json :as json :only [write-str]]

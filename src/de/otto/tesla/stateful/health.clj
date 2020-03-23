@@ -1,10 +1,10 @@
 (ns de.otto.tesla.stateful.health
+  "This component provides a health-check endpoint which can be used to orchestrate app shutdown with load balancers."
   (:require [com.stuartsierra.component :as component]
             [compojure.core :as c]
             [clojure.tools.logging :as log]
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.goo.goo :as goo]))
-
 
 (def healthy-response {:status  200
                        :headers {"Content-Type" "text/plain"}

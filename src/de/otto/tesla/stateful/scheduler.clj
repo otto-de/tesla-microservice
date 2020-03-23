@@ -1,4 +1,5 @@
 (ns de.otto.tesla.stateful.scheduler
+  "This components maintains a thread pool which can be used to schedule activities."
   (:require [com.stuartsierra.component :as c]
             [clojure.tools.logging :as log]
             [overtone.at-at :as ot]

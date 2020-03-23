@@ -1,4 +1,5 @@
 (ns de.otto.tesla.stateful.metering
+  "This component handles exporting of (prometheus) metrics"
   (:require
     [com.stuartsierra.component :as component]
     [clojure.tools.logging :as log]

@@ -1,4 +1,5 @@
 (ns de.otto.tesla.middleware.auth
+  "This middleware handles authentication."
   (:require [ring.middleware.basic-authentication :as ba]))
 
 (defn req-wants-basic-auth [request]

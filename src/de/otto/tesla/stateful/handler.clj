@@ -1,4 +1,5 @@
 (ns de.otto.tesla.stateful.handler
+  "This component is responsible for collecting HTTP handlers in order to provide them to a server component."
   (:require [com.stuartsierra.component :as component]
             [de.otto.tesla.middleware.exceptions :as ex]
             [clojure.tools.logging :as log]
