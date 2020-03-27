@@ -10,7 +10,8 @@
             [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
-            [de.otto.tesla.stateful.handler :as handler])
+            [de.otto.tesla.stateful.handler :as handler]
+            [de.otto.tesla.stateful.auth :as auth])
   (:import (clojure.lang ExceptionInfo)))
 
 (defn wait! [system]
@@ -58,12 +59,13 @@
       (reset! (beckon/signal-atom sig) #{(partial stop started)}))
     started))
 
-(defn base-system [runtime-config]
+(defn base-system [runtime-config & [auth-mw]]
   (c/system-map
     :keep-alive (keep-alive/new-keep-alive)
     :config (c/using (configuring/new-config runtime-config) [:keep-alive])
     :handler (c/using (handler/new-handler) [:config])
-    :metering (c/using (metering/new-metering) [:config :handler :scheduler])
+    :metering (c/using (metering/new-metering) [:config :handler :scheduler :auth-mw])
     :health (c/using (health/new-health) [:config :handler])
-    :app-status (c/using (app-status/new-app-status) [:config :handler])
-    :scheduler (c/using (scheduler/new-scheduler) [:config :app-status])))
+    :app-status (c/using (app-status/new-app-status) [:config :handler :auth-mw])
+    :scheduler (c/using (scheduler/new-scheduler) [:config :app-status])
+    :auth-mw (c/using (auth/new-auth-middleware auth-mw) [:config])))

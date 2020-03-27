@@ -14,7 +14,7 @@
             [de.otto.tesla.util.sanitize :as san]
             [de.otto.tesla.stateful.configuring :as configuring]
             [de.otto.goo.goo :as goo]
-            [de.otto.tesla.middleware.auth :as auth]))
+            [de.otto.tesla.stateful.auth :as auth]))
 
 (defn keyword-to-status [kw]
   (str/upper-case (name kw)))
@@ -36,13 +36,13 @@
     s/strict-strategy))
 
 (defn create-complete-status [self]
-  (let [config (get-in self [:config :config])
-        version-info (get-in self [:config :version])
+  (let [config             (get-in self [:config :config])
+        version-info       (get-in self [:config :version])
         aggregate-strategy (:status-aggregation self)
-        extra-info {:name          (:name config)
-                    :version       (:version version-info)
-                    :git           (:commit version-info)
-                    :configuration (san/hide-passwds config)}]
+        extra-info         {:name          (:name config)
+                            :version       (:version version-info)
+                            :git           (:commit version-info)
+                            :configuration (san/hide-passwds config)}]
     (assoc
       (s/aggregate-status :application
                           aggregate-strategy
@@ -70,13 +70,14 @@
   (let [status-path (get-in self [:config :config :status-url] "/status")]
     (c/GET status-path request (handler request))))
 
-(defn mk-handler [authenticate-type authenticate-fn self]
-  ((->> (partial status-response self)
-        (goo/timing-middleware)
-        (auth/wrap-auth authenticate-type authenticate-fn (get-in self [:config :config]))
-        (partial path-filter self))))
+(defn mk-handler [{:keys [auth-mw] :as self}]
+  (let [auth-mw (:auth-mw auth-mw)]
+    ((->> (partial status-response self)
+          (goo/timing-middleware)
+          (auth-mw)
+          (partial path-filter self)))))
 
-(defrecord ApplicationStatus [config handler authenticate-type authenticate-fn]
+(defrecord ApplicationStatus [config handler auth-mw]
   component/Lifecycle
   (start [self]
     (log/info "-> starting Application Status")
@@ -84,7 +85,7 @@
                      :status-aggregation (aggregation-strategy (:config config))
                      :status-functions (atom []))]
 
-      (handlers/register-handler handler (mk-handler authenticate-type authenticate-fn new-self))
+      (handlers/register-handler handler (mk-handler new-self))
       (goo/register-gauge! :build/info {:labels [:version :revision] :description "Constant '1' value labeled by version and revision of the service."})
       (goo/inc! :build/info {:version (-> config :version :version) :revision (-> config :version :commit)})
       new-self))
@@ -95,9 +96,4 @@
 
 (defn new-app-status
   ([]
-   (map->ApplicationStatus {}))
-  ([authenticate-fn]
-   (map->ApplicationStatus {:authenticate-fn authenticate-fn}))
-  ([authenticate-type authenticate-fn]
-   (map->ApplicationStatus {:authenticate-type authenticate-type
-                            :authenticate-fn authenticate-fn})))
+   (map->ApplicationStatus {})))

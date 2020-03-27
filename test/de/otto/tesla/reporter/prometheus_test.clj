@@ -5,7 +5,8 @@
             [clojure.data.codec.base64 :as b64]
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.stateful.handler :as handler]
-            [ring.mock.request :as mock]))
+            [ring.mock.request :as mock]
+            [ring.middleware.basic-authentication :as ba]))
 
 (defn- to-base64 [original]
   (String. ^bytes (b64/encode (.getBytes original)) "UTF-8"))
@@ -13,13 +14,12 @@
 (defn- auth-header [request user password]
   (mock/header request "authorization" (str "Basic " (to-base64 (str user ":" password)))))
 
-(defn system [runtime-config auth-fn]
-  (-> (system/base-system runtime-config)
-      (assoc :metering (c/using (metering/new-metering auth-fn) [:config :handler]))
+(defn system [runtime-config auth-middleware]
+  (-> (system/base-system runtime-config auth-middleware)
       (dissoc :server)))
 
-(defn- handlers [runtime-config & [auth-fn]]
-  (let [system         (system runtime-config auth-fn)
+(defn- handlers [runtime-config & [auth-middleware]]
+  (let [system         (system runtime-config auth-middleware)
         started-system (c/start-system system)]
     (handler/handler (:handler started-system))))
 
@@ -30,11 +30,13 @@
       :status))
 
 (deftest authentication
-  (let [config         {:metrics {:prometheus {:metrics-path "/metrics"}}}
-        auth-fn        (fn [{:keys [metrics]} usr pw]
-                         (and
-                           (= "some-user" usr) (= "some-password" pw)))
-        system-handler (handlers config auth-fn)]
+  (let [config          {:metrics {:prometheus {:metrics-path "/metrics"}}}
+        auth-fun        (fn [usr pw]
+                          (and
+                            (= "some-user" usr) (= "some-password" pw)))
+        auth-middleware (fn [config_ handler]
+                          (ba/wrap-basic-authentication handler auth-fun))
+        system-handler  (handlers config auth-middleware)]
     (testing "it should allow access if authentication succeeds"
       (is (= 200 (rc-metrics-request system-handler "some-user" "some-password"))))
     (testing "it should deny access if authentication fails"

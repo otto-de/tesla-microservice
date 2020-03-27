@@ -10,11 +10,12 @@
             [de.otto.tesla.stateful.handler :as handler]
             [ring.mock.request :as mock]
             [de.otto.status :as s]
-            [de.otto.goo.goo :as goo]))
+            [de.otto.goo.goo :as goo]
+            [ring.middleware.basic-authentication :as ba]))
 
-(defn- serverless-system [runtime-config]
+(defn- serverless-system [runtime-config & [auth-middleware]]
   (dissoc
-    (system/base-system runtime-config)
+    (system/base-system runtime-config auth-middleware)
     :server))
 
 (deftest ^:unit should-have-system-status-for-runtime-config
@@ -35,8 +36,8 @@
                         (is (= (:port system-status) "1234"))
                         (is (not (nil? (:systemTime system-status)))))))
     (testing "should add host and port from env to app-status in edn-file case"
-      (u/with-started [system (serverless-system {})]
-                      (let [status (:app-status system)
+      (u/with-started [system (serverless-system {} nil)]
+                      (let [status        (:app-status system)
                             system-status (:system (app-status/status-response-body status))]
                         (is (= (:hostname system-status) "foo"))
                         (is (= (:port system-status) "9991"))
@@ -134,10 +135,11 @@
       (is (= (app-status/aggregation-strategy config) s/strict-strategy)))))
 
 (defn start-authenticated-system [user password]
-  (let [config {}
-        auth-fn (fn [_config usr pw] (and (= user usr) (= password pw)))
-        system (assoc (serverless-system config) :app-status (c/using (app-status/new-app-status auth-fn) [:config :handler]))
-        started-system (c/start-system system)]
+  (let [config          {}
+        auth-fn         (fn [usr pw] (and (= user usr) (= password pw)))
+        auth-middleware (fn [_config handler] (ba/wrap-basic-authentication handler auth-fn))
+        system          (serverless-system config auth-middleware)
+        started-system  (c/start-system system)]
     (handler/handler (:handler started-system))))
 
 (deftest authentication
