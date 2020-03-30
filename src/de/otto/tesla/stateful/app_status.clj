@@ -70,14 +70,13 @@
   (let [status-path (get-in self [:config :config :status-url] "/status")]
     (c/GET status-path request (handler request))))
 
-(defn mk-handler [{:keys [auth-mw] :as self}]
-  (let [auth-mw (:auth-mw auth-mw)]
-    ((->> (partial status-response self)
-          (goo/timing-middleware)
-          (auth-mw)
-          (partial path-filter self)))))
+(defn mk-handler [{:keys [auth] :as self}]
+  ((->> (partial status-response self)
+        (goo/timing-middleware)
+        (auth/wrap-auth auth)
+        (partial path-filter self))))
 
-(defrecord ApplicationStatus [config handler auth-mw]
+(defrecord ApplicationStatus [config handler auth]
   component/Lifecycle
   (start [self]
     (log/info "-> starting Application Status")

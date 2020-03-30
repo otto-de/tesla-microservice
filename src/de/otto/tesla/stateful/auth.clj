@@ -8,7 +8,10 @@
   (fn [request]
     (handler-fn request)))
 
-(defrecord AuthMiddleware [config auth-mw]
+(defn wrap-auth [self handler-fn]
+  ((:auth-mw self) handler-fn))
+
+(defrecord Auth [config auth-mw]
   component/Lifecycle
   (start [self]
     (log/info "-> starting AuthMiddleware")
@@ -19,6 +22,6 @@
     (log/info "<- stopping AuthMiddleware")
     self))
 
-(defn new-auth-middleware
+(defn new-auth
   ([auth-mw]
-   (map->AuthMiddleware {:auth-mw auth-mw})))
+   (map->Auth {:auth-mw auth-mw})))
