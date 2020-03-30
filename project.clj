@@ -1,4 +1,4 @@
-(defproject de.otto/tesla-microservice "0.14.1"
+(defproject de.otto/tesla-microservice "0.15.0"
   :description "basic microservice."
   :url "https://github.com/otto-de/tesla-microservice"
   :license {:name "Apache License 2.0"
