@@ -27,7 +27,7 @@
 
 (defn register-metrics-endpoint [{metrics-path :metrics-path} {:keys [handler auth]}]
   (log/info "Register metrics prometheus endpoint")
-  (handlers/register-handler handler ((->> metrics-response
+  (handlers/register-handler handler ((->> (metrics-response handler)
                                            (goo/timing-middleware)
                                            (auth/wrap-auth auth)
                                            (partial path-filter metrics-path)))))
