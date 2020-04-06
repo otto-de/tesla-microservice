@@ -4,7 +4,7 @@ _tesla-microservice_ is used for a number of different services now. Still it is
 
 ### 0.15.0
 Changed securing of internal endpoints. Moved from providing separate auth-functions
-to components app-status and metering to an auth-middleware provided to the base-system 
+to components app-status and metering to an auth-middleware provided to the base-system, 
 see [Securing internal info endpoints](https://github.com/otto-de/tesla-microservice#securing-internal-info-endpoints)
 
 ### 0.14.0
