@@ -34,7 +34,7 @@
         auth-fun        (fn [usr pw]
                           (and
                             (= "some-user" usr) (= "some-password" pw)))
-        auth-middleware (fn [config_ handler]
+        auth-middleware (fn [_config handler]
                           (ba/wrap-basic-authentication handler auth-fun))
         system-handler  (handlers config auth-middleware)]
     (testing "it should allow access if authentication succeeds"
