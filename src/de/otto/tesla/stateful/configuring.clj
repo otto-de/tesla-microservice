@@ -36,6 +36,7 @@
 
 (defn- load-edn [name type]
   (when-let [resource (resolve-file name type)]
+    (log/debugf "Reading %s" name)
     (-> resource
         (io/reader)
         (PushbackReader.)
