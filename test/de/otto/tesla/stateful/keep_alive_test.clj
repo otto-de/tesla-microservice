@@ -1,9 +1,8 @@
 (ns de.otto.tesla.stateful.keep-alive-test
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest testing is]]
     [de.otto.tesla.stateful.keep-alive :as kalive]
-    [de.otto.tesla.util.test-utils :refer [eventually]]
-    [de.otto.tesla.util.test-utils :as u]
+    [de.otto.tesla.util.test-utils :refer [eventually with-started]]
     [clojure.tools.logging :as log]))
 
 (deftest starting-and-stopping-the-keepalive-component
@@ -16,7 +15,6 @@
                                              (log/info "EXIT test keepalive")
                                              (reset! state :exited))]
         (is (= :not-started @state))
-        (u/with-started [_ (kalive/new-keep-alive)]
-                        (Thread/sleep 100)                  ;stay in started state for some time
-                        (is (= :entered @state)))
+        (with-started [_ (kalive/new-keep-alive)]
+          (eventually (= :entered @state)))
         (eventually (= :exited @state))))))
