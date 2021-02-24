@@ -35,6 +35,39 @@
                :poolInfo      (pool-details pool)
                :scheduledJobs (into {} (map job-details (ot/scheduled-jobs pool)))}})
 
+(defn exception-to-log [desc f]
+  (try (f)
+       (catch Exception e
+         (log/error e (str "Exception during scheduled job: " desc)))))
+
+(defn every
+  "Calls fun every ms-period, and takes an optional initial-delay for
+  the first call in ms.  Returns a scheduled-fn which may be cancelled
+  with cancel. All exceptions are catched and logged.
+
+  Default options are
+  {:initial-delay 0 :desc \"\"}"
+
+  [{:keys [pool]} ms-period fun & {:keys [initial-delay desc]
+                                   :or   {initial-delay 0
+                                          desc          ""}}]
+  (ot/every ms-period (partial exception-to-log desc fun) pool :initial-delay initial-delay :desc desc))
+
+(defn interspaced
+  "Calls fun repeatedly with an interspacing of ms-period, i.e. the next
+   call of fun will happen ms-period milliseconds after the completion
+   of the previous call. Also takes an optional initial-delay for the
+   first call in ms. Returns a scheduled-fn which may be cancelled with
+   cancel. All exceptions are catched and logged.
+
+   Default options are
+   {:initial-delay 0 :desc \"\"}"
+  [{:keys [pool]} ms-period fun & {:keys [initial-delay desc]
+                                                         :or   {initial-delay 0
+                                                                desc          ""}}]
+  (ot/interspaced ms-period (partial exception-to-log desc fun) pool :initial-delay initial-delay :desc desc))
+
+
 (defrecord Scheduler [config app-status]
   c/Lifecycle
   (start [self]
