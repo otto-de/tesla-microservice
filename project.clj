@@ -11,7 +11,6 @@
                  [org.clojure/tools.logging "1.1.0"]
                  [de.otto/status "0.1.3"]
                  [de.otto/goo "1.2.12"]
-                 [beckon "0.1.1"]
                  [clj-time "0.15.2"]
                  [clojurewerkz/propertied "1.3.0"]
                  [com.stuartsierra/component "1.0.0"]

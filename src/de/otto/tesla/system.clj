@@ -7,7 +7,6 @@
             [de.otto.tesla.stateful.metering :as metering]
             [de.otto.tesla.stateful.keep-alive :as keep-alive]
             [de.otto.tesla.stateful.scheduler :as scheduler]
-            [beckon :as beckon]
             [clojure.tools.logging :as log]
             [environ.core :as env :only [env]]
             [de.otto.tesla.stateful.handler :as handler]
@@ -34,7 +33,8 @@
       (exit 1))))
 
 (defn stop [system]
-  (beckon/reinit-all!)
+  (when-let [sdt (:sdt system)]
+    (.removeShutdownHook (Runtime/getRuntime)  sdt))
   (when-let [health (:health system)]
     (log/info "<- System will be stopped. Setting lock.")
     (health/lock-application health)
@@ -55,9 +55,13 @@
     (log/info "-> System completely started.")
     (goo/register-counter! :system-startups {:description "Counts startups."})
     (goo/inc! :system-startups)
-    (doseq [sig ["INT" "TERM"]]
-      (reset! (beckon/signal-atom sig) #{(partial stop started)}))
-    started))
+    (if (map? started)
+      (let [sdt (Thread. ^Runnable (partial stop started))]
+        (.addShutdownHook (Runtime/getRuntime) sdt)
+        (assoc started :sdt sdt))
+      started)))
+
+(map? [])
 
 (defn base-system [runtime-config & [auth-mw]]
   (c/system-map
