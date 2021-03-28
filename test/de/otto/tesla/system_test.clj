@@ -1,15 +1,13 @@
 (ns de.otto.tesla.system-test
   (:require [clojure.test :refer :all]
             [com.stuartsierra.component :as c]
-            [de.otto.tesla.util.test-utils :as u]
+            [de.otto.tesla.util.test-utils :as u :refer [eventually]]
             [de.otto.tesla.system :as system]
             [ring.mock.request :as mock]
             [de.otto.tesla.stateful.handler :as handler]
             [de.otto.tesla.stateful.configuring :as configuring]
             [environ.core :as env]
-            [de.otto.tesla.util.test-utils :refer [eventually]]
-            [overtone.at-at :as at]
-            [de.otto.tesla.stateful.scheduler :as scheduler]))
+            [overtone.at-at :as at]))
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
   (testing "start then shutdown using own method"
@@ -21,7 +19,7 @@
 
 (defrecord BombOnStartup []
   c/Lifecycle
-  (start [self]
+  (start [_self]
     (throw (Exception. "boom!")))
   (stop [self]
     self))
@@ -38,9 +36,9 @@
 
 (defrecord BombEverytime []
   c/Lifecycle
-  (start [self]
+  (start [_self]
     (throw (Exception. "boom!")))
-  (stop [self]
+  (stop [_self]
     (throw (Exception. "boom!"))))
 
 (defn new-bomb-on-everytime []
@@ -57,13 +55,13 @@
   c/Lifecycle
   (start [self]
     self)
-  (stop [self]
+  (stop [_self]
     (throw (Exception. "boom!"))))
 
 (defn new-bomb-on-shutdown []
   (map->BombOnShutdown {}))
 
-(deftest ^:unit should-shutdown-on-error-while-starting
+(deftest ^:unit should-shutdown-on-error-while-stopping
   (let [exploding-system-on-stop (assoc (system/base-system {}) :bomb (c/using (new-bomb-on-shutdown) [:health]))
         system-exit-calls (atom [])]
     (with-redefs [system/exit #(swap! system-exit-calls conj %)]

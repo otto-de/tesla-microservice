@@ -15,7 +15,7 @@
   (:import (clojure.lang ExceptionInfo)))
 
 (defn wait! [system]
-  (if-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
+  (when-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
     (try
       (log/info "<- Waiting " wait-time " milliseconds.")
       (Thread/sleep (Integer. wait-time))
