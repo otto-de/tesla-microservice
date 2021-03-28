@@ -7,7 +7,7 @@
         :url  "https://github.com/otto-de/tesla-microservice"}
   :repositories [["releases" {:url   "https://repo.clojars.org"
                               :creds :gpg}]]
-  :dependencies [[org.clojure/data.json "1.0.0"]
+  :dependencies [[org.clojure/data.json "2.0.2"]
                  [org.clojure/tools.logging "1.1.0"]
                  [de.otto/status "0.1.3"]
                  [de.otto/goo "1.2.12"]
@@ -18,8 +18,8 @@
                  [compojure "1.6.2"]
                  [environ "1.2.0"]
                  [overtone/at-at "1.2.0"]
-                 [ring/ring-core "1.8.2"]
-                 [ring/ring-devel "1.8.2"]
+                 [ring/ring-core "1.9.2"]
+                 [ring/ring-devel "1.9.2"]
                  [ring-basic-authentication "1.1.0"]]
 
   :exclusions [org.clojure/clojure
@@ -36,7 +36,7 @@
                    :unit        :unit
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
-             :dev     {:dependencies [[org.clojure/clojure "1.10.1"]
+             :dev     {:dependencies [[org.clojure/clojure "1.10.3"]
                                       [org.slf4j/slf4j-api "1.7.30"]
                                       [ch.qos.logback/logback-core "1.2.3"]
                                       [ch.qos.logback/logback-classic "1.2.3"]
