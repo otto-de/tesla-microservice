@@ -6,7 +6,7 @@
             [clojure.data.json :as json :only [write-str]]
             [clojure.tools.logging :as log]
             [clojure.string :as str]
-            [clj-time.local :as local-time]
+            [java-time.api :as jt]
             [environ.core :as env]
             [de.otto.tesla.stateful.handler :as handlers]
             [de.otto.status :as s]
@@ -26,7 +26,7 @@
              details)))
 
 (defn system-infos [config]
-  {:systemTime (local-time/format-local-time (local-time/local-now) :date-time-no-ms)
+  {:systemTime (jt/format :iso-date (jt/local-date-time))
    :hostname   (configuring/external-hostname config)
    :port       (configuring/external-port config)})
 

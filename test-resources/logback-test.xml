@@ -7,7 +7,7 @@
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <append>true</append>
         <encoder>
-            <pattern>%d{HH:mm:ss,SSS} %-5p %c{5} %t "%m"%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5p %c{5} %t "%m"%n</pattern>
         </encoder>
     </appender>
 
