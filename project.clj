@@ -11,10 +11,10 @@
                  [org.clojure/tools.logging "1.2.4"]
                  [de.otto/status "0.1.3"]
                  [de.otto/goo "1.2.12"]
-                 [clojure.java-time "1.1.0"]
+                 [clojure.java-time "1.2.0"]
                  [clojurewerkz/propertied "1.3.0"]
                  [com.stuartsierra/component "1.1.0"]
-                 [compojure "1.6.3"]
+                 [compojure "1.7.0"]
                  [environ "1.2.0"]
                  [overtone/at-at "1.2.0"]
                  [ring/ring-core "1.9.6"]
@@ -36,9 +36,9 @@
                    :all         (constantly true)}
   :profiles {:uberjar {:aot :all}
              :dev     {:dependencies [[org.clojure/clojure "1.11.1"]
-                                      [org.slf4j/slf4j-api "2.0.3"]
-                                      [ch.qos.logback/logback-core "1.4.4"]
-                                      [ch.qos.logback/logback-classic "1.4.4"]
+                                      [org.slf4j/slf4j-api "2.0.6"]
+                                      [ch.qos.logback/logback-core "1.4.5"]
+                                      [ch.qos.logback/logback-classic "1.4.5"]
                                       [ring-mock "0.1.5"]
                                       [org.clojure/data.codec "0.1.1"]]
                        :plugins      [[lein-release/lein-release "1.0.9"]]}}

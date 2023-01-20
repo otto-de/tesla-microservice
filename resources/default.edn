@@ -1,14 +1,16 @@
 {
- :status-url  "/status"
- :health-url  "/health"
+ :status-url    "/status"
+ :health-url    "/health"
 
  ; metering
  ; take a look at de.otto.tesla.stateful.metering
  ; for all available metrics reporters and their configs
- :metric      {:console {:interval-in-s 120}}
+ :metric        {:console {:interval-in-s 120}}
 
- :scheduler   {:cpu-count 0}
- :server-port "8080"
+ :scheduler     {:cpu-count 0}
+ :server-port   "8080"
+
+ :jetty-options {:send-server-version? false}
 
  ; use this if you need a grace-time during which
  ; the system reports unhealthy before shutting down.
