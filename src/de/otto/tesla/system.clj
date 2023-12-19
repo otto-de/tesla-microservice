@@ -17,7 +17,7 @@
   (when-let [wait-time (get-in system [:config :config :wait-ms-on-stop])]
     (try
       (log/info "<- Waiting " wait-time " milliseconds.")
-      (Thread/sleep (Integer. wait-time))
+      (Thread/sleep (Long/parseLong wait-time))
       (catch Exception e (log/error e)))))
 
 (defn- exit [code]
