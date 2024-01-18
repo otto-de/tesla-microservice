@@ -11,11 +11,11 @@
 
 (deftest ^:unit should-start-base-system-and-shut-it-down
   (testing "start then shutdown using own method"
-    (let [system-exit-calls (atom [])
+    (let [system-stop-calls (atom 0)
           started (system/start (system/base-system {}))]
-      (with-redefs [system/exit #(swap! system-exit-calls conj %)]
+      (with-redefs [c/stop-system (fn [_] (swap! system-stop-calls inc))]
         (system/stop started)
-        (is (= [0] @system-exit-calls))))))
+        (is (= 1 @system-stop-calls))))))
 
 (defrecord BombOnStartup []
   c/Lifecycle
@@ -29,10 +29,10 @@
 
 (deftest ^:unit should-shutdown-on-error-while-starting
   (let [exploding-system (assoc (system/base-system {}) :bomb (c/using (new-bomb-on-startup) [:health]))
-        system-exit-calls (atom [])]
-    (with-redefs [system/exit #(swap! system-exit-calls conj %)]
+        system-stop-calls (atom 0)]
+    (with-redefs [c/stop-system (fn [_] (swap! system-stop-calls inc))]
       (system/start exploding-system)
-      (is (= [1] @system-exit-calls)))))
+      (is (= 1 @system-stop-calls)))))
 
 (defrecord BombEverytime []
   c/Lifecycle
