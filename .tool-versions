@@ -1,0 +1,3 @@
+terraform 1.8.5
+awscli 2.16.10
+tfenv 0.4.0
