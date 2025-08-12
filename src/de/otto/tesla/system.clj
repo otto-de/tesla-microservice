@@ -50,10 +50,13 @@
 
 (defn start [system]
   (log/info "-> Starting system.")
-  (let [started (try-start system)]
+  (let [start-timestamp (System/currentTimeMillis)
+        started         (try-start system)]
     (log/info "-> System completely started.")
     (goo/register-counter! :system-startups {:description "Counts startups."})
+    (goo/register-counter! :system-startup-duration-seconds-total {:description "Measures the startup duration of the system."})
     (goo/inc! :system-startups)
+    (goo/inc! :system-startup-duration-seconds (/ (- (System/currentTimeMillis) start-timestamp) 1000))
     (if (map? started)
       (let [sdt (Thread. ^Runnable (partial stop started))]
         (.addShutdownHook (Runtime/getRuntime) sdt)
