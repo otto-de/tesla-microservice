@@ -54,7 +54,7 @@
         started         (try-start system)]
     (log/info "-> System completely started.")
     (goo/register-counter! :system-startups {:description "Counts startups."})
-    (goo/register-counter! :system-startup-duration-seconds-total {:description "Measures the startup duration of the system."})
+    (goo/register-counter! :system-startup-duration-seconds {:description "Measures the startup duration of the system."})
     (goo/inc! :system-startups)
     (goo/inc! :system-startup-duration-seconds (/ (- (System/currentTimeMillis) start-timestamp) 1000))
     (if (map? started)
